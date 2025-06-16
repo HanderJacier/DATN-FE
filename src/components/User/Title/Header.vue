@@ -1,8 +1,62 @@
 <template>
-  <header class="bg-primary text-white text-center p-3 rounded">
-    <h1 class="h5 mb-0">TechMartVN</h1>
+  <header class="bg-primary text-white py-2 px-4 d-flex align-items-center justify-content-between">
+    <!-- Logo -->
+    <div class="d-flex align-items-center">
+      <img src="/src/assets/img/logo.png" alt="Logo" height="32" class="me-2" />
+    </div>
+
+    <!-- Search + Menu wrapper -->
+    <div class="flex-grow-1 mx-4 w-10">
+      <!-- Search Bar -->
+      <div class="d-flex justify-content-center">
+        <div class="input-group mb-2 w-50">
+          <input type="text" class="form-control" placeholder="Tìm kiếm sản phẩm..." />
+          <button class="btn btn-light" type="button">
+            <i class="bi bi-search"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Menu Categories -->
+      <nav class="bg-primary">
+        <ul class="nav justify-content-center">
+          <li class="nav-item">
+            <a class="nav-link text-white" href="#">Iphone 16</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="#">Ipad</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="#">TV Samsung</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="#">Chuột logitech</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="#">Loa mini</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="#">Apple watch</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+
+
+    <!-- User + Cart -->
+    <div class="d-flex align-items-center gap-3">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-person-circle me-1"></i>
+        <span>Thuy Tien</span>
+        <i class="bi bi-caret-down-fill ms-1"></i>
+      </div>
+      <button class="btn btn-dark d-flex align-items-center">
+        <i class="bi bi-cart me-2"></i> Giỏ hàng
+      </button>
+    </div>
   </header>
 </template>
+
 
 <script>
 export default {
@@ -11,5 +65,7 @@ export default {
 </script>
 
 <style scoped>
-/* Nếu có custom style thì thêm vào đây */
+header {
+  font-size: 14px;
+}
 </style>
