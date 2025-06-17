@@ -117,7 +117,6 @@
                         <div>. Giảm ngay 4.000.000 áp dụng đến hết 30/7</div>
                     </div>
                 </div>
-
                 <div class="p-3 rounded-3 mt-3 border rounded p-3 mb-3 mt-4 " style="max-width: 550px;">
                     <!--Khuyến mãi và thanh toán-->
                     <div class="border rounded p-3 mb-3" style="max-width: 700px; background-color: #f5f5f5;">

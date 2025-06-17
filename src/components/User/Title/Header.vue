@@ -2,14 +2,14 @@
   <header class="bg-primary text-white py-2 px-4 d-flex align-items-center justify-content-between">
     <!-- Logo -->
     <div class="d-flex align-items-center">
-      <img src="/src/assets/img/logo.png" alt="Logo" height="32" class="me-2" />
+      <!-- <img src="" alt=" Logo" height="40" class="me-2" /> -->
+      <span class="text-white fw-bold fs-5">TechMartVN<small class="text-white-50">.com</small></span>
     </div>
-
     <!-- Search + Menu wrapper -->
     <div class="flex-grow-1 mx-4 w-10">
       <!-- Search Bar -->
       <div class="d-flex justify-content-center">
-        <div class="input-group mb-2 w-50">
+        <div class="input-group w-50">
           <input type="text" class="form-control" placeholder="Tìm kiếm sản phẩm..." />
           <button class="btn btn-light" type="button">
             <i class="bi bi-search"></i>
@@ -18,7 +18,7 @@
       </div>
 
       <!-- Menu Categories -->
-      <nav class="bg-primary">
+      <nav class="bg-primary ">
         <ul class="nav justify-content-center">
           <li class="nav-item">
             <a class="nav-link text-white" href="#">Iphone 16</a>
