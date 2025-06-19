@@ -1,84 +1,61 @@
-<!-- src/views/HomePage.vue -->
-<template>
-  <div class="container py-4">
-    <HeaderComponent />
+<!-- <template>
+  <div class="home">
+    <div class="banner">
+      <img src="/src/assets/z6718998489705_e8df8b9ee36aab7076f0bf51d2c9c5ae.jpg" alt="Banner" />
+    </div>
 
-    <!-- Danh mục sản phẩm -->
-    <div class="row text-center my-4">
-      <div class="col-6 col-md-3 col-lg-1 mb-3" v-for="i in 8" :key="i">
-        <div class="card h-100">
-          <div class="card-body">
-            <p class="card-text">Danh mục {{ i }}</p>
-          </div>
-        </div>
+    <div class="categories">
+      <div class="category" v-for="item in categories" :key="item.name">
+        <img :src="item.image" :alt="item.name" />
+        <p>{{ item.name }}</p>
       </div>
     </div>
-
-    <!-- Flash Sale -->
-    <div class="bg-danger bg-opacity-10 p-4 rounded">
-      <h3 class="h5 fw-bold mb-3">FLASH SALE</h3>
-      <div class="row">
-        <div class="col-md-6 col-lg-3 mb-3" v-for="i in 4" :key="i">
-          <div class="card h-100">
-            <div class="card-body">
-              <p class="fw-bold">Sản phẩm {{ i }}</p>
-              <p class="text-danger">Giá: xxx.000₫</p>
-              <button class="btn btn-primary mt-2">Mua ngay</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Sản phẩm nổi bật -->
-    <div class="my-4">
-      <h3 class="h5 fw-bold mb-3">SẢN PHẨM NỔI BẬT</h3>
-      <div class="row">
-        <div class="col-md-6 col-lg-3 mb-3" v-for="i in 4" :key="i">
-          <div class="card h-100">
-            <div class="card-body">
-              <p class="fw-bold">Nổi bật {{ i }}</p>
-              <button class="btn btn-primary mt-2">Xem ngay</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Combo / Ưu đãi -->
-    <div class="bg-warning bg-opacity-25 text-center p-4 rounded">
-      <h3 class="h6 fw-bold">Hè càng nóng - Giá càng hời</h3>
-      <p>Deal sốc - Giao nhanh</p>
-      <button class="btn btn-outline-primary mt-2">Khám phá ngay</button>
-    </div>
-
-    <!-- Ưu đãi thanh toán -->
-    <div class="bg-success bg-opacity-10 p-4 my-4 rounded">
-      <h3 class="h6 fw-bold">Ưu đãi thanh toán</h3>
-      <div class="row">
-        <div class="col-md-6 col-lg-3 mb-3" v-for="i in 4" :key="i">
-          <div class="card h-100">
-            <div class="card-body">
-              <p>Ưu đãi {{ i }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <FooterComponent />
   </div>
 </template>
 
-<script>
-import HeaderComponent from '../User/Title/Header.vue'
-import FooterComponent from '../User/Title/Footer.vue'
-
-export default {
-  name: 'HomePage',
-  components: {
-    HeaderComponent,
-    FooterComponent,
-  },
-}
+<script setup>
+const categories = [
+  { name: "Điện thoại", image: "@/assets/phone.png" },
+  { name: "Máy tính", image: "@/assets/laptop.png" },
+  { name: "Loa", image: "@/assets/speaker.png" },
+  { name: "Ipad", image: "@/assets/ipad.png" },
+  { name: "Đồng hồ", image: "@/assets/watch.png" },
+  { name: "Phụ kiện máy tính", image: "@/assets/pc.png" },
+  { name: "Tai nghe", image: "@/assets/headphone.png" },
+  { name: "TV", image: "@/assets/tv.png" },
+  { name: "Màn hình máy tính", image: "@/assets/monitor.png" },
+]
 </script>
+
+<style scoped>
+.home {
+  padding: 20px;
+  background: #f5f5f5;
+}
+
+.banner img {
+  width: 100%;
+  border-radius: 8px;
+}
+
+.categories {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.category {
+  background: white;
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.05);
+}
+
+.category img {
+  width: 70px;
+  height: auto;
+  margin-bottom: 8px;
+}
+</style> -->

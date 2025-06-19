@@ -1,14 +1,16 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../components/User/Home.vue'
 import Dashboard from '../components/Admin/Dashboard.vue'
-import ProductDetail from '../components/User/ProductDetail.vue'
-import UserDetail from '../components/User/UserDetail.vue'
+import Dangnhap from '../components/Admin/Dangnhap.vue'
+import DangnhapUser from '../components/User/DangnhapUser.vue'
+import DangkyUser from '../components/User/DangkyUser.vue'
 
 const routes = [
   { path: '/', component: Home },
-  { path: '/admin', component: Dashboard },
-  { path: '/productDetail', component: ProductDetail },
-  { path: '/userDetail', component: UserDetail }
+   { path: '/Dashboard', component: Dashboard },
+  { path: '/Danghap', component: Dangnhap },
+  { path: '/DangnhapUser', component: DangnhapUser },
+   { path: '/DangkyUser', component: DangkyUser },
 ]
 
 const router = createRouter({
@@ -17,3 +19,5 @@ const router = createRouter({
 })
 
 export default router
+
+  
