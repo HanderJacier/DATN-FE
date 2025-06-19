@@ -1,4 +1,4 @@
-<!-- <template>
+<template>
   <div class="home">
     <div class="banner">
       <img src="/src/assets/z6718998489705_e8df8b9ee36aab7076f0bf51d2c9c5ae.jpg" alt="Banner" />
@@ -58,4 +58,4 @@ const categories = [
   height: auto;
   margin-bottom: 8px;
 }
-</style> -->
+</style>
