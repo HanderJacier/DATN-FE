@@ -2,7 +2,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../components/User/Home.vue'
 import Dashboard from '../components/Admin/Dashboard.vue'
 
-
 const routes = [
   {
     path: '/',
