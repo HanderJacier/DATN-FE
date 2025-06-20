@@ -1,17 +1,34 @@
+
 <template>
-  <div id="app">
-    <div class="login-container">
-      <h1>Đăng nhập</h1>
-      <form @submit.prevent="handleLogin">
-        <input type="text" placeholder="Email/Số điện thoại" v-model="email" required />
-        <input type="password" :type="showPassword ? 'text' : 'password'" placeholder="Mật khẩu" v-model="password" required />
-        <div class="checkbox-container">
-          <input type="checkbox" v-model="showPassword" id="show-password" />
-          <label for="show-password">Hiện mật khẩu</label>
-        </div>
-        <button type="submit">Đăng nhập</button>
-      </form>
-    </div>
+  <div class="login-container">
+    <h2>Đăng nhập Admin</h2>
+    <form @submit.prevent="handleLogin">
+      <div class="form-group">
+        <label for="email">Email hoặc Tên đăng nhập</label>
+        <input
+          type="text"
+          id="email"
+          v-model="email"
+          placeholder="Nhập email hoặc tên đăng nhập"
+          required
+        />
+      </div>
+      <div class="form-group">
+        <label for="password">Mật khẩu</label>
+        <input
+          type="password"
+          id="password"
+          v-model="password"
+          placeholder="Nhập mật khẩu"
+          required
+        />
+      </div>
+      <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+      <button type="submit" class="btn btn-primary">Đăng nhập</button>
+    </form>
+    <p>
+      Chưa có tài khoản? <router-link to="/DangkyUser">Đăng ký</router-link>
+    </p>
   </div>
 </template>
 
@@ -21,82 +38,78 @@ export default {
     return {
       email: '',
       password: '',
-      showPassword: false,
+      errorMessage: '',
     };
   },
   methods: {
-    handleLogin() {
-      alert(`Đăng nhập với: ${this.email}`);
+    async handleLogin() {
+      try {
+        const response = await fetch('http://localhost:8080/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tenDangNhap: this.email,
+            matKhau: this.password,
+          }),
+          credentials: 'include',
+        });
+        const data = await response.json();
+        if (response.ok && data.message === 'Đăng nhập thành công') {
+          if (data.vaiTro === 'ADMIN') {
+            sessionStorage.setItem('vaiTro', data.vaiTro);
+            sessionStorage.setItem('hoVaTen', data.hoVaTen);
+            this.errorMessage = '';
+            this.$router.push('/dashboard');
+          } else {
+            this.errorMessage = 'Tài khoản không phải admin';
+          }
+        } else {
+          this.errorMessage = data.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.';
+        }
+      } catch (error) {
+        this.errorMessage = 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.';
+      }
     },
   },
 };
 </script>
 
-<style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background-color: #f0f0f0; /* Màu nền */
-}
-
-#app {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-
+<style scoped>
 .login-container {
-  background-color: white;
-   border: 0px solid ; /* Đường viền màu xanh */
-  border-radius: 8px; /* Bo góc */
+  max-width: 400px;
+  margin: 50px auto;
   padding: 20px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  width: 300px; /* Chiều rộng cố định */
-}
-
-.login-container h1 {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.login-container input {
-  width: 100%;
-  padding: 10px;
-  margin: 10px 0;
   border: 1px solid #ccc;
   border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
-
-.checkbox-container {
-  display: flex;
-  align-items: center;
-  margin: 10px 0;
+.form-group {
+  margin-bottom: 15px;
 }
-
-.checkbox-container input {
-  margin-left: 5px; /* Khoảng cách giữa checkbox và label */
-  
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
 }
-
-.checkbox-container label {
-  margin-left: -170px; /* Đặt lại khoảng cách */
-  font-size: 16px; /* Kích thước chữ */
-  line-height: 1.5; /* Căn chỉnh với checkbox */
-  display: block; /* Để label nằm ngang với checkbox */
+.form-group input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
-
-.login-container button {
+.error {
+  color: red;
+  margin-bottom: 10px;
+}
+.btn-primary {
   width: 100%;
   padding: 10px;
-  background-color: #007bff; /* Màu nút */
+  background-color: #007bff;
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 4px;
   cursor: pointer;
 }
-
-.login-container button:hover {
-  background-color: #0056b3; /* Màu khi hover */
+.btn-primary:hover {
+  background-color: #0056b3;
 }
 </style>

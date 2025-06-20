@@ -1,16 +1,42 @@
 import { createRouter, createWebHistory } from 'vue-router'
+
+// Import các component User
 import Home from '../components/User/Home.vue'
-import Dashboard from '../components/Admin/Dashboard.vue'
-import Dangnhap from '../components/Admin/Dangnhap.vue'
 import DangnhapUser from '../components/User/DangnhapUser.vue'
 import DangkyUser from '../components/User/DangkyUser.vue'
 
+
+// Import các component Admin
+import Dashboard from '../components/Admin/Dashboard.vue'
+import Dangnhap from '../components/Admin/Dangnhap.vue'
+
 const routes = [
-  { path: '/', component: Home },
-   { path: '/Dashboard', component: Dashboard },
-  { path: '/Danghap', component: Dangnhap },
-  { path: '/DangnhapUser', component: DangnhapUser },
-   { path: '/DangkyUser', component: DangkyUser },
+  {
+    path: '/',
+    name: 'Home',
+    component: Home
+  },
+  {
+    path: '/dangnhap-user',
+    name: 'DangnhapUser',
+    component: DangnhapUser
+  },
+  {
+    path: '/dangky-user',
+    name: 'DangkyUser',
+    component: DangkyUser
+  },
+  
+  {
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: Dashboard
+  },
+  {
+    path: '/dangnhap-admin',
+    name: 'DangnhapAdmin',
+    component: Dangnhap
+  }
 ]
 
 const router = createRouter({
@@ -19,5 +45,3 @@ const router = createRouter({
 })
 
 export default router
-
-  

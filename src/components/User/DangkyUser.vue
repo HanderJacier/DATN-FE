@@ -5,13 +5,14 @@
       <h1>Đăng ký</h1>
       <form @submit.prevent="handleRegister">
         <input type="text" placeholder="Họ và tên" v-model="fullName" required />
-        <input type="text" placeholder="Email/Số điện thoại" v-model="email" required />
+        <input type="text" placeholder="Email hoặc Số điện thoại" v-model="email" required />
         <input type="password" placeholder="Mật khẩu" v-model="password" required />
         <input type="password" placeholder="Nhập lại mật khẩu" v-model="confirmPassword" required />
+        <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
         <button type="submit">Đăng ký</button>
       </form>
       <div class="alternative-login">
-        <p>Bạn đã có tài khoản? <a href="#">Đăng nhập</a></p>
+        <p>Bạn đã có tài khoản? <router-link to="/DangNhapUser">Đăng nhập</router-link></p>
       </div>
     </div>
   </div>
@@ -25,12 +26,38 @@ export default {
       email: '',
       password: '',
       confirmPassword: '',
+      errorMessage: '',
     };
   },
   methods: {
-    handleRegister() {
-      // Xử lý đăng ký ở đây
-      alert(`Đăng ký với: ${this.fullName}, ${this.email}`);
+    async handleRegister() {
+      if (this.password !== this.confirmPassword) {
+        this.errorMessage = 'Mật khẩu không khớp';
+        return;
+      }
+      try {
+        const response = await fetch('http://localhost:8080/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tenDangNhap: this.email,
+            matKhau: this.password,
+            hoVaTen: this.fullName,
+            email: this.email.includes('@') ? this.email : null,
+            soDienThoai: !this.email.includes('@') ? this.email : null,
+          }),
+          credentials: 'include',
+        });
+        const data = await response.json();
+        if (response.ok && data.message === 'Đăng ký thành công') {
+          this.errorMessage = '';
+          this.$router.push('/DangNhapUser');
+        } else {
+          this.errorMessage = data.message || 'Đăng ký thất bại. Vui lòng thử lại.';
+        }
+      } catch (error) {
+        this.errorMessage = 'Đăng ký thất bại. Vui lòng thử lại.';
+      }
     },
   },
 };
@@ -40,7 +67,7 @@ export default {
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background-color: #f0f0f0; /* Màu nền */
+  background-color: #f0f0f0;
 }
 
 #app {
@@ -52,11 +79,11 @@ body {
 
 .register-container {
   background-color: white;
-  border: 0px solid ; /* Đường viền màu xanh */
-  border-radius: 8px; /* Bo góc */
+  border: 0px solid;
+  border-radius: 8px;
   padding: 20px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  width: 400px; /* Chiều rộng cố định */
+  width: 400px;
 }
 
 .register-container h1 {
@@ -75,7 +102,7 @@ body {
 .register-container button {
   width: 100%;
   padding: 10px;
-  background-color: #007bff; /* Màu nút */
+  background-color: #007bff;
   color: white;
   border: none;
   border-radius: 5px;
@@ -83,7 +110,7 @@ body {
 }
 
 .register-container button:hover {
-  background-color: #0056b3; /* Màu khi hover */
+  background-color: #0056b3;
 }
 
 .alternative-login {
@@ -93,5 +120,11 @@ body {
 
 .alternative-login p {
   margin: 10px 0;
+}
+
+.error {
+  color: red;
+  text-align: center;
+  margin-bottom: 10px;
 }
 </style>
