@@ -5,7 +5,6 @@ import Dangnhap from '../components/Admin/Dangnhap.vue'
 import DangnhapUser from '../components/User/DangnhapUser.vue'
 import DangkyUser from '../components/User/DangkyUser.vue'
 
-
 const routes = [
 <<<<<<< HEAD
   { path: '/', component: Home },
