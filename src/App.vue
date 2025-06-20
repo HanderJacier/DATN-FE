@@ -1,4 +1,22 @@
 <template>
+<<<<<<< HEAD
+  <router-view />
+  <Home />
+    <Header />
+</template>
+
+<script setup>
+import Home from './components/User/Home.vue'
+import Header from './components/User/Title/Header.vue'
+</script>
+  <Header />
+  
+
+
+
+
+
+=======
   <div>
     <HeaderComponent />
     <router-view />
@@ -18,3 +36,4 @@ export default {
   },
 }
 </script>
+>>>>>>> f9eeaec (giao diện trang chủ)
