@@ -1,10 +1,10 @@
 <!-- src/views/HomePage.vue -->
 <template>
-  <div class="container py-4">
+  <div class="container-fluid px-0">
     <HeaderComponent />
 
     <!-- Danh mục sản phẩm -->
-    <div class="row text-center my-4">
+    <div class="row text-center my-4 justify-content-center">
       <div class="col-6 col-md-3 col-lg-1 mb-3" v-for="i in 8" :key="i">
         <div class="card h-100">
           <div class="card-body">
@@ -21,9 +21,12 @@
         <div class="col-md-6 col-lg-3 mb-3" v-for="i in 4" :key="i">
           <div class="card h-100">
             <div class="card-body">
-              <p class="fw-bold">Sản phẩm {{ i }}</p>
-              <p class="text-danger">Giá: xxx.000₫</p>
-              <button class="btn btn-primary mt-2">Mua ngay</button>
+              <RouterLink to="/ProductDetail" class="dropdown-item text-decoration-none">
+                <p class="fw-bold">Sản phẩm {{ i }}</p>
+                <p class="text-danger">Giá: xxx.000₫</p>
+                <button class="btn btn-primary mt-2">Mua ngay</button>
+              </RouterLink>
+
             </div>
           </div>
         </div>

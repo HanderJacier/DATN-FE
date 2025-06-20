@@ -4,10 +4,10 @@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb p-2" style="background-color: #eaf0fc;">
             <li class="breadcrumb-item">
-                <a href="/" class="text-primary">Trang chủ</a>
+                <RouterLink to="/"><a href="/" class="text-primary">Trang chủ</a></RouterLink>
             </li>
             <li class="breadcrumb-item">
-                <a href="/laptop" class="text-primary">Tài khoản</a>
+                <RouterLink to="/userDetail"><a href="/" class="text-primary">Tài khoản của tôi</a></RouterLink>
             </li>
             <li class="breadcrumb-item active text-muted" aria-current="page">Thông tin cá nhân</li>
         </ol>
@@ -118,6 +118,7 @@
 <script>
 import HeaderComponent from '../User/Title/Header.vue'
 import FooterComponent from '../User/Title/Footer.vue'
+import { RouterLink } from 'vue-router';
 
 export default {
     name: 'PersonalInfoPage',

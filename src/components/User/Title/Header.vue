@@ -47,7 +47,9 @@
             </button>
 
             <ul v-if="isDropdownOpen" class="dropdown-menu show">
-              <li><a class="dropdown-item" href="#"><i class="fas fa-user icon-black"></i> Tài khoản của tôi</a></li>
+              <RouterLink to="/UserDetail" class="dropdown-item text-decoration-none">
+                <i class="fas fa-user icon-black"></i> Tài khoản của tôi
+              </RouterLink>
               <li><a class="dropdown-item" href="#"><i class="fas fa-box icon-blue"></i> Đơn mua</a></li>
               <li><a class="dropdown-item" href="#"><i class="fas fa-heart icon-red"></i> Sản phẩm yêu thích</a></li>
               <li>
@@ -83,6 +85,8 @@
 
 
 <script>
+import { RouterLink } from 'vue-router';
+
 export default {
   name: "HeaderComponent",
   data() {
