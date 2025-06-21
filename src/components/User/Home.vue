@@ -4,10 +4,10 @@
 
     <div class="carousel-inner relative w-full overflow-hidden rounded-lg">
       <div class="carousel-item active">
-        <img src="/src/assets/banner1.jpg" class="block w-full h-48 object-cover" alt="Banner 1">
+        <img src="../assets/assets/banner1.jpg" class="block w-full h-48 object-cover" alt="Banner 1">
       </div>
       <div class="carousel-item">
-        <img src="/src/assets/banner3.png" class="block w-full h-48 object-cover" alt="Banner 2">
+        <img src="../assets/assets/banner3.png" class="block w-full h-48 object-cover" alt="Banner 2">
       </div>
     </div>
 
@@ -94,7 +94,7 @@
     <div class="summer-sale-wrapper">
       <!-- Banner bên trái -->
       <div class="summer-banner">
-        <img src="/src/image/Banner sale hè .png" alt="Summer Sale Banner" />
+        <img src="../assets/image/Banner sale hè .png" alt="Summer Sale Banner" />
       </div>
       <!-- Slider sản phẩm -->
       <div class="summer-slider-section">
@@ -160,84 +160,84 @@
 
 <script setup>
 const categories = [
-  { name: 'Smartphone', img: '/src/image/điện thoại.jpeg' },
-  { name: 'Laptop', img: '/src/image/laptop.png' },
-  { name: 'Loa', img: '/src/image/loa.webp' },
-  { name: 'Tai nghe', img: '/src/image/tai nghe.webp' },
-  { name: 'Ipad', img: '/src/image/ipad.jfif' },
-  { name: 'Màn hình máy tính', img: '/src/image/màn hình.webp' },
-  { name: 'Phụ kiện laptop', img: '/src/image/phụ kiện.webp' },
-  { name: 'Đồng hồ', img: '/src/image/đồng hồ.webp' },
-  { name: 'Tivi', img: '/src/image/tivi.jpeg' },
+  { name: 'Smartphone', img: '../assets/image/điện thoại.jpeg' },
+  { name: 'Laptop', img: '../assets/image/laptop.png' },
+  { name: 'Loa', img: '../assets/image/loa.webp' },
+  { name: 'Tai nghe', img: '../assets/image/tai nghe.webp' },
+  { name: 'Ipad', img: '../assets/image/ipad.jfif' },
+  { name: 'Màn hình máy tính', img: '../assets/image/màn hình.webp' },
+  { name: 'Phụ kiện laptop', img: '../assets/image/phụ kiện.webp' },
+  { name: 'Đồng hồ', img: '../assets/image/đồng hồ.webp' },
+  { name: 'Tivi', img: '../assets/image/tivi.jpeg' },
 ]
 
 const flashSale = [
-  { name: 'Hộp Đựng Du Lịch ASUS ROG Ally', oldPrice: '990.000', newPrice: '790.000', discount: 20, img: '/src/image/sale túi.png', sold: 130 },
-  { name: 'Loa Bluetooth Divoom Lovelock', oldPrice: '1.050.000', newPrice: '819.000', discount: 22, img: '/src/image/sale loa.png', sold: 99 },
-  { name: 'Samsung Smart TV QLED 55 inch 4K QA55Q60D', oldPrice: '15.900.000', newPrice: '13.900.000', discount: 12, img: '/src/image/sale tivi.png', sold: 1 },
-  { name: 'Galaxy Watch 6', oldPrice: '5.000.000', newPrice: '3.990.000', discount: 20, img: '/src/image/sale đồng hồ.png', sold: 30 },
+  { name: 'Hộp Đựng Du Lịch ASUS ROG Ally', oldPrice: '990.000', newPrice: '790.000', discount: 20, img: '../assets/image/sale túi.png', sold: 130 },
+  { name: 'Loa Bluetooth Divoom Lovelock', oldPrice: '1.050.000', newPrice: '819.000', discount: 22, img: '../assets/image/sale loa.png', sold: 99 },
+  { name: 'Samsung Smart TV QLED 55 inch 4K QA55Q60D', oldPrice: '15.900.000', newPrice: '13.900.000', discount: 12, img: '../assets/image/sale tivi.png', sold: 1 },
+  { name: 'Galaxy Watch 6', oldPrice: '5.000.000', newPrice: '3.990.000', discount: 20, img: '../assets/image/sale đồng hồ.png', sold: 30 },
 ]
 
 const hotProducts = [
   {
     name: 'Chuột không dây Logitech M275',
-    img: '/src/image/spchuot.png',
+    img: '../assets/image/spchuot.png',
     oldPrice: '499.000',
     newPrice: '439.000',
     discount: 12,
   },
   {
     name: 'iPhone 15 Plus 128GB/256GB/512GB',
-    img: '/src/image/spdt.png',
+    img: '../assets/image/spdt.png',
     oldPrice: '25.990.000',
     newPrice: '19.390.000',
     discount: 25,
   },
   {
     name: 'Laptop MSI Gaming Vector 16',
-    img: '/src/image/splaptop.png',
+    img: '../assets/image/splaptop.png',
     oldPrice: '54.900.000',
     newPrice: '50.990.000',
     discount: 7,
   },
   {
     name: 'iPad (A16) 11 inch WIFI 5G 512GB',
-    img: '/src/image/spipad.png',
+    img: '../assets/image/spipad.png',
     oldPrice: '21.990.000',
     newPrice: '20.690.000',
     discount: 6,
   },
   {
     name: 'Sharp Google TV 32 inch HD 2T-C32EG3X',
-    img: '/src/image/sptivi.png',
+    img: '../assets/image/sptivi.png',
     oldPrice: '5.390.000',
     newPrice: '4.990.000',
     discount: 24,
   },
   {
     name: 'Bàn phím Microfoft',
-    img: '/src/image/spbanphim.jpg',
+    img: '../assets/image/spbanphim.jpg',
     oldPrice: '5.390.000',
     newPrice: '4.990.000',
     discount: 24,
   },
   {
     name: 'Tai nghe',
-    img: '/src/image/sptainghe.jpg',
+    img: '../assets/image/sptainghe.jpg',
     oldPrice: '390.000',
     newPrice: '290.000',
     discount: 24,
   },
   {
     name: 'Sharp Google TV 32 inch HD 2T-C32EG3X',
-    img: '/src/image/sptv.jpeg',
+    img: '../assets/image/sptv.jpeg',
     oldPrice: '5.390.000',
     newPrice: '4.990.000',
     discount: 24,
   },
   {
     name: 'Sharp Google TV 32 inch HD 2T-C32EG3X',
-    img: '/src/image/sptivi.png',
+    img: '../assets/image/sptivi.png',
     oldPrice: '5.390.000',
     newPrice: '4.990.000',
     discount: 24,
@@ -280,49 +280,49 @@ const summerDeals = [
     oldPrice: '1.200.000',
     newPrice: '599.000',
     discount: 50,
-    img: '/src/image/loa hè.png'
+    img: '../assets/image/loa hè.png'
   },
   {
     name: 'Dây đeo Apple Watch 44mm - Hồng',
     oldPrice: '2.090.000',
     newPrice: '1.090.000',
     discount: 50,
-    img: '/src/image/đồng hồ hè.png'
+    img: '../assets/image/đồng hồ hè.png'
   },
   {
     name: 'Tai nghe Bluetooth nhét tai Remax PD-BT630',
     oldPrice: '1.090.000',
     newPrice: '590.000',
     discount: 50,
-    img: '/src/image/airpod.png'
+    img: '../assets/image/airpod.png'
   },
   {
     name: 'Tai nghe Bluetooth nhét tai Remax PD-BT630',
     oldPrice: '1.090.000',
     newPrice: '590.000',
     discount: 50,
-    img: '/src/image/chuột hè.webp'
+    img: '../assets/image/chuột hè.webp'
   },
   {
     name: 'Tai nghe Bluetooth nhét tai Remax PD-BT630',
     oldPrice: '1.090.000',
     newPrice: '590.000',
     discount: 50,
-    img: '/src/image/túi hè.jpg'
+    img: '../assets/image/túi hè.jpg'
   },
   {
     name: 'Tai nghe Bluetooth nhét tai Remax PD-BT630',
     oldPrice: '1.090.000',
     newPrice: '590.000',
     discount: 50,
-    img: '/src/image/túi hè.jpg'
+    img: '../assets/image/túi hè.jpg'
   },
   {
     name: 'Tai nghe Bluetooth nhét tai Remax PD-BT630',
     oldPrice: '1.090.000',
     newPrice: '590.000',
     discount: 50,
-    img: '/src/image/túi hè.jpg'
+    img: '../assets/image/túi hè.jpg'
   }
 ]
 
@@ -330,9 +330,9 @@ const summerDeals = [
 const promoCarousel = ref(null)
 
 const summerPromos = [
-  { img: '/src/image/sam nhanh1.png' },
-  { img: '/src/image/sam nhanh2.png' },
-  { img: '/src/image/sam nhanh3.png' }
+  { img: '../assets/image/sam nhanh1.png' },
+  { img: '../assets/image/sam nhanh2.png' },
+  { img: '../assets/image/sam nhanh3.png' }
 ]
 
 function scrollPromoLeft() {
@@ -349,11 +349,11 @@ function scrollPromoRight() {
 
 
 const paymentOffers = [
-  { img: '/src/image/pay1.png' },
-  { img: '/src/image/pay2.png' },
-  { img: '/src/image/pay3.png' },
-  { img: '/src/image/pay4.png' },
-  { img: '/src/image/pay5.png' }
+  { img: '../assets/image/pay1.png' },
+  { img: '../assets/image/pay2.png' },
+  { img: '../assets/image/pay3.png' },
+  { img: '../assets/image/pay4.png' },
+  { img: '../assets/image/pay5.png' }
 ]
 
 const paymentCarousel = ref(null)
@@ -373,22 +373,22 @@ function scrollPaymentRight() {
 
 const commitments = [
   {
-    icon: '/src/image/camket1.png',
+    icon: '../assets/image/camket1.png',
     title: 'Thương hiệu đảm bảo',
     desc: 'Nhập khẩu, bảo hành chính hãng'
   },
   {
-    icon: '/src/image/camket2.png',
+    icon: '../assets/image/camket2.png',
     title: 'Giao hàng tận nhà',
     desc: 'Tại 63 tỉnh thành'
   },
   {
-    icon: '/src/image/camket3.png',
+    icon: '../assets/image/camket3.png',
     title: 'Sản phẩm chất lượng',
     desc: 'Đảm bảo tương thích và độ bền cao'
   },
   {
-    icon: '/src/image/camket4.png',
+    icon: '../assets/image/camket4.png',
     title: 'Đổi trả dễ dàng',
     desc: 'Theo chính sách đổi trả tại FPT Shop'
   }
