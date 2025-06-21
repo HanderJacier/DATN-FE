@@ -1,115 +1,65 @@
-
 <template>
-  <div class="login-container">
-    <h2>Đăng nhập Admin</h2>
-    <form @submit.prevent="handleLogin">
-      <div class="form-group">
-        <label for="email">Email hoặc Tên đăng nhập</label>
-        <input
-          type="text"
-          id="email"
-          v-model="email"
-          placeholder="Nhập email hoặc tên đăng nhập"
-          required
-        />
-      </div>
-      <div class="form-group">
-        <label for="password">Mật khẩu</label>
-        <input
-          type="password"
-          id="password"
-          v-model="password"
-          placeholder="Nhập mật khẩu"
-          required
-        />
-      </div>
-      <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
-      <button type="submit" class="btn btn-primary">Đăng nhập</button>
-    </form>
-    <p>
-      Chưa có tài khoản? <router-link to="/DangkyUser">Đăng ký</router-link>
-    </p>
+  <div class="container d-flex justify-content-center align-items-center min-vh-100">
+    <div class="card shadow p-4" style="width: 100%; max-width: 400px;">
+      <h2 class="text-center mb-4 text-primary">Đăng nhập Admin</h2>
+      <form @submit.prevent="handleLogin">
+        <div class="mb-3">
+          <label for="email" class="form-label">Tên đăng nhập hoặc email</label>
+          <input type="text" id="email" class="form-control" v-model="email" required />
+        </div>
+        <div class="mb-3">
+          <label for="password" class="form-label">Mật khẩu</label>
+          <input
+            :type="showPassword ? 'text' : 'password'"
+            id="password"
+            class="form-control"
+            v-model="password"
+            required
+          />
+        </div>
+        <div class="form-check mb-3">
+          <input type="checkbox" class="form-check-input" v-model="showPassword" id="show-password" />
+          <label for="show-password" class="form-check-label">Hiện mật khẩu</label>
+        </div>
+        <div v-if="errorMessage" class="alert alert-danger text-center">{{ errorMessage }}</div>
+        <button type="submit" class="btn btn-primary w-100">Đăng nhập</button>
+      </form>
+    </div>
   </div>
 </template>
 
 <script>
+import apiClient from '/src/api.js';
 export default {
   data() {
     return {
       email: '',
       password: '',
-      errorMessage: '',
+      showPassword: false,
+      errorMessage: ''
     };
   },
   methods: {
     async handleLogin() {
       try {
-        const response = await fetch('http://localhost:8080/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            tenDangNhap: this.email,
-            matKhau: this.password,
-          }),
-          credentials: 'include',
+        const response = await apiClient.post('/xacthuc/dangnhap', {
+          tenDangNhap: this.email,
+          matKhau: this.password
         });
-        const data = await response.json();
-        if (response.ok && data.message === 'Đăng nhập thành công') {
-          if (data.vaiTro === 'ADMIN') {
-            sessionStorage.setItem('vaiTro', data.vaiTro);
-            sessionStorage.setItem('hoVaTen', data.hoVaTen);
-            this.errorMessage = '';
-            this.$router.push('/dashboard');
-          } else {
-            this.errorMessage = 'Tài khoản không phải admin';
-          }
+
+        const data = response.data;
+        if (data.vaiTro === 1) {
+          // Lưu tên nếu cần dùng sau
+          sessionStorage.setItem('hoVaTen', data.hoVaTen);
+          sessionStorage.setItem('vaiTro', data.vaiTro);
+          this.$router.push('/admin');
         } else {
-          this.errorMessage = data.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.';
+          this.errorMessage = 'Bạn không phải admin';
         }
-      } catch (error) {
-        this.errorMessage = 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.';
+      } catch (err) {
+        this.errorMessage = err.response?.data?.message || 'Lỗi đăng nhập.';
       }
-    },
-  },
+    }
+  }
 };
 </script>
-
-<style scoped>
-.login-container {
-  max-width: 400px;
-  margin: 50px auto;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-.form-group {
-  margin-bottom: 15px;
-}
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-}
-.form-group input {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-.error {
-  color: red;
-  margin-bottom: 10px;
-}
-.btn-primary {
-  width: 100%;
-  padding: 10px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.btn-primary:hover {
-  background-color: #0056b3;
-}
-</style>

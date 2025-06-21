@@ -1,24 +1,27 @@
-
 <template>
   <div id="app">
     <div class="register-container">
-      <h1>Đăng ký</h1>
+      <h1>Đăng ký người dùng</h1>
       <form @submit.prevent="handleRegister">
         <input type="text" placeholder="Họ và tên" v-model="fullName" required />
-        <input type="text" placeholder="Email hoặc Số điện thoại" v-model="email" required />
+        <input type="text" placeholder="Email/Số điện thoại" v-model="email" required />
         <input type="password" placeholder="Mật khẩu" v-model="password" required />
         <input type="password" placeholder="Nhập lại mật khẩu" v-model="confirmPassword" required />
-        <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+        <div v-if="errorMessage" class="error">{{ errorMessage }}</div>
         <button type="submit">Đăng ký</button>
       </form>
       <div class="alternative-login">
-        <p>Bạn đã có tài khoản? <router-link to="/DangNhapUser">Đăng nhập</router-link></p>
+        <p>Bạn đã có tài khoản? 
+          <router-link to="/DangNhapUser">Đăng nhập</router-link>
+        </p>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import apiClient from '/src/api.js';
+
 export default {
   data() {
     return {
@@ -26,7 +29,7 @@ export default {
       email: '',
       password: '',
       confirmPassword: '',
-      errorMessage: '',
+      errorMessage: ''
     };
   },
   methods: {
@@ -35,35 +38,30 @@ export default {
         this.errorMessage = 'Mật khẩu không khớp';
         return;
       }
+
       try {
-        const response = await fetch('http://localhost:8080/api/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            tenDangNhap: this.email,
-            matKhau: this.password,
-            hoVaTen: this.fullName,
-            email: this.email.includes('@') ? this.email : null,
-            soDienThoai: !this.email.includes('@') ? this.email : null,
-          }),
-          credentials: 'include',
+        const response = await apiClient.post('/xacthuc/dangky', {
+          tenDangNhap: this.email,
+          matKhau: this.password,
+          hoVaTen: this.fullName,
+          email: this.email.includes('@') ? this.email : null,
+          soDienThoai: !this.email.includes('@') ? this.email : null
         });
-        const data = await response.json();
-        if (response.ok && data.message === 'Đăng ký thành công') {
-          this.errorMessage = '';
+
+        if (response.data.message === 'Đăng ký thành công') {
           this.$router.push('/DangNhapUser');
         } else {
-          this.errorMessage = data.message || 'Đăng ký thất bại. Vui lòng thử lại.';
+          this.errorMessage = response.data.message;
         }
-      } catch (error) {
-        this.errorMessage = 'Đăng ký thất bại. Vui lòng thử lại.';
+      } catch (err) {
+        this.errorMessage = err.response?.data?.message || 'Lỗi đăng ký.';
       }
-    },
-  },
+    }
+  }
 };
 </script>
 
-<style>
+<style scoped>
 body {
   margin: 0;
   font-family: Arial, sans-serif;
@@ -79,7 +77,6 @@ body {
 
 .register-container {
   background-color: white;
-  border: 0px solid;
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -89,6 +86,7 @@ body {
 .register-container h1 {
   text-align: center;
   margin-bottom: 20px;
+  color: #2d6cdf;
 }
 
 .register-container input {
@@ -125,6 +123,6 @@ body {
 .error {
   color: red;
   text-align: center;
-  margin-bottom: 10px;
+  margin-top: 10px;
 }
 </style>

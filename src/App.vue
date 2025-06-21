@@ -22,11 +22,10 @@ export default {
   setup() {
     const route = useRoute()
 
-    // Danh sách các route KHÔNG cần header/footer
-    const hiddenLayoutRoutes = ['/dang-nhap', '/dang-ky']
-
-    const showLayout = computed(() => !hiddenLayoutRoutes.includes(route.path))
-
+    const hiddenLayoutRoutes = ['/DangNhapUser', '/DangKyUser','/DangNhapAdmin']
+const showLayout = computed(() => {
+  return !hiddenLayoutRoutes.some((hiddenPath) => route.path.startsWith(hiddenPath))
+})
     return { showLayout }
   },
 }
