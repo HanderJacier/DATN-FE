@@ -3,7 +3,7 @@
     <div class="header-top">
       <div class="logo">
         <router-link to="/" class="logo-link">
-          <img :src="logo" alt="TechMart Logo" class="logo-icon" />
+         <img src="/src/assets/logotechmart.png"alt="" class="logo-icon">
           <span class="site-name">TechMartVN.com</span>
         </router-link>
       </div>
@@ -14,9 +14,9 @@
       </div>
 
       <div class="user-actions">
-        <router-link to="/dangnhap-user" class="user-info">
-          <i class="fa fa-user-circle"></i> Thuy Tien <i class="fa fa-caret-down"></i>
-        </router-link>
+        <router-link to="/DangNhapUser" class="user-info">
+  <i class="fa fa-user-circle"></i> {{ hoVaTen }} <i class="fa fa-caret-down"></i>
+</router-link>
         <router-link to="/gio-hang" class="cart">
           <i class="fa fa-shopping-cart"></i> Giỏ hàng
         </router-link>
@@ -37,7 +37,14 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue';
 
+const hoVaTen = ref('');
+
+// Gán giá trị khi component được mount
+onMounted(() => {
+  hoVaTen.value = sessionStorage.getItem('hoVaTen') || 'Tài khoản';
+});
 </script>
 
 <style scoped>
