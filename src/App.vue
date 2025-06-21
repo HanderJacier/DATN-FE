@@ -1,20 +1,8 @@
 <template>
-  <div>
-    <HeaderComponent />
-    <router-view />
-    <FooterComponent />
-  </div>
+  <Header />
+  <router-view />
 </template>
 
-<script>
-import HeaderComponent from './components/User/Title/Header.vue'
-import FooterComponent from './components/User/Title/Footer.vue'
-
-export default {
-  name: 'HomePage',
-  components: {
-    HeaderComponent,
-    FooterComponent,
-  },
-}
+<script setup>
+import Header from './components/User/Title/Header.vue'
 </script>
