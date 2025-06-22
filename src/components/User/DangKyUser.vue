@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <div class="register-container">
-      <h1>Đăng ký người dùng</h1>
+      <h1>Đăng ký</h1>
       <form @submit.prevent="handleRegister">
         <input type="text" placeholder="Họ và tên" v-model="fullName" required />
         <input type="text" placeholder="Email/Số điện thoại" v-model="email" required />

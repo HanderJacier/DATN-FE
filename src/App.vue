@@ -22,7 +22,7 @@ export default {
   setup() {
     const route = useRoute()
 
-    const hiddenLayoutRoutes = ['/DangNhapUser', '/DangKyUser','/DangNhapAdmin']
+    const hiddenLayoutRoutes = ['/DangNhapUser', '/DangKyUser','/admin']
 const showLayout = computed(() => {
   return !hiddenLayoutRoutes.some((hiddenPath) => route.path.startsWith(hiddenPath))
 })
