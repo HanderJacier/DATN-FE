@@ -62,12 +62,14 @@
 
 
           <!-- Giỏ hàng -->
-          <div class="cart">
-            <div class="cart-icon">
-              <img src="/src/assets/cart.png" alt="cart" class="icon" />
+          <router-link to="/cart" class="text-decoration-none">
+            <div class="cart">
+              <div class="cart-icon">
+                <img src="/src/assets/cart.png" alt="cart" class="icon" />
+              </div>
+              <div class="text-white">Giỏ hàng</div>
             </div>
-            <div>Giỏ hàng</div>
-          </div>
+          </router-link>
         </div>
       </div>
       <!-- Nav links -->
