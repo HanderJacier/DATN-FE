@@ -6,6 +6,7 @@ import UserDetail from '../components/User/UserDetail.vue'
 import DangNhap from '../components/User/DangNhap.vue'
 import DoiMatKhau from '../components/User/DoiMatKhau.vue'
 import DangKyUser from '../components/User/DangKyUser.vue'
+import Cart from '../components/User/Cart.vue'
 
 
 const routes = [
@@ -25,9 +26,10 @@ const routes = [
     path: '/dangky',
     component: DangKyUser
   },
-    { path: '/productDetail', component: ProductDetail },
-    { path: '/doimatkhau', component: DoiMatKhau },
-  { path: '/userDetail', component: UserDetail }
+  { path: '/doimatkhau', component: DoiMatKhau },
+  { path: '/sanpham', component: ProductDetail },
+  { path: '/thongtintk', component: UserDetail },
+  { path: '/giohang', component: Cart }
 ]
 
 const router = createRouter({
