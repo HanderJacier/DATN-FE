@@ -2,14 +2,14 @@
     <HeaderComponent />
     <!--Nav-->
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb p-2" style="background-color: #eaf0fc;">
+        <ol class="breadcrumb p-2 mt-2" style="background-color: #eaf0fc;">
             <li class="breadcrumb-item">
-                <RouterLink to="/"><a href="/" class="text-primary">Trang chủ</a></RouterLink>
+                <a href="/" class="text-primary">Trang chủ</a>
             </li>
             <li class="breadcrumb-item">
-                <RouterLink to="/userDetail"><a href="/" class="text-primary">Tài khoản của tôi</a></RouterLink>
+                <a href="/" class="text-primary">Laptop</a>
             </li>
-            <li class="breadcrumb-item active text-muted" aria-current="page">Thông tin cá nhân</li>
+            <li class="breadcrumb-item active text-muted" aria-current="page">Laptop MSI</li>
         </ol>
     </nav>
 

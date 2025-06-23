@@ -1,7 +1,8 @@
 <template>
   <HeaderComponent />
+
   <nav aria-label="breadcrumb">
-    <ol class="breadcrumb p-2" style="background-color: #eaf0fc;">
+    <ol class="breadcrumb p-2 mt-2" style="background-color: #eaf0fc;">
       <li class="breadcrumb-item">
         <a href="/" class="text-primary">Trang chủ</a>
       </li>
