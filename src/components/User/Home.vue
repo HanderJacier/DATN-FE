@@ -70,7 +70,3 @@
 
   </div>
 </template>
-
-<script>
-
-</script>
