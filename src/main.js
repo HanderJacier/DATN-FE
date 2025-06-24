@@ -9,4 +9,9 @@ import 'bootstrap-icons/font/bootstrap-icons.css'
 // import bootstrap JS nếu bạn dùng tooltip/modal...
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
+
+// import fontawesome
+import '@fortawesome/fontawesome-free/css/all.min.css'
+
 createApp(App).use(router).mount('#app')
+

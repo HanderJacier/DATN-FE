@@ -1,5 +1,5 @@
 <template>
-    <HeaderComponent />
+
     <!--Nav-->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb p-2 mt-2" style="background-color: #eaf0fc;">
@@ -112,20 +112,13 @@
         </div>
     </div>
 
-    <FooterComponent />
 </template>
 
 <script>
-import HeaderComponent from '../User/Title/Header.vue'
-import FooterComponent from '../User/Title/Footer.vue'
 import { RouterLink } from 'vue-router';
 
 export default {
     name: 'PersonalInfoPage',
-    components: {
-        HeaderComponent,
-        FooterComponent,
-    },
     data() {
         return {
             username: 'Thuy Tien',

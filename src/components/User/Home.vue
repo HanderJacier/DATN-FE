@@ -1,7 +1,6 @@
 <!-- src/views/HomePage.vue -->
 <template>
   <div class="container-fluid px-0">
-    <HeaderComponent />
 
     <!-- Danh mục sản phẩm -->
     <div class="row text-center my-4 justify-content-center">
@@ -69,19 +68,5 @@
       </div>
     </div>
 
-    <FooterComponent />
   </div>
 </template>
-
-<script>
-import HeaderComponent from '../User/Title/Header.vue'
-import FooterComponent from '../User/Title/Footer.vue'
-
-export default {
-  name: 'HomePage',
-  components: {
-    HeaderComponent,
-    FooterComponent,
-  },
-}
-</script>
