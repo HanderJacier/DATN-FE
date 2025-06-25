@@ -20,7 +20,7 @@
         <div class="col-md-6 col-lg-3 mb-3" v-for="i in 4" :key="i">
           <div class="card h-100">
             <div class="card-body">
-              <RouterLink to="/ProductDetail" class="dropdown-item text-decoration-none">
+              <RouterLink to="/sanpham" class="dropdown-item text-decoration-none">
                 <p class="fw-bold">Sản phẩm {{ i }}</p>
                 <p class="text-danger">Giá: xxx.000₫</p>
                 <button class="btn btn-primary mt-2">Mua ngay</button>
