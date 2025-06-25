@@ -104,6 +104,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import FooterComponent from '../User/Title/Footer.vue'
+import apiClient from '../../api'
 
 const router = useRouter()
 const user = ref({})
@@ -114,53 +115,53 @@ const form = ref({
   gioiTinh: '',
 })
 
-onMounted(() => {
-  const userData = JSON.parse(localStorage.getItem('user'))
-  if (!userData) {
-    router.push('/dangnhap')
-  } else {
-    user.value = userData
-    form.value.hoVaTen = userData.hoVaTen
-    form.value.email = userData.email
-    form.value.soDienThoai = userData.soDienThoai
-    form.value.gioiTinh = userData.gioiTinh || ''
+// Gọi API xác thực + lấy thông tin tài khoản
+onMounted(async () => {
+  try {
+    const res = await apiClient.get('/xacthuc/kiem-tra-phien')
+    const thongTinRes = await apiClient.get('/taikhoan/thongtin')
+
+    user.value = thongTinRes.data
+    form.value.hoVaTen = thongTinRes.data.hoVaTen
+    form.value.email = thongTinRes.data.email
+    form.value.soDienThoai = thongTinRes.data.soDienThoai
+    form.value.gioiTinh = thongTinRes.data.gioiTinh || ''
+  } catch (err) {
+    router.push('/userDetail')
   }
 })
 
 const submitForm = async () => {
   try {
-    const response = await fetch('http://localhost:8080/api/taikhoan/capnhat', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include', // để gửi session
-      body: JSON.stringify(form.value),
-    })
-
-    const resData = await response.json()
-    alert(resData.message || 'Cập nhật thành công')
+    const res = await apiClient.put('/taikhoan/capnhat', form.value)
+    alert('Cập nhật thành công')
 
     const updatedUser = {
       ...user.value,
-      hoVaTen: form.value.hoVaTen,
-      email: form.value.email,
-      soDienThoai: form.value.soDienThoai,
-      gioiTinh: form.value.gioiTinh,
+      ...form.value,
     }
 
-    localStorage.setItem('user', JSON.stringify(updatedUser))
+    // Cập nhật lại storage (cả localStorage và sessionStorage nếu có)
+    if (localStorage.getItem('user')) {
+      localStorage.setItem('user', JSON.stringify(updatedUser))
+    }
+    if (sessionStorage.getItem('user')) {
+      sessionStorage.setItem('user', JSON.stringify(updatedUser))
+    }
     user.value = updatedUser
-  } catch (error) {
-    console.error(error)
-    alert('Lỗi khi cập nhật thông tin!')
+  } catch (err) {
+    console.error(err)
+    alert(err.response?.data?.message || 'Lỗi khi cập nhật thông tin!')
   }
 }
 
 const logout = () => {
   localStorage.removeItem('user')
-  router.push('/dangnhap')
+  sessionStorage.removeItem('user')
+  router.push('/DangNhap')
 }
 </script>
 
 <style scoped>
-/* Style gợi ý (có thể giữ nguyên style của bạn ở trên) */
+/* Giữ nguyên hoặc thêm tuỳ bạn */
 </style>

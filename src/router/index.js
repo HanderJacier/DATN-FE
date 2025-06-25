@@ -35,12 +35,14 @@ const router = createRouter({
   routes
 })
 router.beforeEach((to, from, next) => {
-  const user = JSON.parse(localStorage.getItem('user'));
-  if (to.meta.requiresAuth && !user) {
-    next('/dangnhap');
+  const user = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user'))
+
+  // Ngăn người dùng đã đăng nhập quay lại trang /dangnhap
+  if (to.path === '/dangnhap' && user) {
+    next('/') // hoặc next('/userDetail')
   } else {
-    next();
+    next()
   }
-});
+})
 
 export default router

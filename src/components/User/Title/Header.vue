@@ -12,7 +12,7 @@
         <div class="search-bar" ref="searchRef" v-click-outside-search>
           <input type="text" @focus="showSuggestions = true" placeholder="Tìm kiếm sản phẩm..." />
           <button>
-            <i class="bi bi-search"></i>
+            <i class="bi bi-search"></i>  
           </button>
 
           <!-- Gợi ý tìm kiếm -->
@@ -110,6 +110,7 @@
 
 <script>
 export default {
+  
   name: "HeaderComponent",
   data() {
     return {
@@ -148,6 +149,7 @@ export default {
   mounted() {
     this.getStoredUser();
   }
+  
 };
 
 </script>

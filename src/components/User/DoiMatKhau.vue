@@ -31,6 +31,7 @@
 </template>
 
 <script>
+import apiClient from '/src/api.js';
 export default {
   name: "DoiMatKhauPage",
   data() {
@@ -60,32 +61,23 @@ export default {
       }
 
       try {
-        const res = await fetch("http://localhost:8080/api/taikhoan/doi-mat-khau", {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            tenDangNhap: this.username,
-            matKhauCu: this.matKhauCu,
-            matKhauMoi: this.matKhauMoi,
-            xacNhanMatKhauMoi: this.xacNhanMatKhauMoi,
-          }),
-        });
+  const res = await apiClient.put('/taikhoan/doi-mat-khau', {
+    matKhauCu: this.matKhauCu,
+    matKhauMoi: this.matKhauMoi,
+    xacNhanMatKhauMoi: this.xacNhanMatKhauMoi,
+  });
+  const data = res.data;
+  this.message = data.message;
+  this.success = true;
 
-        const data = await res.json();
-        this.message = data.message;
-        this.success = res.ok;
-
-        if (res.ok) {
-          this.matKhauCu = "";
-          this.matKhauMoi = "";
-          this.xacNhanMatKhauMoi = "";
-        }
-      } catch (err) {
-        this.message = "Lỗi kết nối máy chủ";
-        this.success = false;
-      }
+  // Reset form nếu thành công
+  this.matKhauCu = "";
+  this.matKhauMoi = "";
+  this.xacNhanMatKhauMoi = "";
+} catch (err) {
+  this.message = err.response?.data?.message || "Lỗi kết nối máy chủ";
+  this.success = false;
+}
     },
   },
 };
