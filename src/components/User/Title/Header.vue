@@ -49,7 +49,7 @@
   <ul v-if="isDropdownOpen" class="dropdown-menu show">
     <template v-if="user">
       <li>
-        <router-link class="dropdown-item" to="/userDetail">
+        <router-link class="dropdown-item" to="/thongtintk">
           <i class="fas fa-user icon-black"></i> Tài khoản của tôi
         </router-link>
       </li>
