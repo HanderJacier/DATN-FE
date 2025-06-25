@@ -12,7 +12,7 @@
         <div class="search-bar" ref="searchRef" v-click-outside-search>
           <input type="text" @focus="showSuggestions = true" placeholder="Tìm kiếm sản phẩm..." />
           <button>
-            <i class="bi bi-search"></i>
+            <i class="bi bi-search"></i>  
           </button>
 
           <!-- Gợi ý tìm kiếm -->
@@ -40,22 +40,48 @@
           <!-- Dropdown -->
           <!-- Dropdown -->
           <div class="position-relative" ref="dropdownRef" v-click-outside-dropdown>
-            <button class="user-button" @click="toggleDropdown">
-              <span class="user-icon"><i class="fas fa-user"></i></span>
-              <span class="user-name">Thuy Tien</span>
-              <i class="fas fa-caret-down dropdown-caret"></i>
-            </button>
+  <button class="user-button" @click="toggleDropdown">
+    <span class="user-icon"><i class="fas fa-user"></i></span>
+    <span class="user-name">{{ displayName }}</span>
+    <i class="fas fa-caret-down dropdown-caret"></i>
+  </button>
 
-            <ul v-if="isDropdownOpen" class="dropdown-menu show">
-              <li><a class="dropdown-item" href="#"><i class="fas fa-user icon-black"></i> Tài khoản của tôi</a></li>
-              <li><a class="dropdown-item" href="#"><i class="fas fa-box icon-blue"></i> Đơn mua</a></li>
-              <li><a class="dropdown-item" href="#"><i class="fas fa-heart icon-red"></i> Sản phẩm yêu thích</a></li>
-              <li>
-                <hr class="dropdown-divider" />
-              </li>
-              <li><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt icon-yellow"></i> Đăng xuất</a></li>
-            </ul>
-          </div>
+  <ul v-if="isDropdownOpen" class="dropdown-menu show">
+    <template v-if="user">
+      <li>
+        <router-link class="dropdown-item" to="/userDetail">
+          <i class="fas fa-user icon-black"></i> Tài khoản của tôi
+        </router-link>
+      </li>
+      <li>
+        <a class="dropdown-item" href="#"><i class="fas fa-box icon-blue"></i> Đơn mua</a>
+      </li>
+      <li>
+        <a class="dropdown-item" href="#"><i class="fas fa-heart icon-red"></i> Sản phẩm yêu thích</a>
+      </li>
+      <li><hr class="dropdown-divider" /></li>
+      <li>
+        <a class="dropdown-item" href="#" @click.prevent="logout">
+          <i class="fas fa-sign-out-alt icon-yellow"></i> Đăng xuất
+        </a>
+      </li>
+    </template>
+
+    <template v-else>
+      <li>
+        <router-link class="dropdown-item" to="/dangnhap">
+          <i class="fas fa-sign-in-alt icon-black"></i> Đăng nhập
+        </router-link>
+      </li>
+      <li>
+        <router-link class="dropdown-item" to="/dangky">
+          <i class="fas fa-user-plus icon-blue"></i> Đăng ký
+        </router-link>
+      </li>
+    </template>
+  </ul>
+</div>
+
 
 
 
@@ -84,6 +110,7 @@
 
 <script>
 export default {
+  
   name: "HeaderComponent",
   data() {
     return {
@@ -91,7 +118,13 @@ export default {
       showSuggestions: false,
       searchHistory: ["Tivi", "tai nghe", "Laptop"],
       trending: ["iphone 16", "Tivi sony", "Loa bluetooth", "Laptop Asus", "Chuột laptop"],
+      user: null,
     };
+  },
+  computed: {
+    displayName() {
+      return this.user?.hoVaTen || "Tài khoản";
+    },
   },
   methods: {
     toggleDropdown() {
@@ -100,41 +133,27 @@ export default {
     removeHistory(index) {
       this.searchHistory.splice(index, 1);
     },
-  },
-  directives: {
-    clickOutsideSearch: {
-      mounted(el, binding, vnode) {
-        el._clickOutsideHandler = function (event) {
-          const instance = binding.instance;
-          const ref = instance.$refs.searchRef;
-          if (ref && !ref.contains(event.target)) {
-            instance.showSuggestions = false;
-          }
-        };
-        document.addEventListener("click", el._clickOutsideHandler);
-      },
-      unmounted(el) {
-        document.removeEventListener("click", el._clickOutsideHandler);
-      },
+    logout() {
+      localStorage.removeItem("user");
+      sessionStorage.removeItem("user");
+      this.user = null;
+      this.$router.push("/");
     },
-    clickOutsideDropdown: {
-      mounted(el, binding, vnode) {
-        el._clickOutsideHandler = function (event) {
-          const instance = binding.instance;
-          const ref = instance.$refs.dropdownRef;
-          if (ref && !ref.contains(event.target)) {
-            instance.isDropdownOpen = false;
-          }
-        };
-        document.addEventListener("click", el._clickOutsideHandler);
-      },
-      unmounted(el) {
-        document.removeEventListener("click", el._clickOutsideHandler);
-      },
-    },
+    getStoredUser() {
+      const user =
+        JSON.parse(localStorage.getItem("user")) ||
+        JSON.parse(sessionStorage.getItem("user"));
+      this.user = user;
+    }
   },
+  mounted() {
+    this.getStoredUser();
+  }
+  
 };
+
 </script>
+
 
 
 
