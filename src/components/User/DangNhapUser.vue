@@ -1,7 +1,7 @@
 <template>
   <div id="app" class="d-flex justify-content-center align-items-center vh-100 bg-light">
     <div class="card shadow p-4" style="width: 100%; max-width: 400px;">
-      <h3 class="text-center text-primary mb-4">Đăng nhập</h3>
+      <h3 class="text-center text-primary mb-4">Đăng nhập người dùng</h3>
       <form @submit.prevent="handleLogin">
         <div class="mb-3">
           <label class="form-label">Email hoặc SĐT</label>
@@ -36,7 +36,6 @@
 
 <script>
 import apiClient from '/src/api.js';
-
 export default {
   data() {
     return {
@@ -44,43 +43,33 @@ export default {
       password: '',
       showPassword: false,
       rememberMe: false,
-      errorMessage: '',
+      errorMessage: ''
     };
   },
   methods: {
-  async handleLogin() {
-    try {
-      const response = await apiClient.post('/xacthuc/dangnhap', {
-        tenDangNhap: this.email,
-        matKhau: this.password,
-      });
+    async handleLogin() {
+      try {
+        const response = await apiClient.post('/xacthuc/dangnhap', {
+          tenDangNhap: this.email,
+          matKhau: this.password
+        });
 
-      const user = response.data;
-
-      // Xóa user cũ (nếu có)
-      localStorage.removeItem('user');
-      sessionStorage.removeItem('user');
-
-      // Lưu user mới
-      const storage = this.rememberMe ? localStorage : sessionStorage;
-      storage.setItem('user', JSON.stringify(user));
-
-      // Chuyển hướng và reload
-      if (user.vaiTro === 1) {
-        this.$router.push('/admin');
-      } else {
-        this.$router.push('/');
-        setTimeout(() => window.location.reload(), 100); // Reload để cập nhật Header
+        const data = response.data;
+        if (data.vaiTro === 0) {
+          const storage = this.rememberMe ? localStorage : sessionStorage;
+          storage.setItem('hoVaTen', data.hoVaTen);
+          storage.setItem('vaiTro', data.vaiTro);
+          this.$router.push('/userHome');
+        } else {
+          this.errorMessage = 'Tài khoản không có quyền truy cập.';
+        }
+      } catch (err) {
+        this.errorMessage = err.response?.data?.message || 'Lỗi đăng nhập.';
       }
-    } catch (error) {
-      this.errorMessage = error.response?.data?.message || 'Lỗi đăng nhập.';
     }
   }
-}
-
 };
 </script>
-
 
 <!-- Không cần scoped nếu bạn dùng Bootstrap -->
 <style>

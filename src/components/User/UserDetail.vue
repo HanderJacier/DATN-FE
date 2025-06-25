@@ -1,15 +1,15 @@
 <template>
-
+    <HeaderComponent />
     <!--Nav-->
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb p-2 mt-2" style="background-color: #eaf0fc;">
+        <ol class="breadcrumb p-2" style="background-color: #eaf0fc;">
             <li class="breadcrumb-item">
                 <a href="/" class="text-primary">Trang chủ</a>
             </li>
             <li class="breadcrumb-item">
-                <a href="/" class="text-primary">Laptop</a>
+                <a href="/laptop" class="text-primary">Tài khoản</a>
             </li>
-            <li class="breadcrumb-item active text-muted" aria-current="page">Laptop MSI</li>
+            <li class="breadcrumb-item active text-muted" aria-current="page">Thông tin cá nhân</li>
         </ol>
     </nav>
 
@@ -112,13 +112,19 @@
         </div>
     </div>
 
+    <FooterComponent />
 </template>
 
 <script>
-import { RouterLink } from 'vue-router';
+import HeaderComponent from '../User/Title/Header.vue'
+import FooterComponent from '../User/Title/Footer.vue'
 
 export default {
     name: 'PersonalInfoPage',
+    components: {
+        HeaderComponent,
+        FooterComponent,
+    },
     data() {
         return {
             username: 'Thuy Tien',
