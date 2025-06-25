@@ -30,12 +30,12 @@
                     <div class="ps-4">
                         <h6 class="fw-bold"><i class="bi bi-person-fill"></i> Tài khoản của tôi</h6>
                         <ul class="list-unstyled ps-3 mb-3">
-                            <li><router-link to="/thongtintk" class="text-dark text-decoration-none"> Thông tin cá
+                            <li><router-link to="/thongtintk" class="text-dark text-decoration-none">Thông tin cá
                                     nhân</router-link></li>
                             <li><router-link to="/diachinguoidung" class="text-primary text-decoration-none">> Địa
                                     chỉ</router-link>
                             </li>
-                            <li><router-link to="/change-password" class="text-dark text-decoration-none">Đổi mật
+                            <li><router-link to="/doimatkhaunguoidung" class="text-dark text-decoration-none">Đổi mật
                                     khẩu</router-link></li>
                         </ul>
 

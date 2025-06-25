@@ -9,7 +9,7 @@ import DangKyUser from '../components/User/DangKyUser.vue'
 import Cart from '../components/User/Cart.vue'
 import UserAddress from '../components/User/UserAddress.vue'
 import UserAddressAdd from '../components/User/UserAddressAdd.vue'
-
+import ChangePassword from '../components/User/ChangePassword.vue'
 const routes = [
   {
     path: '/',
@@ -32,7 +32,8 @@ const routes = [
   { path: '/thongtintk', component: UserDetail },
   { path: '/giohang', component: Cart },
   { path: '/diachinguoidung', component: UserAddress },
-  { path: '/diachinguoidungmoi', component: UserAddressAdd }
+  { path: '/diachinguoidungmoi', component: UserAddressAdd },
+  { path: '/doimatkhaunguoidung', component: ChangePassword }
 ]
 
 const router = createRouter({
