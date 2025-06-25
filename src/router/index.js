@@ -19,7 +19,7 @@ const routes = [
     component: Dashboard
   },
   {
-    path: '/DangNhap',
+    path: '/dangnhap',
     component: DangNhap
   },
     {
