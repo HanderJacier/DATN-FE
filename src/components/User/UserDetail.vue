@@ -7,9 +7,9 @@
                 <a href="/" class="text-primary">Trang chủ</a>
             </li>
             <li class="breadcrumb-item">
-                <a href="/" class="text-primary">Laptop</a>
+                <a href="/" class="text-primary">Tài khoản</a>
             </li>
-            <li class="breadcrumb-item active text-muted" aria-current="page">Laptop MSI</li>
+            <li class="breadcrumb-item active text-muted" aria-current="page">Thông tin cá nhân</li>
         </ol>
     </nav>
 
@@ -30,9 +30,13 @@
                     <div class="ps-4">
                         <h6 class="fw-bold"><i class="bi bi-person-fill"></i> Tài khoản của tôi</h6>
                         <ul class="list-unstyled ps-3 mb-3">
-                            <li><span class="text-primary">› Thông tin cá nhân</span></li>
-                            <li>Địa chỉ</li>
-                            <li>Đổi mật khẩu</li>
+                            <li><router-link to="/thongtintk" class="text-primary text-decoration-none">> Thông tin cá
+                                    nhân</router-link></li>
+                            <li><router-link to="/diachinguoidung" class="text-dark text-decoration-none">Địa
+                                    chỉ</router-link>
+                            </li>
+                            <li><router-link to="/change-password" class="text-dark text-decoration-none">Đổi mật
+                                    khẩu</router-link></li>
                         </ul>
 
                         <h6 class="fw-bold"><i class="bi bi-card-checklist"></i> Đơn mua</h6>
