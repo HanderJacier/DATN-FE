@@ -41,8 +41,10 @@
 
                         <h6 class="fw-bold"><i class="bi bi-card-checklist"></i> Đơn mua</h6>
                         <ul class="list-unstyled ps-3 mb-3">
-                            <li>Lịch sử mua hàng</li>
-                            <li>Hóa đơn mua hàng</li>
+                            <li><router-link to="/doimatkhau" class="text-dark text-decoration-none">Lịch sử mua
+                                    hàng</router-link></li>
+                            <li><router-link to="/hoadon" class="text-dark text-decoration-none">Hóa đơn mua
+                                    hàng</router-link></li>
                         </ul>
 
                         <router-link to="/sanphamyeuthich" class="text-dark text-decoration-none">
@@ -68,7 +70,7 @@
 
                                 <div class="d-flex align-items-center mb-1" style="font-size: 14px;">
                                     <span class="text-muted text-decoration-line-through me-2">{{ product.originalPrice
-                                        }}</span>
+                                    }}</span>
                                     <span class="text-danger fw-bold">{{ product.discount }}</span>
                                 </div>
 

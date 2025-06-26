@@ -10,6 +10,7 @@ import Cart from '../components/User/Cart.vue'
 import UserAddress from '../components/User/UserAddress.vue'
 import FavoriteProduct from '../components/User/FavoriteProduct.vue'
 import Pay from '../components/User/Pay.vue'
+import Bill from '../components/User/Bill.vue'
 const routes = [
   {
     path: '/',
@@ -33,7 +34,8 @@ const routes = [
   { path: '/giohang', component: Cart },
   { path: '/diachinguoidung', component: UserAddress },
   { path: '/sanphamyeuthich', component: FavoriteProduct },
-  { path: '/thanhtoan', component: Pay }
+  { path: '/thanhtoan', component: Pay },
+  { path: '/hoadon', component: Bill }
 ]
 
 const router = createRouter({
