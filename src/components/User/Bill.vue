@@ -41,7 +41,7 @@
 
                         <h6 class="fw-bold"><i class="bi bi-card-checklist"></i> Đơn mua</h6>
                         <ul class="list-unstyled ps-3 mb-3">
-                            <li><router-link to="/doimatkhau" class="text-dark text-decoration-none">Lịch sử mua
+                            <li><router-link to="/lichsumuahang" class="text-dark text-decoration-none">Lịch sử mua
                                     hàng</router-link></li>
                             <li><router-link to="/hoadon" class="text-primary text-decoration-none">> Hóa đơn mua
                                     hàng</router-link></li>
@@ -139,15 +139,15 @@
                                 <div class="row">
                                     <div class="col-md-4">
                                         <p class="mb-1">Tổng tiền hàng: <strong>{{ formatCurrency(totalAmount)
-                                                }}</strong></p>
+                                        }}</strong></p>
                                         <p class="mb-1">Chiết khấu: <strong>0</strong></p>
                                         <p class="mb-1">Thuế: <strong>0</strong></p>
                                     </div>
                                     <div class="col-md-4">
                                         <p class="mb-1">Tổng thanh toán: <strong>{{ formatCurrency(totalAmount)
-                                                }}</strong></p>
+                                        }}</strong></p>
                                         <p class="mb-1">Số tiền đã thanh toán: <strong>{{ formatCurrency(totalAmount)
-                                                }}</strong></p>
+                                        }}</strong></p>
                                     </div>
                                 </div>
 

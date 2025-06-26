@@ -41,7 +41,7 @@
 
             <h6 class="fw-bold"><i class="bi bi-card-checklist"></i> Đơn mua</h6>
             <ul class="list-unstyled ps-3 mb-3">
-              <li><router-link to="/doimatkhau" class="text-dark text-decoration-none">Lịch sử mua
+              <li><router-link to="/lichsumuahang" class="text-dark text-decoration-none">Lịch sử mua
                   hàng</router-link></li>
               <li><router-link to="/hoadon" class="text-dark text-decoration-none">Hóa đơn mua
                   hàng</router-link></li>
