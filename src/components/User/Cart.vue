@@ -1,5 +1,4 @@
 <template>
-    <HeaderComponent />
 
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb p-2 mt-2" style="background-color: #eaf0fc;">
@@ -91,19 +90,12 @@
             </div>
         </div>
     </div>
-    <FooterComponent />
 </template>
 
 <script>
-import HeaderComponent from '../User/Title/Header.vue';
-import FooterComponent from '../User/Title/Footer.vue';
 
 export default {
     name: 'ProductCarousel',
-    components: {
-        HeaderComponent,
-        FooterComponent,
-    },
     data() {
         return {
             selectAll: true,
