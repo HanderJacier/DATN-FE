@@ -35,7 +35,7 @@
                             <li><router-link to="/diachinguoidung" class="text-dark text-decoration-none">Địa
                                     chỉ</router-link>
                             </li>
-                            <li><router-link to="/doimatkhaunguoidung" class="text-dark text-decoration-none">Đổi mật
+                            <li><router-link to="/doimatkhau" class="text-dark text-decoration-none">Đổi mật
                                     khẩu</router-link></li>
                         </ul>
 

@@ -35,7 +35,7 @@
                             <li><router-link to="/diachinguoidung" class="text-primary text-decoration-none">> Địa
                                     chỉ</router-link>
                             </li>
-                            <li><router-link to="/doimatkhaunguoidung" class="text-dark text-decoration-none">Đổi mật
+                            <li><router-link to="/doimatkhau" class="text-dark text-decoration-none">Đổi mật
                                     khẩu</router-link></li>
                         </ul>
 
@@ -54,51 +54,44 @@
             <!-- ===== Khối địa chỉ ===== -->
             <div class="col-md-8">
                 <h4 class="fw-bold mb-4">Địa chỉ của tôi</h4>
+
                 <div class="bg-white border rounded p-4 shadow-sm">
                     <form @submit.prevent="submitAddresses">
                         <div class="container mt-4">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h5>Địa chỉ</h5>
-                                <router-link to="/diachinguoidungmoi" class="btn btn-primary">
+                                <button class="btn btn-primary" type="button" @click="openAddModal">
                                     + Thêm địa chỉ mới
-                                </router-link>
+                                </button>
                             </div>
 
                             <!-- Danh sách địa chỉ -->
-                            <div v-for="(addr, i) in addresses" :key="i" :class="[
-                                'pt-3 mb-3',
-                                i !== 0 ? 'border-top mt-4' : 'pb-3',
-                            ]">
-                                <p class="mb-1 fw-semibold">
-                                    {{ addr.name }} | {{ addr.phone }}
-                                </p>
+                            <div v-for="(addr, i) in addresses" :key="i"
+                                :class="['pt-3 mb-3', i !== 0 ? 'border-top mt-4' : 'pb-3']">
+                                <p class="mb-1 fw-semibold">{{ addr.name }} | {{ addr.phone }}</p>
                                 <p class="mb-1">{{ addr.street }}</p>
                                 <p class="mb-1">
                                     {{ addr.ward }}, {{ addr.district }}, {{ addr.city }}
                                 </p>
 
-                                <!-- Huy hiệu mặc định -->
                                 <span v-if="addr.default"
                                     class="badge bg-light text-primary border border-primary px-2 py-1">
                                     Mặc định
                                 </span>
 
                                 <div class="d-flex gap-2 w-100 justify-content-end mt-2">
-
-                                    <!-- Chỉ hiển thị khi chưa phải mặc định -->
                                     <button v-if="!addr.default" class="btn btn-outline-secondary" type="button"
                                         @click="setDefault(i)">
                                         Đặt mặc định
                                     </button>
 
-                                    <button class="btn btn-primary" type="button" @click="editAddress(i)">
+                                    <button class="btn btn-primary" type="button" @click="openEditModal(i)">
                                         Cập nhật
                                     </button>
 
                                     <button class="btn btn-outline-danger" type="button" @click="deleteAddress(i)">
                                         <i class="bi bi-trash"></i>
                                     </button>
-
                                 </div>
                             </div>
                         </div>
@@ -109,25 +102,99 @@
                     </div>
                 </div>
             </div>
+
+            <!-- ===== Modal Bootstrap (Thêm / Cập nhật) ===== -->
+            <div v-if="showModal">
+                <div class="modal-backdrop fade show"></div>
+
+                <div class="modal fade show d-block" tabindex="-1">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    {{ isEdit ? 'Cập Nhật Địa Chỉ' : 'Địa Chỉ Mới' }}
+                                </h5>
+                                <button type="button" class="btn-close" @click="closeModal"></button>
+                            </div>
+
+                            <!-- ========= modal-body mới ========= -->
+                            <div class="modal-body">
+                                <!-- Họ & SĐT cùng hàng -->
+                                <div class="row mb-3">
+                                    <div class="col">
+                                        <input type="text" class="form-control" placeholder="Họ và tên"
+                                            v-model="formAddress.name" />
+                                    </div>
+                                    <div class="col">
+                                        <input type="text" class="form-control" placeholder="Số điện thoại"
+                                            v-model="formAddress.phone" />
+                                    </div>
+                                </div>
+
+                                <!-- Input + datalist cho địa giới hành chính -->
+                                <div class="mb-3">
+                                    <input type="text" class="form-control"
+                                        placeholder="Tỉnh/ Thành phố, Quận/Huyện, Phường/Xã" list="locationOptions"
+                                        v-model="formAddress.location" />
+                                    <datalist id="locationOptions">
+                                        <option value="TP.HCM - Q.12 - Hiệp Thành"></option>
+                                        <option value="Hà Nội - Cầu Giấy - Dịch Vọng"></option>
+                                        <option value="Đà Nẵng - Hải Châu - Thạch Thang"></option>
+                                        <option value="Cần Thơ - Ninh Kiều - Tân An"></option>
+                                    </datalist>
+                                </div>
+
+                                <!-- Địa chỉ cụ thể -->
+                                <div class="mb-3">
+                                    <textarea class="form-control" rows="2" placeholder="Địa chỉ cụ thể"
+                                        v-model="formAddress.street"></textarea>
+                                </div>
+                            </div>
+
+                            <!-- ========= modal-footer mới ========= -->
+                            <div class="modal-footer justify-content-between">
+                                <button class="btn btn-link text-decoration-none" @click="closeModal">
+                                    Trở Lại
+                                </button>
+                                <button class="btn btn-danger px-4" @click="saveAddress">
+                                    Hoàn thành
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
 </template>
 
+
 <script>
 export default {
-    name: 'PersonalInfoPage',
-
+    name: 'UserAddress',
     data() {
         return {
-            /* ---------- Thông tin cá nhân ---------- */
-            username: 'Thuy Tien',
-            email: 'tranthithuytien@gmail.com',
-            phone: '0789 345 123',
-            gender: 'Nữ',
-            isProfileSaved: false,
+            isAddressSaved: false,
 
-            /* ---------- Danh sách địa chỉ ---------- */
+            /* modal state */
+            showModal: false,
+            isEdit: false,
+            editingIndex: null,
+
+            /* form trong modal */
+            formAddress: {
+                name: '',
+                phone: '',
+                location: '', // Tỉnh/TP - Quận/Huyện - Phường/Xã
+                street: '',
+                default: false,
+            },
+
+            /* danh sách hiển thị */
             addresses: [
                 {
                     name: 'Thuy Tien',
@@ -138,85 +205,100 @@ export default {
                     city: 'TP. Hồ Chí Minh',
                     default: true,
                 },
-                {
-                    name: 'Thuy Tien',
-                    phone: '(+84) 789 345 123',
-                    street: 'Công Viên Phần Mềm Quang Trung',
-                    ward: 'Phường Trung Mỹ Tây',
-                    district: 'Quận 12',
-                    city: 'TP. Hồ Chí Minh',
-                    default: false,
-                },
             ],
-            isAddressSaved: false,
         };
     },
 
     methods: {
-        /* ===== Thông tin cá nhân ===== */
-        submitProfile() {
-            // Gọi API cập nhật hồ sơ nếu có
-            console.log('Đã lưu hồ sơ:', {
-                username: this.username,
-                email: this.email,
-                phone: this.phone,
-                gender: this.gender,
-            });
-            this.flash('isProfileSaved');
+        /* mở modal thêm mới */
+        openAddModal() {
+            this.isEdit = false;
+            this.editingIndex = null;
+            this.formAddress = {
+                name: '',
+                phone: '',
+                location: '',
+                street: '',
+                default: false,
+            };
+            this.showModal = true;
         },
 
-        /* ===== Địa chỉ ===== */
-        submitAddresses() {
-            // Gọi API batch update địa chỉ nếu muốn
-            console.log('Đã lưu danh sách địa chỉ:', this.addresses);
+        /* mở modal chỉnh sửa */
+        openEditModal(i) {
+            const a = this.addresses[i];
+            this.isEdit = true;
+            this.editingIndex = i;
+            this.formAddress = {
+                name: a.name,
+                phone: a.phone,
+                location: `${a.city} - ${a.district} - ${a.ward}`,
+                street: a.street,
+                default: a.default,
+            };
+            this.showModal = true;
+        },
+
+        /* lưu địa chỉ */
+        saveAddress() {
+            const { name, phone, location, street, default: isDef } = this.formAddress;
+
+            if (!name || !phone) {
+                alert('Vui lòng nhập Họ tên và Số điện thoại.');
+                return;
+            }
+
+            /* tách location thành city - district - ward */
+            const [city = '', district = '', ward = ''] = location.split('-').map((s) => s.trim());
+
+            const obj = { name, phone, street, ward, district, city, default: isDef };
+
+            if (this.isEdit && this.editingIndex !== null) {
+                this.addresses.splice(this.editingIndex, 1, obj);
+            } else {
+                this.addresses.push(obj);
+            }
+
+            /* xử lý mặc định độc nhất */
+            if (obj.default) {
+                const idx = this.isEdit ? this.editingIndex : this.addresses.length - 1;
+                this.setDefault(idx);
+            }
+
+            this.closeModal();
             this.flash('isAddressSaved');
         },
 
-        addAddress() {
-            this.addresses.push({
-                name: this.username,
-                phone: this.phone,
-                street: '',
-                ward: '',
-                district: '',
-                city: '',
-                default: false,
-            });
+        /* đặt mặc định */
+        setDefault(i) {
+            this.addresses.forEach((addr, idx) => (addr.default = idx === i));
         },
 
-        editAddress(index) {
-            // Bạn có thể mở modal ở đây
-            alert(`Chỉnh sửa địa chỉ #${index + 1}`);
-        },
-
-        deleteAddress(index) {
+        /* xoá địa chỉ */
+        deleteAddress(i) {
             if (confirm('Chắc chắn xoá địa chỉ này?')) {
-                this.addresses.splice(index, 1);
-                // Nếu xoá địa chỉ mặc định, chuyển phần tử đầu tiên thành mặc định
-                if (!this.addresses.some((a) => a.default) && this.addresses[0])
+                this.addresses.splice(i, 1);
+                /* luôn giữ 1 địa chỉ mặc định */
+                if (!this.addresses.some((a) => a.default) && this.addresses[0]) {
                     this.addresses[0].default = true;
+                }
             }
         },
 
-        setDefault(index) {
-            this.addresses.forEach((a, i) => {
-                a.default = i === index;
-            });
+        submitAddresses() {
+            console.log('Danh sách địa chỉ:', this.addresses);
         },
 
-        /* ===== Tiện ích ===== */
+        closeModal() {
+            this.showModal = false;
+            this.isEdit = false;
+            this.editingIndex = null;
+        },
+
         flash(flag) {
             this[flag] = true;
             setTimeout(() => (this[flag] = false), 2000);
         },
-    },
-    mounted() {
-        const savedAddress = localStorage.getItem('newAddress');
-        if (savedAddress) {
-            const parsed = JSON.parse(savedAddress);
-            this.addresses.push(parsed);
-            localStorage.removeItem('newAddress');
-        }
     },
 };
 </script>

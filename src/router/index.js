@@ -8,8 +8,6 @@ import DoiMatKhau from '../components/User/DoiMatKhau.vue'
 import DangKyUser from '../components/User/DangKyUser.vue'
 import Cart from '../components/User/Cart.vue'
 import UserAddress from '../components/User/UserAddress.vue'
-import UserAddressAdd from '../components/User/UserAddressAdd.vue'
-import ChangePassword from '../components/User/ChangePassword.vue'
 const routes = [
   {
     path: '/',
@@ -31,9 +29,7 @@ const routes = [
   { path: '/sanpham', component: ProductDetail },
   { path: '/thongtintk', component: UserDetail },
   { path: '/giohang', component: Cart },
-  { path: '/diachinguoidung', component: UserAddress },
-  { path: '/diachinguoidungmoi', component: UserAddressAdd },
-  { path: '/doimatkhaunguoidung', component: ChangePassword }
+  { path: '/diachinguoidung', component: UserAddress }
 ]
 
 const router = createRouter({
