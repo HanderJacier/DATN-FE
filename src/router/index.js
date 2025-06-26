@@ -8,6 +8,8 @@ import DoiMatKhau from '../components/User/DoiMatKhau.vue'
 import DangKyUser from '../components/User/DangKyUser.vue'
 import Cart from '../components/User/Cart.vue'
 import UserAddress from '../components/User/UserAddress.vue'
+import FavoriteProduct from '../components/User/FavoriteProduct.vue'
+import Pay from '../components/User/Pay.vue'
 const routes = [
   {
     path: '/',
@@ -29,7 +31,9 @@ const routes = [
   { path: '/sanpham', component: ProductDetail },
   { path: '/thongtintk', component: UserDetail },
   { path: '/giohang', component: Cart },
-  { path: '/diachinguoidung', component: UserAddress }
+  { path: '/diachinguoidung', component: UserAddress },
+  { path: '/sanphamyeuthich', component: FavoriteProduct },
+  { path: '/thanhtoan', component: Pay }
 ]
 
 const router = createRouter({
