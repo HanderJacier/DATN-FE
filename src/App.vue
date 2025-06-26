@@ -1,8 +1,8 @@
 <template>
   <div>
-    <HeaderComponent v-if="showLayout" />
+    <HeaderComponent v-if="showUserLayout" />
     <router-view />
-    <FooterComponent v-if="showLayout" />
+    <FooterComponent v-if="showUserLayout" />
   </div>
 </template>
 
@@ -12,25 +12,26 @@ import { useRoute } from 'vue-router'
 
 import HeaderComponent from './components/User/Title/Header.vue'
 import FooterComponent from './components/User/Title/Footer.vue'
-// Optional: Nếu bạn cần giữ lại component Home.vue
-// import Home from './components/User/Home.vue'
 
 export default {
-  name: 'HomePage',
+  name: 'AppLayout',
   components: {
     HeaderComponent,
     FooterComponent,
-    // Home
   },
   setup() {
     const route = useRoute()
-    const hiddenLayoutRoutes = ['/dangnhap', '/dangky', '/admin']
 
-    const showLayout = computed(() => {
-      return !hiddenLayoutRoutes.some(path => route.path.startsWith(path))
+    const showUserLayout = computed(() => {
+      const path = route.path
+      return (
+        !path.startsWith('/admin') &&
+        path !== '/dangnhap' &&
+        path !== '/dangky'
+      )
     })
 
-    return { showLayout }
+    return { showUserLayout }
   }
 }
 </script>
