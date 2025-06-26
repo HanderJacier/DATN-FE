@@ -9,7 +9,7 @@
             <li class="breadcrumb-item">
                 <a href="/" class="text-primary">Tài khoản</a>
             </li>
-            <li class="breadcrumb-item active text-muted" aria-current="page">Thông tin cá nhân</li>
+            <li class="breadcrumb-item active text-muted" aria-current="page">Địa chỉ</li>
         </ol>
     </nav>
 
@@ -45,7 +45,11 @@
                             <li>Hóa đơn mua hàng</li>
                         </ul>
 
-                        <h6 class="fw-bold text-danger"><i class="bi bi-heart-fill"></i> Sản phẩm yêu thích</h6>
+                        <router-link to="/sanphamyeuthich" class="text-dark text-decoration-none">
+                            <h6 class="fw-bold text-danger mb-0">
+                                <i class="bi bi-heart-fill"></i> Sản phẩm yêu thích
+                            </h6>
+                        </router-link>
                         <h6 class="fw-bold text-warning mt-3"><i class="bi bi-box-arrow-right"></i> Đăng xuất</h6>
                     </div>
                 </div>
@@ -174,8 +178,12 @@
 
 
 <script>
+import { RouterLink } from 'vue-router';
+
 export default {
     name: 'UserAddress',
+    components: { RouterLink },
+
     data() {
         return {
             isAddressSaved: false,
@@ -206,6 +214,12 @@ export default {
                     default: true,
                 },
             ],
+
+            /* DỮ LIỆU từ script2 */
+            username: 'Thuy Tien',
+            email: 'tranthithuytien@gmail.com',
+            phone: '0789 345 123',
+            gender: 'Nữ',
         };
     },
 
@@ -248,7 +262,6 @@ export default {
                 return;
             }
 
-            /* tách location thành city - district - ward */
             const [city = '', district = '', ward = ''] = location.split('-').map((s) => s.trim());
 
             const obj = { name, phone, street, ward, district, city, default: isDef };
@@ -259,7 +272,6 @@ export default {
                 this.addresses.push(obj);
             }
 
-            /* xử lý mặc định độc nhất */
             if (obj.default) {
                 const idx = this.isEdit ? this.editingIndex : this.addresses.length - 1;
                 this.setDefault(idx);
@@ -278,7 +290,6 @@ export default {
         deleteAddress(i) {
             if (confirm('Chắc chắn xoá địa chỉ này?')) {
                 this.addresses.splice(i, 1);
-                /* luôn giữ 1 địa chỉ mặc định */
                 if (!this.addresses.some((a) => a.default) && this.addresses[0]) {
                     this.addresses[0].default = true;
                 }
@@ -298,6 +309,15 @@ export default {
         flash(flag) {
             this[flag] = true;
             setTimeout(() => (this[flag] = false), 2000);
+        },
+
+        /* PHƯƠNG THỨC từ script2 */
+        submitForm() {
+            alert(`Thông tin đã cập nhật:
+- Tên: ${this.username}
+- Email: ${this.email}
+- SĐT: ${this.phone}
+- Giới tính: ${this.gender}`);
         },
     },
 };

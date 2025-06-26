@@ -45,7 +45,11 @@
                             <li>Hóa đơn mua hàng</li>
                         </ul>
 
-                        <h6 class="fw-bold text-danger"><i class="bi bi-heart-fill"></i> Sản phẩm yêu thích</h6>
+                        <router-link to="/sanphamyeuthich" class="text-dark text-decoration-none">
+                            <h6 class="fw-bold text-danger mb-0">
+                                <i class="bi bi-heart-fill"></i> Sản phẩm yêu thích
+                            </h6>
+                        </router-link>
                         <h6 class="fw-bold text-warning mt-3"><i class="bi bi-box-arrow-right"></i> Đăng xuất</h6>
                     </div>
                 </div>

@@ -74,7 +74,9 @@
                         <span>Cần thanh toán</span>
                         <span class="text-danger fs-5">{{ formatPrice(totalPrice) }} đ</span>
                     </div>
-                    <button class="btn btn-primary w-50 mt-3 mx-auto">Thanh toán</button>
+                    <RouterLink to="/thanhtoan" class="btn btn-primary w-50 mt-3 mx-auto text-center">
+                        Thanh toán
+                    </RouterLink>
                 </div>
             </div>
         </div>
