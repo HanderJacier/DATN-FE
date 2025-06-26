@@ -28,6 +28,8 @@ const routes = [
   { path: '/diachinguoidung', component: UserAddress },
   { path: '/sanphamyeuthich', component: FavoriteProduct },
   { path: '/thanhtoan', component: Pay },
+  {path: '/sanpham/:id',name: 'ChiTietSanPham',component: ProductDetail},
+
 
   // Admin layout và nested routes
   {
