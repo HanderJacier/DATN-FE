@@ -9,7 +9,9 @@
         <li class="breadcrumb-item">
           <a href="/" class="text-primary">{{ product?.ten_loai || 'Danh mục' }}</a>
         </li>
-        <li class="breadcrumb-item active text-muted" aria-current="page">{{ product?.tensanpham || 'Đang tải...' }}</li>
+        <li class="breadcrumb-item active text-muted" aria-current="page">
+          {{ product?.tensanpham || 'Đang tải...' }}
+        </li>
       </ol>
     </nav>
 
@@ -181,21 +183,11 @@
               </div>
             </div>
           </div>
-          <button
-            class="carousel-control-prev"
-            type="button"
-            data-bs-target="#similarProductsCarousel"
-            data-bs-slide="prev"
-          >
+          <button class="carousel-control-prev" type="button" data-bs-target="#similarProductsCarousel" data-bs-slide="prev">
             <span class="carousel-control-prev-icon" aria-hidden="true"></span>
             <span class="visually-hidden">Previous</span>
           </button>
-          <button
-            class="carousel-control-next"
-            type="button"
-            data-bs-target="#similarProductsCarousel"
-            data-bs-slide="next"
-          >
+          <button class="carousel-control-next" type="button" data-bs-target="#similarProductsCarousel" data-bs-slide="next">
             <span class="carousel-control-next-icon" aria-hidden="true"></span>
             <span class="visually-hidden">Next</span>
           </button>
@@ -210,7 +202,6 @@ import apiClient from '@/api'
 
 export default {
   name: 'ProductDetail',
-
   data() {
     return {
       product: null,
@@ -280,7 +271,6 @@ export default {
       ]
     }
   },
-
   computed: {
     productImages() {
       if (!this.product) return []
@@ -290,9 +280,19 @@ export default {
           alt: this.product.tensanpham || 'Ảnh sản phẩm'
         }
       ]
+    },
+    chunkedProducts() {
+      const chunkSize = 5
+      const result = []
+      for (let i = 0; i < this.similarProducts.length; i += chunkSize) {
+        result.push(this.similarProducts.slice(i, i + chunkSize))
+      }
+      return result
+    },
+    filteredReviews() {
+      return this.reviews
     }
   },
-
   methods: {
     changeImage(index) {
       this.currentIndex = index
@@ -304,7 +304,6 @@ export default {
       try {
         const res = await apiClient.get(`/api/chitietSP/${id}`)
         this.product = res.data
-
         this.specs = {
           cpu: {
             'Hãng CPU': res.data.cpu_brand,
@@ -333,14 +332,12 @@ export default {
       }
     }
   },
-
   mounted() {
     const id = this.$route.params.id
     this.fetchProduct(id)
   }
 }
 </script>
-
 
 <style scoped>
 .fixed-product-img {
