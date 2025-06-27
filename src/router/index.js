@@ -16,6 +16,7 @@ import ThongKe from '../components/Admin/ThongKe.vue'
 import User from '../components/Admin/User.vue'
 import FavoriteProduct from '../components/User/FavoriteProduct.vue'
 import Pay from '../components/User/Pay.vue'
+import LichSuMuaHang from '../components/User/LichSuMuaHang.vue'
 
 const routes = [
   { path: '/', component: Home },
@@ -29,6 +30,8 @@ const routes = [
   { path: '/sanphamyeuthich', component: FavoriteProduct },
   { path: '/thanhtoan', component: Pay },
   {path: '/sanpham/:id',name: 'ChiTietSanPham',component: ProductDetail},
+  { path: '/hoadon', component: Bill },
+  { path: '/lichsumuahang', component: LichSuMuaHang },
 
 
   // Admin layout và nested routes
