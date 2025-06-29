@@ -43,7 +43,7 @@ const { sanPhams, sanPhamXepHang } = useHomeLogic()
       }" navigation :modules="[Navigation]">
         <SwiperSlide v-for="sp in sanPhams" :key="sp.id">
           <div class="card h-100 mx-2">
-            <img :src="`@/assets/${sp.anhGoc}`" class="card-img-top" alt="Ảnh sản phẩm"
+            <img :src="`data:image/png;base64,${sp.anhGoc}`" class="card-img-top" alt="Ảnh sản phẩm"
               style="height: 180px; object-fit: cover" />
             <div class="card-body">
               <RouterLink :to="`/sanpham/${sp.id}`" class="text-decoration-none text-dark">

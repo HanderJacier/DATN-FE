@@ -198,8 +198,9 @@
 </template>
 
 <script>
-import apiClient from '@/api'
-
+import useHomeLogic from '@/components/User/JS/ChiTietSP.js'
+import { base64ToImageSrc } from '@/components/JS/base64.js'
+const { chiTietSanPham } = useHomeLogic()
 export default {
   name: 'ProductDetail',
   data() {
@@ -272,15 +273,6 @@ export default {
     }
   },
   computed: {
-    productImages() {
-      if (!this.product) return []
-      return [
-        {
-          src: `/images/sanpham/${this.product.anh_goc || 'default.png'}`,
-          alt: this.product.tensanpham || 'Ảnh sản phẩm'
-        }
-      ]
-    },
     chunkedProducts() {
       const chunkSize = 5
       const result = []
@@ -289,8 +281,17 @@ export default {
       }
       return result
     },
-    filteredReviews() {
-      return this.reviews
+    productImages() {
+      if (!this.product) return []
+      const hasImage = this.product.anh_goc && this.product.anh_goc.trim() !== ''
+      return [
+        {
+          src: hasImage
+            ? base64ToImageSrc(this.product.anh_goc)
+            : '/images/default.png',
+          alt: this.product.tensanpham || 'Ảnh sản phẩm'
+        }
+      ]
     }
   },
   methods: {
@@ -302,29 +303,29 @@ export default {
     },
     async fetchProduct(id) {
       try {
-        const res = await apiClient.get(`/api/chitietSP/${id}`)
-        this.product = res.data
+        const data = await chiTietSanPham(id)
+        this.product = data
         this.specs = {
           cpu: {
-            'Hãng CPU': res.data.cpu_brand,
-            'Công nghệ CPU': res.data.cpu_model,
-            'Loại CPU': res.data.cpu_type,
-            'Tốc độ CPU tối thiểu': res.data.cpu_min_speed,
-            'Tốc độ tối đa': res.data.cpu_max_speed,
-            'Số nhân': res.data.cpu_cores,
-            'Số luồng': res.data.cpu_threads,
-            'Bộ nhớ đệm': res.data.cpu_cache,
+            'Hãng CPU': data.cpu_brand,
+            'Công nghệ CPU': data.cpu_model,
+            'Loại CPU': data.cpu_type,
+            'Tốc độ CPU tối thiểu': data.cpu_min_speed,
+            'Tốc độ tối đa': data.cpu_max_speed,
+            'Số nhân': data.cpu_cores,
+            'Số luồng': data.cpu_threads,
+            'Bộ nhớ đệm': data.cpu_cache,
           },
           gpu: {
-            'Hãng (Card rời)': res.data.gpu_brand,
-            'Model (Card rời)': res.data.gpu_model,
-            'Tên đầy đủ': res.data.gpu_full_name,
-            'Bộ nhớ': res.data.gpu_memory,
+            'Hãng (Card rời)': data.gpu_brand,
+            'Model (Card rời)': data.gpu_model,
+            'Tên đầy đủ': data.gpu_full_name,
+            'Bộ nhớ': data.gpu_memory,
           },
           other: {
-            RAM: res.data.ram,
-            'Ổ cứng': res.data.storage,
-            'Màn hình': res.data.screen,
+            RAM: data.ram,
+            'Ổ cứng': data.storage,
+            'Màn hình': data.screen,
           }
         }
       } catch (err) {
@@ -338,7 +339,6 @@ export default {
   }
 }
 </script>
-
 <style scoped>
 .fixed-product-img {
   max-width: 100%;
