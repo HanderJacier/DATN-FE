@@ -1,19 +1,20 @@
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import apiClient from '@/api'
 
-export default function useChiTietSanPham(id) {
-  const chiTietSanPham = ref(null)
+export default function useHomeLogic() {
+  const product = ref(null)
 
-  onMounted(async () => {
+  const fetchChiTietSanPham = async (id) => {
     try {
-      const res = await apiClient.get(`/api/chitietSP/${id}`)
-      chiTietSanPham.value = res.data
-    } catch (error) {
-      console.error('Lỗi khi lấy chi tiết sản phẩm:', error)
+      const res = await apiClient.get(`/chitietSP/${id}`)  // ✅ Đúng với controller
+      product.value = res.data
+    } catch (err) {
+      console.error('Lỗi khi lấy sản phẩm:', err)
     }
-  })
+  }
 
   return {
-    chiTietSanPham
+    product,
+    fetchChiTietSanPham
   }
 }
