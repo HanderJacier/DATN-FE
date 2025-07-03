@@ -34,7 +34,7 @@ const { sanPhams, sanPhamXepHang } = useHomeLogic()
     </div> -->
 
     <!-- SẢN PHẨM MỚI -->
-    <div class="my-4">
+    <div class="my-4 p-2">
       <h3 class="h5 fw-bold mb-3">SẢN PHẨM MỚI</h3>
       <Swiper :slides-per-view="1" :space-between="10" :breakpoints="{
         576: { slidesPerView: 2 },
@@ -42,7 +42,7 @@ const { sanPhams, sanPhamXepHang } = useHomeLogic()
         992: { slidesPerView: 4 }
       }" navigation :modules="[Navigation]">
         <SwiperSlide v-for="sp in sanPhams" :key="sp.id">
-          <div class="card h-100 mx-2">
+          <div class="card h-100 mx-1">
             <img :src="`data:image/png;base64,${sp.anhGoc}`" class="card-img-top" alt="Ảnh sản phẩm"
               style="height: 180px; object-fit: cover" />
             <div class="card-body">
@@ -59,7 +59,7 @@ const { sanPhams, sanPhamXepHang } = useHomeLogic()
 
 
     <!-- Sản phẩm nổi bật -->
-    <div class="my-4">
+    <div class="my-4 p-2">
       <h3 class="h5 fw-bold mb-3">SẢN PHẨM NỔI BẬT</h3>
       <Swiper :slides-per-view="1" :space-between="10" :breakpoints="{
         576: { slidesPerView: 2 },
@@ -67,7 +67,7 @@ const { sanPhams, sanPhamXepHang } = useHomeLogic()
         992: { slidesPerView: 4 }
       }" navigation :modules="[Navigation]">
         <SwiperSlide v-for="sp in sanPhamXepHang" :key="sp.id">
-          <div class="card h-100 mx-2">
+          <div class="card h-100 mx-1">
             <img
               :src="`/uploads/${sp.anhGoc}`"
               class="card-img-top"

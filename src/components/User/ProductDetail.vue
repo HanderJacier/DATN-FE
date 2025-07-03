@@ -32,11 +32,21 @@
                 </div>
               </div>
             </div>
-            <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+            <button
+              class="carousel-control-prev"
+              type="button"
+              data-bs-target="#productCarousel"
+              data-bs-slide="prev"
+            >
               <span class="carousel-control-prev-icon" aria-hidden="true"></span>
               <span class="visually-hidden">Previous</span>
             </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+            <button
+              class="carousel-control-next"
+              type="button"
+              data-bs-target="#productCarousel"
+              data-bs-slide="next"
+            >
               <span class="carousel-control-next-icon" aria-hidden="true"></span>
               <span class="visually-hidden">Next</span>
             </button>
@@ -134,7 +144,7 @@
 
       <!-- Review List -->
       <div class="mb-3 mt-5">
-        <div class="d-flex mb-3" v-for="(review, index) in filteredReviews" :key="index">
+        <div class="d-flex mb-3" v-for="(review, index) in reviews" :key="index">
           <div
             class="rounded-circle text-white d-flex justify-content-center align-items-center me-3"
             :class="review.bgClass"
@@ -199,8 +209,7 @@
 
 <script>
 import useHomeLogic from '@/components/User/JS/ChiTietSP.js'
-import { base64ToImageSrc } from '@/components/JS/base64.js'
-const { chiTietSanPham } = useHomeLogic()
+
 export default {
   name: 'ProductDetail',
   data() {
@@ -211,7 +220,7 @@ export default {
       specs: {
         cpu: {},
         gpu: {},
-        other: {}
+        other: {},
       },
       reviews: [
         {
@@ -239,37 +248,43 @@ export default {
           oldPrice: '34.000.000 đ',
           discount: '-12%',
           newPrice: '32.000.000 đ',
-          image: 'https://cdn2.cellphones.com.vn/insecure/rs:fill:0:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/t/e/text_ng_n_13__7_33.png',
+          image:
+            'https://cdn2.cellphones.com.vn/insecure/rs:fill:0:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/t/e/text_ng_n_13__7_33.png',
         },
         {
           name: 'Laptop HP Envy X360 14',
           oldPrice: '25.990.000 đ',
           discount: '-25%',
           newPrice: '19.390.000 đ',
-          image: 'https://cdn2.cellphones.com.vn/insecure/rs:fill:0:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/t/e/text_ng_n_11__5_119.png',
+          image:
+            'https://cdn2.cellphones.com.vn/insecure/rs:fill:0:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/t/e/text_ng_n_11__5_119.png',
         },
         {
           name: 'Huawei MatePad 11.5”S',
           oldPrice: '14.990.000 đ',
           discount: '-14%',
           newPrice: '12.490.000 đ',
-          image: 'https://cdn2.cellphones.com.vn/insecure/rs:fill:0:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/m/a/may-tinh-bang-huawei-matepad-11-5-s_42_.png',
+          image:
+            'https://cdn2.cellphones.com.vn/insecure/rs:fill:0:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/m/a/may-tinh-bang-huawei-matepad-11-5-s_42_.png',
         },
         {
           name: 'Laptop Acer Nitro V15',
           oldPrice: '21.990.000 đ',
           discount: '-6%',
           newPrice: '20.690.000 đ',
-          image: 'https://cdn2.cellphones.com.vn/insecure/rs:fill:0:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/t/e/text_ng_n_11__4_19.png',
+          image:
+            'https://cdn2.cellphones.com.vn/insecure/rs:fill:0:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/t/e/text_ng_n_11__4_19.png',
         },
         {
           name: 'Laptop HP Envy X360',
           oldPrice: '45.390.000 đ',
           discount: '-24%',
           newPrice: '41.090.000 đ',
-          image: 'https://cdn2.cellphones.com.vn/insecure/rs:fill:0:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/l/a/laptop-hp-pavilion-x360-14-dy0168tu-4y1d3pa-1_1_1_2.jpg',
+          image:
+            'https://cdn2.cellphones.com.vn/insecure/rs:fill:0:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/l/a/laptop-hp-pavilion-x360-14-dy0168tu-4y1d3pa-1_1_1_2.jpg',
         },
-      ]
+      ],
+      homeLogic: null, // lưu biến composable để dùng
     }
   },
   computed: {
@@ -286,13 +301,11 @@ export default {
       const hasImage = this.product.anh_goc && this.product.anh_goc.trim() !== ''
       return [
         {
-          src: hasImage
-            ? base64ToImageSrc(this.product.anh_goc)
-            : '/images/default.png',
-          alt: this.product.tensanpham || 'Ảnh sản phẩm'
-        }
+          src: hasImage ? this.product.anh_goc : '/images/default.png',
+          alt: this.product.tensanpham || 'Ảnh sản phẩm',
+        },
       ]
-    }
+    },
   },
   methods: {
     changeImage(index) {
@@ -303,42 +316,50 @@ export default {
     },
     async fetchProduct(id) {
       try {
-        const data = await chiTietSanPham(id)
-        this.product = data
-        this.specs = {
-          cpu: {
-            'Hãng CPU': data.cpu_brand,
-            'Công nghệ CPU': data.cpu_model,
-            'Loại CPU': data.cpu_type,
-            'Tốc độ CPU tối thiểu': data.cpu_min_speed,
-            'Tốc độ tối đa': data.cpu_max_speed,
-            'Số nhân': data.cpu_cores,
-            'Số luồng': data.cpu_threads,
-            'Bộ nhớ đệm': data.cpu_cache,
-          },
-          gpu: {
-            'Hãng (Card rời)': data.gpu_brand,
-            'Model (Card rời)': data.gpu_model,
-            'Tên đầy đủ': data.gpu_full_name,
-            'Bộ nhớ': data.gpu_memory,
-          },
-          other: {
-            RAM: data.ram,
-            'Ổ cứng': data.storage,
-            'Màn hình': data.screen,
+        if (!this.homeLogic) {
+          this.homeLogic = useHomeLogic()
+        }
+        await this.homeLogic.fetchChiTietSanPham(id)
+        this.product = this.homeLogic.product.value
+        console.log('Product chi tiết:', this.product)
+        const data = this.product
+        if (data) {
+          this.specs = {
+            cpu: {
+              'Hãng CPU': data.cpu_brand,
+              'Công nghệ CPU': data.cpu_model,
+              'Loại CPU': data.cpu_type,
+              'Tốc độ CPU tối thiểu': data.cpu_min_speed,
+              'Tốc độ tối đa': data.cpu_max_speed,
+              'Số nhân': data.cpu_cores,
+              'Số luồng': data.cpu_threads,
+              'Bộ nhớ đệm': data.cpu_cache,
+            },
+            gpu: {
+              'Hãng (Card rời)': data.gpu_brand,
+              'Model (Card rời)': data.gpu_model,
+              'Tên đầy đủ': data.gpu_full_name,
+              'Bộ nhớ': data.gpu_memory,
+            },
+            other: {
+              RAM: data.ram,
+              'Ổ cứng': data.storage,
+              'Màn hình': data.screen,
+            },
           }
         }
       } catch (err) {
         console.error('Lỗi lấy sản phẩm:', err)
       }
-    }
+    },
   },
   mounted() {
     const id = this.$route.params.id
     this.fetchProduct(id)
-  }
+  },
 }
 </script>
+
 <style scoped>
 .fixed-product-img {
   max-width: 100%;
