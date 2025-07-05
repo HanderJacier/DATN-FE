@@ -6,7 +6,11 @@ import { Navigation } from 'swiper/modules'
 
 import useHomeLogic from '@/components/User/JS/Home.js'
 
+// Lấy dữ liệu sản phẩm
 const { sanPhamMoi, sanPhamYeuThich, sanPhamXepHang } = useHomeLogic()
+
+// Ngày hiện tại
+const now = new Date()
 </script>
 
 <template>
@@ -22,11 +26,40 @@ const { sanPhamMoi, sanPhamYeuThich, sanPhamXepHang } = useHomeLogic()
       }" navigation :modules="[Navigation]">
         <SwiperSlide v-for="sp in sanPhamMoi" :key="sp.id_sp">
           <RouterLink :to="`/sanpham/${sp.id_sp}`" class="text-decoration-none text-dark">
-            <div class="card h-100 mx-1">
+            <div class="card h-100 mx-1 position-relative">
+              <!-- Badge Giảm giá -->
+              <div
+                class="position-absolute top-0 start-0 bg-danger text-white px-2 py-1 small"
+                v-if="sp.giamgia && sp.loaigiam !== null && new Date(sp.hangiamgia) > now"
+              >
+                Giảm giá
+              </div>
+
               <img :src="sp.anhgoc" class="card-img-top product-img" alt="Ảnh sản phẩm" />
               <div class="card-body text-center">
                 <p class="fw-bold mb-1">{{ sp.tensanpham }}</p>
-                <p class="text-danger mb-2">Giá: {{ (sp.dongia ?? 0).toLocaleString() }}₫</p>
+
+                <!-- Giá -->
+                <p class="mb-2">
+                  <span
+                    v-if="sp.giamgia && sp.loaigiam !== null && new Date(sp.hangiamgia) > now"
+                  >
+                    <span class="text-danger fw-bold me-2">
+                      {{
+                        sp.loaigiam === 1
+                          ? (sp.dongia - sp.giamgia).toLocaleString()
+                          : (sp.dongia * (1 - sp.giamgia / 100)).toLocaleString()
+                      }}₫
+                    </span>
+                    <span class="text-muted text-decoration-line-through">
+                      {{ sp.dongia.toLocaleString() }}₫
+                    </span>
+                  </span>
+                  <span v-else class="text-danger fw-bold">
+                    {{ sp.dongia.toLocaleString() }}₫
+                  </span>
+                </p>
+
                 <div class="d-flex justify-content-center">
                   <div class="btn btn-primary mt-2">Mua ngay</div>
                 </div>
@@ -47,11 +80,40 @@ const { sanPhamMoi, sanPhamYeuThich, sanPhamXepHang } = useHomeLogic()
       }" navigation :modules="[Navigation]">
         <SwiperSlide v-for="sp in sanPhamYeuThich" :key="sp.id_sp">
           <RouterLink :to="`/sanpham/${sp.id_sp}`" class="text-decoration-none text-dark">
-            <div class="card h-100 mx-1">
+            <div class="card h-100 mx-1 position-relative">
+              <!-- Badge Giảm giá -->
+              <div
+                class="position-absolute top-0 start-0 bg-danger text-white px-2 py-1 small"
+                v-if="sp.giamgia && sp.loaigiam !== null && new Date(sp.hangiamgia) > now"
+              >
+                Giảm giá
+              </div>
+
               <img :src="sp.anhgoc" class="card-img-top product-img" alt="Ảnh sản phẩm" />
               <div class="card-body text-center">
                 <p class="fw-bold mb-1">{{ sp.tensanpham }}</p>
-                <p class="text-danger mb-2">Giá: {{ (sp.dongia ?? 0).toLocaleString() }}₫</p>
+
+                <!-- Giá -->
+                <p class="mb-2">
+                  <span
+                    v-if="sp.giamgia && sp.loaigiam !== null && new Date(sp.hangiamgia) > now"
+                  >
+                    <span class="text-danger fw-bold me-2">
+                      {{
+                        sp.loaigiam === 1
+                          ? (sp.dongia - sp.giamgia).toLocaleString()
+                          : (sp.dongia * (1 - sp.giamgia / 100)).toLocaleString()
+                      }}₫
+                    </span>
+                    <span class="text-muted text-decoration-line-through">
+                      {{ sp.dongia.toLocaleString() }}₫
+                    </span>
+                  </span>
+                  <span v-else class="text-danger fw-bold">
+                    {{ sp.dongia.toLocaleString() }}₫
+                  </span>
+                </p>
+
                 <div class="d-flex justify-content-center">
                   <div class="btn btn-primary mt-2">Mua ngay</div>
                 </div>
@@ -72,11 +134,40 @@ const { sanPhamMoi, sanPhamYeuThich, sanPhamXepHang } = useHomeLogic()
       }" navigation :modules="[Navigation]">
         <SwiperSlide v-for="sp in sanPhamXepHang" :key="sp.id_sp">
           <RouterLink :to="`/sanpham/${sp.id_sp}`" class="text-decoration-none text-dark">
-            <div class="card h-100 mx-1">
+            <div class="card h-100 mx-1 position-relative">
+              <!-- Badge Giảm giá -->
+              <div
+                class="position-absolute top-0 start-0 bg-danger text-white px-2 py-1 small"
+                v-if="sp.giamgia && sp.loaigiam !== null && new Date(sp.hangiamgia) > now"
+              >
+                Giảm giá
+              </div>
+
               <img :src="sp.anhgoc" class="card-img-top product-img" alt="Ảnh sản phẩm" />
               <div class="card-body text-center">
                 <p class="fw-bold mb-1">{{ sp.tensanpham }}</p>
-                <p class="text-danger mb-2">Giá: {{ (sp.dongia ?? 0).toLocaleString() }}₫</p>
+
+                <!-- Giá -->
+                <p class="mb-2">
+                  <span
+                    v-if="sp.giamgia && sp.loaigiam !== null && new Date(sp.hangiamgia) > now"
+                  >
+                    <span class="text-danger fw-bold me-2">
+                      {{
+                        sp.loaigiam === 1
+                          ? (sp.dongia - sp.giamgia).toLocaleString()
+                          : (sp.dongia * (1 - sp.giamgia / 100)).toLocaleString()
+                      }}₫
+                    </span>
+                    <span class="text-muted text-decoration-line-through">
+                      {{ sp.dongia.toLocaleString() }}₫
+                    </span>
+                  </span>
+                  <span v-else class="text-danger fw-bold">
+                    {{ sp.dongia.toLocaleString() }}₫
+                  </span>
+                </p>
+
                 <div class="d-flex justify-content-center">
                   <div class="btn btn-primary mt-2">Mua ngay</div>
                 </div>
@@ -94,9 +185,7 @@ const { sanPhamMoi, sanPhamYeuThich, sanPhamXepHang } = useHomeLogic()
 .product-img {
   width: 100%;
   aspect-ratio: 1/1;
-  /* Tạo hình vuông */
   object-fit: contain;
-  /* Không cắt ảnh, hiển thị đầy đủ */
   padding: 10px;
 }
 </style>

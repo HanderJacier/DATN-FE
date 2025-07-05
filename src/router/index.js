@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import Home from '../components/User/Home.vue'
 import Dashboard from '../components/Admin/Dashboard.vue'
-import ProductDetail from '../components/User/ProductDetail.vue'
+import ProductDetail from '../components/User/ChiTietSP.vue'
 import UserDetail from '../components/User/UserDetail.vue'
 import DangNhap from '../components/User/DangNhapUser.vue'
 import DoiMatKhau from '../components/User/DoiMatKhau.vue'
