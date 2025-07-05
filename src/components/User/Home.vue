@@ -23,7 +23,7 @@ const { sanPhamMoi, sanPhamYeuThich, sanPhamXepHang } = useHomeLogic()
         <SwiperSlide v-for="sp in sanPhamMoi" :key="sp.id_sp">
           <RouterLink :to="`/sanpham/${sp.id_sp}`" class="text-decoration-none text-dark">
             <div class="card h-100 mx-1">
-              <img :src="sp.anhgoc" class="card-img-top" alt="Ảnh sản phẩm" style="height: 180px; object-fit: cover" />
+              <img :src="sp.anhgoc" class="card-img-top product-img" alt="Ảnh sản phẩm" />
               <div class="card-body text-center">
                 <p class="fw-bold mb-1">{{ sp.tensanpham }}</p>
                 <p class="text-danger mb-2">Giá: {{ (sp.dongia ?? 0).toLocaleString() }}₫</p>
@@ -46,12 +46,12 @@ const { sanPhamMoi, sanPhamYeuThich, sanPhamXepHang } = useHomeLogic()
         992: { slidesPerView: 4 }
       }" navigation :modules="[Navigation]">
         <SwiperSlide v-for="sp in sanPhamYeuThich" :key="sp.id_sp">
-          <RouterLink :to="`/sanpham/${sp.id_sp}`" class="btn w-100 mt-2 text-center">
+          <RouterLink :to="`/sanpham/${sp.id_sp}`" class="text-decoration-none text-dark">
             <div class="card h-100 mx-1">
-              <img :src="sp.anhgoc" class="card-img-top" alt="Ảnh sản phẩm" style="height: 180px; object-fit: cover" />
-              <div class="card-body">
+              <img :src="sp.anhgoc" class="card-img-top product-img" alt="Ảnh sản phẩm" />
+              <div class="card-body text-center">
                 <p class="fw-bold mb-1">{{ sp.tensanpham }}</p>
-                <p class="text-danger">Giá: {{ (sp.dongia ?? 0).toLocaleString() }}₫</p>
+                <p class="text-danger mb-2">Giá: {{ (sp.dongia ?? 0).toLocaleString() }}₫</p>
                 <div class="d-flex justify-content-center">
                   <div class="btn btn-primary mt-2">Mua ngay</div>
                 </div>
@@ -71,12 +71,12 @@ const { sanPhamMoi, sanPhamYeuThich, sanPhamXepHang } = useHomeLogic()
         992: { slidesPerView: 4 }
       }" navigation :modules="[Navigation]">
         <SwiperSlide v-for="sp in sanPhamXepHang" :key="sp.id_sp">
-          <RouterLink :to="`/sanpham/${sp.id_sp}`" class="btn w-100 mt-2 text-center">
+          <RouterLink :to="`/sanpham/${sp.id_sp}`" class="text-decoration-none text-dark">
             <div class="card h-100 mx-1">
-              <img :src="sp.anhgoc" class="card-img-top" alt="Ảnh sản phẩm" style="height: 180px; object-fit: cover" />
-              <div class="card-body">
+              <img :src="sp.anhgoc" class="card-img-top product-img" alt="Ảnh sản phẩm" />
+              <div class="card-body text-center">
                 <p class="fw-bold mb-1">{{ sp.tensanpham }}</p>
-                <p class="text-danger">Giá: {{ (sp.dongia ?? 0).toLocaleString() }}₫</p>
+                <p class="text-danger mb-2">Giá: {{ (sp.dongia ?? 0).toLocaleString() }}₫</p>
                 <div class="d-flex justify-content-center">
                   <div class="btn btn-primary mt-2">Mua ngay</div>
                 </div>
@@ -86,5 +86,15 @@ const { sanPhamMoi, sanPhamYeuThich, sanPhamXepHang } = useHomeLogic()
         </SwiperSlide>
       </Swiper>
     </div>
+
   </div>
 </template>
+
+<style scoped>
+.product-img {
+  width: 100%;
+  aspect-ratio: 1/1; /* Tạo hình vuông */
+  object-fit: contain; /* Không cắt ảnh, hiển thị đầy đủ */
+  padding: 10px;
+}
+</style>
