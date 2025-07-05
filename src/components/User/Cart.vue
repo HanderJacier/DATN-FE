@@ -1,14 +1,4 @@
 <template>
-
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb p-2 mt-2" style="background-color: #eaf0fc;">
-            <li class="breadcrumb-item">
-                <a href="/" class="text-primary">Trang chủ</a>
-            </li>
-            <li class="breadcrumb-item active text-muted" aria-current="page">Giỏ hàng</li>
-        </ol>
-    </nav>
-
     <div class="container my-4 mt-5">
         <div class="row">
             <!-- Danh sách sản phẩm -->
@@ -20,7 +10,8 @@
                     </label>
                 </div>
 
-                <!-- Danh sách sản phẩm -->
+                <div v-if="cart.length === 0" class="alert alert-warning">Giỏ hàng của bạn đang trống.</div>
+
                 <div v-for="(item, index) in cart" :key="index" class="card mb-3">
                     <div class="bg-white rounded p-3 mb-3">
                         <div class="d-flex align-items-center">
@@ -55,12 +46,8 @@
             </div>
 
             <!-- Thông tin đơn hàng -->
-            <div class="col-lg-4">
+            <div class="col-lg-4" v-if="cart.length > 0">
                 <div class="card p-3">
-                    <button class="btn btn-light d-flex justify-content-between align-items-center mb-3">
-                        <span><i class="bi bi-percent text-danger me-2"></i>Chọn hoặc nhập ưu đãi</span>
-                        <i class="bi bi-chevron-right"></i>
-                    </button>
                     <h6 class="fw-bold">Thông tin đơn hàng</h6>
                     <div class="d-flex justify-content-between py-2">
                         <span>Tổng tiền</span>
@@ -74,97 +61,33 @@
                         <span>Cần thanh toán</span>
                         <span class="text-danger fs-5">{{ formatPrice(totalPrice) }} đ</span>
                     </div>
-                    <RouterLink to="/thanhtoan" class="btn btn-primary w-50 mt-3 mx-auto text-center">
+                    <!-- Thay vì dùng RouterLink -->
+                    <button class="btn btn-primary w-50 mt-3 mx-auto text-center" @click="goToCheckout">
                         Thanh toán
-                    </RouterLink>
+                    </button>
                 </div>
-            </div>
-        </div>
-
-        <!-- Thông tin cam kết -->
-        <div class="row text-center mt-5">
-            <div v-for="(info, index) in guarantees" :key="index" class="col-6 col-md-3 mb-3">
-                <div class="text-danger fs-3">
-                    <i :class="info.icon"></i>
-                </div>
-                <div class="fw-bold">{{ info.title }}</div>
-                <div>{{ info.subtitle }}</div>
             </div>
         </div>
     </div>
 </template>
 
 <script>
-
 export default {
-    name: 'ProductCarousel',
+    name: 'ProductCart',
     data() {
         return {
-            selectAll: true,
-            cart: [
-                {
-                    name: 'Chuột Gaming không dây Logitech G304 Lightspeed',
-                    image: 'https://cdn2.cellphones.com.vn/insecure/rs:fill:0:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/t/_/t_i_xu_ng_36__2.png',
-                    variant: 'Đen',
-                    price: 439000,
-                    originalPrice: 499000,
-                    quantity: 1,
-                    selected: true
-                },
-                {
-                    name: 'Chuột gaming Logitech Pro X Superlight 2 Lightspeed',
-                    image: 'https://cdn2.cellphones.com.vn/insecure/rs:fill:0:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/c/h/chuot-gaming-logitech-pro-x-superlight-2-lightspeed-2.png',
-                    variant: 'Đen',
-                    price: 439000,
-                    originalPrice: 499000,
-                    quantity: 1,
-                    selected: true
-                },
-                {
-                    name: 'Chuột không dây Dareu LM115G',
-                    image: 'https://cdn2.cellphones.com.vn/insecure/rs:fill:0:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/c/h/chuot-khong-day-dareu-lm115g_1_.png',
-                    variant: 'Đen',
-                    price: 439000,
-                    originalPrice: 499000,
-                    quantity: 1,
-                    selected: true
-                }
-            ],
-            guarantees: [
-                {
-                    icon: 'bi bi-bookmark-fill',
-                    title: 'Thương hiệu đảm bảo',
-                    subtitle: 'Nhập khẩu, bảo hành chính hãng'
-                },
-                {
-                    icon: 'bi bi-house-door-fill',
-                    title: 'Giao hàng tận nhà',
-                    subtitle: 'Tại 63 tỉnh thành'
-                },
-                {
-                    icon: 'bi bi-check-square-fill',
-                    title: 'Sản phẩm chất lượng',
-                    subtitle: 'Đảm bảo tương thích và độ bền cao'
-                },
-                {
-                    icon: 'bi bi-arrow-repeat',
-                    title: 'Đổi trả dễ dàng',
-                    subtitle: 'Theo chính sách đổi trả tại FPT Shop'
-                }
-            ]
+            selectAll: false,
+            cart: []
         };
     },
     computed: {
         totalPrice() {
-            return this.cart.reduce((total, item) => {
-                return item.selected ? total + item.price * item.quantity : total;
-            }, 0);
-        },
-        totalQuantity() {
-            return this.cart.reduce((sum, item) => sum + item.quantity, 0);
+            return this.cart.reduce((total, item) =>
+                item.selected ? total + item.price * item.quantity : total, 0);
         },
         selectedQuantity() {
-            return this.cart.reduce((sum, item) => item.selected ? sum + item.quantity : sum, 0);
+            return this.cart.reduce((sum, item) =>
+                item.selected ? sum + item.quantity : sum, 0);
         }
     },
     methods: {
@@ -173,15 +96,52 @@ export default {
         },
         increaseQty(index) {
             this.cart[index].quantity++;
+            this.saveCart();
         },
         decreaseQty(index) {
-            if (this.cart[index].quantity > 1) this.cart[index].quantity--;
+            if (this.cart[index].quantity > 1) {
+                this.cart[index].quantity--;
+                this.saveCart();
+            }
         },
         removeItem(index) {
             this.cart.splice(index, 1);
+            this.saveCart();
         },
         toggleAll() {
-            this.cart.forEach(item => (item.selected = this.selectAll));
+            this.cart.forEach(item => item.selected = this.selectAll);
+        },
+        saveCart() {
+            localStorage.setItem('cart', JSON.stringify(this.cart));
+            window.dispatchEvent(new Event('storage')); // 👈 Cập nhật Header
+        },
+        goToCheckout() {
+            const user =
+                JSON.parse(localStorage.getItem("user")) ||
+                JSON.parse(sessionStorage.getItem("user"));
+            if (user) {
+                this.$router.push("/thanhtoan");
+            } else {
+                this.$router.push("/dangnhap");
+            }
+        }
+    },
+    watch: {
+        cart: {
+            handler() {
+                this.saveCart();
+            },
+            deep: true
+        }
+    },
+    mounted() {
+        const saved = localStorage.getItem('cart');
+        if (saved) {
+            try {
+                this.cart = JSON.parse(saved);
+            } catch (e) {
+                console.error('Không thể parse giỏ hàng:', e);
+            }
         }
     }
 };

@@ -21,32 +21,18 @@
         <div class="col-md-6">
           <div id="productCarousel" class="carousel slide" data-bs-ride="carousel">
             <div class="carousel-inner">
-              <div
-                class="carousel-item"
-                :class="{ active: index === currentIndex }"
-                v-for="(image, index) in productImages"
-                :key="index"
-              >
+              <div class="carousel-item" :class="{ active: index === currentIndex }"
+                v-for="(image, index) in productImages" :key="index">
                 <div class="fixed-image-frame mx-auto d-flex justify-content-center align-items-center">
                   <img :src="image.src" :alt="image.alt" class="fixed-product-img" />
                 </div>
               </div>
             </div>
-            <button
-              class="carousel-control-prev"
-              type="button"
-              data-bs-target="#productCarousel"
-              data-bs-slide="prev"
-            >
+            <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
               <span class="carousel-control-prev-icon" aria-hidden="true"></span>
               <span class="visually-hidden">Previous</span>
             </button>
-            <button
-              class="carousel-control-next"
-              type="button"
-              data-bs-target="#productCarousel"
-              data-bs-slide="next"
-            >
+            <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
               <span class="carousel-control-next-icon" aria-hidden="true"></span>
               <span class="visually-hidden">Next</span>
             </button>
@@ -54,16 +40,10 @@
 
           <!-- Thumbnails -->
           <div class="d-flex flex-wrap gap-2 mt-3 justify-content-center">
-            <img
-              v-for="(image, index) in productImages"
-              :key="index"
-              :src="image.src"
-              class="img-thumbnail border border-2"
-              :class="{ 'border-dark': index === currentIndex }"
-              style="width: 100px; height: 100px; object-fit: cover; cursor: pointer"
-              @click="changeImage(index)"
-              :alt="`Ảnh sản phẩm ${index + 1}`"
-            />
+            <img v-for="(image, index) in productImages" :key="index" :src="image.src"
+              class="img-thumbnail border border-2" :class="{ 'border-dark': index === currentIndex }"
+              style="width: 100px; height: 100px; object-fit: cover; cursor: pointer" @click="changeImage(index)"
+              :alt="`Ảnh sản phẩm ${index + 1}`" />
           </div>
 
           <!-- Thông số kỹ thuật -->
@@ -71,30 +51,21 @@
             <h6 class="fw-bold border-bottom pb-2">Thông số kỹ thuật</h6>
 
             <h6 class="mt-3 mb-2">Bộ xử lý</h6>
-            <div
-              class="d-flex justify-content-between small py-1 border-bottom"
-              v-for="(value, label) in specs.cpu"
-              :key="label"
-            >
+            <div class="d-flex justify-content-between small py-1 border-bottom" v-for="(value, label) in specs.cpu"
+              :key="label">
               <span>{{ label }}</span><span>{{ value }}</span>
             </div>
 
             <h6 class="mt-4 mb-2">Đồ họa</h6>
-            <div
-              class="d-flex justify-content-between small py-1 border-bottom"
-              v-for="(value, label) in specs.gpu"
-              :key="label"
-            >
+            <div class="d-flex justify-content-between small py-1 border-bottom" v-for="(value, label) in specs.gpu"
+              :key="label">
               <span>{{ label }}</span><span>{{ value }}</span>
             </div>
 
             <div v-if="showMore">
               <h6 class="mt-4 mb-2">Khác</h6>
-              <div
-                class="d-flex justify-content-between small py-1 border-bottom"
-                v-for="(value, label) in specs.other"
-                :key="label"
-              >
+              <div class="d-flex justify-content-between small py-1 border-bottom" v-for="(value, label) in specs.other"
+                :key="label">
                 <span>{{ label }}</span><span>{{ value }}</span>
               </div>
             </div>
@@ -136,8 +107,12 @@
           </div>
 
           <div class="d-flex justify-content-center mt-5">
-            <button class="btn btn-outline-primary me-3"><i class="bi bi-cart-fill"></i></button>
-            <button class="btn btn-primary px-5 py-2 fw-bold">Mua ngay</button>
+            <button class="btn btn-outline-primary me-3" @click="addToCart">
+              <i class="bi bi-cart-fill"></i>
+            </button>
+            <button class="btn btn-primary px-5 py-2 fw-bold" @click="buyNow">
+              Mua ngay
+            </button>
           </div>
         </div>
       </div>
@@ -145,11 +120,8 @@
       <!-- Reviews -->
       <div class="mb-3 mt-5">
         <div class="d-flex mb-3" v-for="(review, index) in reviews" :key="index">
-          <div
-            class="rounded-circle text-white d-flex justify-content-center align-items-center me-3"
-            :class="review.bgClass"
-            style="width: 40px; height: 40px;"
-          >
+          <div class="rounded-circle text-white d-flex justify-content-center align-items-center me-3"
+            :class="review.bgClass" style="width: 40px; height: 40px;">
             {{ review.initial }}
           </div>
           <div>
@@ -167,14 +139,34 @@
       </div>
     </div>
   </div>
+  <!-- Sản phẩm khác -->
+  <div class="mt-5">
+    <h5 class="fw-bold mb-4">Sản phẩm khác</h5>
+    <div class="row row-cols-2 row-cols-md-4 g-3">
+      <div class="col" v-for="(sp, idx) in otherProducts" :key="idx">
+        <div class="card h-100 shadow-sm">
+          <img :src="sp.image" class="card-img-top" style="height: 180px; object-fit: contain;" />
+          <div class="card-body">
+            <h6 class="card-title text-truncate">{{ sp.name }}</h6>
+            <p class="text-danger fw-bold">{{ sp.price.toLocaleString() }}₫</p>
+            <router-link :to="'/chitiet/' + sp.id" class="btn btn-sm btn-outline-primary w-100">
+              Xem chi tiết
+            </router-link>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import useHomeLogic from '@/components/User/JS/ChiTietSP.js'
 
 const route = useRoute()
+const router = useRouter()
 const { product, fetchChiTietSanPham } = useHomeLogic()
 
 const currentIndex = ref(0)
@@ -207,6 +199,33 @@ const reviews = ref([
   },
 ])
 
+const otherProducts = ref([
+  {
+    id: 101,
+    name: 'iPhone 16 Pro Max 512GB',
+    price: 39990000,
+    image: 'https://cdn.tgdd.vn/Products/Images/42/329150/iphone-16-pro-max-sa-mac-thumb-600x600.jpg'
+  },
+  {
+    id: 102,
+    name: 'Samsung Galaxy S25 Ultra',
+    price: 28990000,
+    image: 'https://happyphone.vn/wp-content/uploads/2025/01/Samsung-Galaxy-S25-Ultra-Titan-Blue.jpg'
+  },
+  {
+    id: 103,
+    name: 'MacBook Air M4 2025',
+    price: 31990000,
+    image: 'https://www.apple.com/newsroom/images/2025/03/apple-introduces-the-new-macbook-air-with-the-m4-chip-and-a-sky-blue-color/article/Apple-MacBook-Air-lineup-250305_big.jpg.large.jpg'
+  },
+  {
+    id: 104,
+    name: 'Tai nghe Sony WH-1000XM6',
+    price: 7990000,
+    image: 'https://bizweb.dktcdn.net/thumb/grande/100/479/913/products/tai-nghe-chong-on-bluetooth-sony-wh-1000xm6-tin-do-tai-nghe-2.jpg?v=1747423362963'
+  }
+])
+
 const productImages = computed(() => {
   if (!product.value) return []
   const hasImage = product.value.anhgoc && product.value.anhgoc.trim() !== ''
@@ -222,6 +241,37 @@ const changeImage = (index) => {
 
 const toggleMore = () => {
   showMore.value = !showMore.value
+}
+
+// ✔ Thêm vào localStorage
+const addToCart = () => {
+  const cart = JSON.parse(localStorage.getItem('cart')) || []
+  const item = {
+    id: product.value.id,
+    name: product.value.tensanpham,
+    price: product.value.dongia,
+    image: product.value.anhgoc,
+    quantity: 1,
+    variant: product.value.mausac || 'Mặc định',
+    selected: true,
+    originalPrice: product.value.giamgia || product.value.dongia
+  }
+
+  const index = cart.findIndex(p => p.id === item.id)
+  if (index !== -1) {
+    cart[index].quantity += 1
+  } else {
+    cart.push(item)
+  }
+
+  localStorage.setItem('cart', JSON.stringify(cart))
+  window.dispatchEvent(new Event("storage"))
+}
+
+// ✔ Thêm vào giỏ hàng rồi chuyển đến trang giỏ
+const buyNow = () => {
+  addToCart()
+  router.push('/giohang')
 }
 
 onMounted(async () => {
@@ -264,6 +314,7 @@ onMounted(async () => {
   height: 400px;
   object-fit: contain;
 }
+
 .fixed-image-frame {
   width: 100%;
   height: 400px;

@@ -93,8 +93,10 @@ const { sanPhamMoi, sanPhamYeuThich, sanPhamXepHang } = useHomeLogic()
 <style scoped>
 .product-img {
   width: 100%;
-  aspect-ratio: 1/1; /* Tạo hình vuông */
-  object-fit: contain; /* Không cắt ảnh, hiển thị đầy đủ */
+  aspect-ratio: 1/1;
+  /* Tạo hình vuông */
+  object-fit: contain;
+  /* Không cắt ảnh, hiển thị đầy đủ */
   padding: 10px;
 }
 </style>
