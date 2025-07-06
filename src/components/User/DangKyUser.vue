@@ -65,6 +65,22 @@
                   required 
                 />
               </div>
+              
+              <!-- Tên đăng nhập -->
+              <div class="mb-3">
+                <label class="form-label fw-semibold text-dark">
+                  <i class="fas fa-user-circle me-2 text-primary"></i>
+                  Tên đăng nhập
+                </label>
+                <input 
+                  type="text" 
+                  class="form-control form-control-lg border-2"
+                  style="border-radius: 10px; background-color: #f8f9fa; border: 2px solid #e9ecef;"
+                  v-model="username"
+                  placeholder="Nhập tên đăng nhập"
+                  required 
+                />
+              </div>
 
               <div class="row mb-3">
                 <div class="col-md-6">
@@ -241,6 +257,7 @@ export default {
   data() {
     return {
       fullName: '',
+      username: '',
       email: '',
       soDienThoai: '',
       password: '',
@@ -288,7 +305,7 @@ export default {
   methods: {
     async handleRegister() {
       // Validate form
-      if (!this.fullName || !this.email || !this.soDienThoai || !this.password || !this.confirmPassword) {
+      if (!this.fullName || !this.username || !this.email || !this.soDienThoai || !this.password || !this.confirmPassword) {
         this.errorMessage = 'Vui lòng nhập đầy đủ thông tin.';
         return;
       }
@@ -313,7 +330,7 @@ export default {
 
       try {
         const response = await apiClient.post('/xacthuc/dangky', {
-          tenDangNhap: this.email,
+          tenDangNhap: this.username,
           matKhau: this.password,
           hoVaTen: this.fullName,
           email: this.email,

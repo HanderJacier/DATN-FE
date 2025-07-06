@@ -23,7 +23,7 @@
                         <div class="d-flex align-items-center">
                             <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" width="60" alt="avatar"
                                 class="me-2" />
-                            <h5 class="fw-bold mb-0">{{ username }}</h5>
+                            <h5 class="fw-bold mb-0">{{ hoVaTen }}</h5>
                         </div>
                     </div>
                     <hr />
@@ -125,26 +125,60 @@
 </template>
 
 <script>
-import { RouterLink } from 'vue-router';
+import apiClient from '/src/api.js';
 
 export default {
     name: 'PersonalInfoPage',
     data() {
         return {
-            username: 'Thuy Tien',
-            email: 'tranthithuytien@gmail.com',
-            phone: '0789 345 123',
-            gender: 'Nữ',
+            username: '',
+            email: '',
+            phone: '',
+            gender: '',
+            hoVaTen: '',
         };
     },
-    methods: {
-        submitForm() {
-            alert(`Thông tin đã cập nhật:
-- Tên: ${this.username}
-- Email: ${this.email}
-- SĐT: ${this.phone}
-- Giới tính: ${this.gender}`);
-        },
+    mounted() {
+        this.layThongTinTaiKhoan();
     },
+    methods: {
+        async layThongTinTaiKhoan() {
+            try {
+                const res = await apiClient.get('/taikhoan/thongtin', {
+                    withCredentials: true
+                });
+                const data = res.data;
+                this.username = data.tenDangNhap;
+                this.email = data.email;
+                this.phone = data.soDienThoai;
+                this.hoVaTen = data.hoVaTen;
+
+                // 👇 nếu bạn lưu giới tính trong trường khác thì xử lý thêm
+                // this.gender = data.gioiTinh;
+            } catch (err) {
+                console.error(err);
+                alert("Không thể tải thông tin tài khoản.");
+            }
+        },
+
+        async submitForm() {
+            try {
+                const res = await apiClient.put('/taikhoan/capnhat',
+                    {
+                        hoVaTen: this.hoVaTen,
+                        email: this.email,
+                        soDienThoai: this.phone
+                    },
+                    { withCredentials: true }
+                );
+
+                alert("Thông tin đã được cập nhật!");
+            } catch (err) {
+                console.error(err);
+                alert(err.response?.data?.message || "Lỗi cập nhật thông tin");
+            }
+        }
+    }
 };
 </script>
+
