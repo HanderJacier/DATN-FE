@@ -141,7 +141,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import useHomeLogic from '@/components/User/JS/ChiTietSP.js'
+import useHomeLogic from '@/components/User/LoadDB/ChiTietSP.js'
 
 import ProductReviews from '@/components/User/ChiTietSP/BinhLuan.vue'
 import OtherProducts from '@/components/User/ChiTietSP/SanPhamKhac.vue'

@@ -4,188 +4,102 @@ import 'swiper/css'
 import 'swiper/css/navigation'
 import { Navigation } from 'swiper/modules'
 
-import useHomeLogic from '@/components/User/JS/Home.js'
+import useHomeLogic from '@/components/User/LoadDB/Home.js'
 
-// Lấy dữ liệu sản phẩm
 const { sanPhamMoi, sanPhamYeuThich, sanPhamXepHang } = useHomeLogic()
-
-// Ngày hiện tại
 const now = new Date()
 </script>
 
 <template>
-  <div class="container-fluid px-0">
+  <div class="container my-5">
 
-    <!-- 🌟 SẢN PHẨM MỚI -->
-    <div class="my-4 p-2">
-      <h3 class="h5 fw-bold mb-3">SẢN PHẨM MỚI</h3>
-      <Swiper :slides-per-view="1" :space-between="10" :breakpoints="{
-        576: { slidesPerView: 2 },
-        768: { slidesPerView: 3 },
-        992: { slidesPerView: 4 }
-      }" navigation :modules="[Navigation]">
-        <SwiperSlide v-for="sp in sanPhamMoi" :key="sp.id_sp">
+    <!-- DANH MỤC SẢN PHẨM -->
+    <section
+      v-for="(list, title) in {
+        'SẢN PHẨM MỚI': sanPhamMoi,
+        'SẢN PHẨM YÊU THÍCH': sanPhamYeuThich,
+        'SẢN PHẨM GIẢM GIÁ': sanPhamXepHang
+      }"
+      :key="title"
+      class="mb-5"
+    >
+      <h4 class="fw-semibold border-bottom pb-2 mb-3 fw-bold">{{ title }}</h4>
+
+      <Swiper
+        :slides-per-view="1"
+        :space-between="10"
+        :breakpoints="{ 576: { slidesPerView: 2 }, 768: { slidesPerView: 3 }, 992: { slidesPerView: 4 } }"
+        navigation
+        :modules="[Navigation]"
+      >
+        <SwiperSlide v-for="sp in list" :key="sp.id_sp">
           <RouterLink :to="`/sanpham/${sp.id_sp}`" class="text-decoration-none text-dark">
-            <div class="card h-100 mx-1 position-relative">
-              <!-- Badge Giảm giá -->
-              <div
-                class="position-absolute top-0 start-0 bg-danger text-white px-2 py-1 small"
-                v-if="sp.giamgia && sp.loaigiam !== null && new Date(sp.hangiamgia) > now"
-              >
-                Giảm giá
-              </div>
-
-              <img :src="sp.anhgoc" class="card-img-top product-img" alt="Ảnh sản phẩm" />
-              <div class="card-body text-center">
-                <p class="fw-bold mb-1">{{ sp.tensanpham }}</p>
+            <div class="card product-card mx-2">
+              <img :src="sp.anhgoc" class="card-img-top product-img" :alt="sp.tensanpham" />
+              <div class="card-body">
+                <h6 class="fw-bold text-truncate">{{ sp.tensanpham }}</h6>
+                <p class="mb-1 text-secondary small">{{ sp.thuonghieu_ten || 'Thương hiệu khác' }}</p>
 
                 <!-- Giá -->
-                <p class="mb-2">
-                  <span
-                    v-if="sp.giamgia && sp.loaigiam !== null && new Date(sp.hangiamgia) > now"
-                  >
-                    <span class="text-danger fw-bold me-2">
+                <p class="fw-semibold mb-2">
+                  <template v-if="sp.giamgia && sp.loaigiam !== null && new Date(sp.hangiamgia) > now">
+                    <span class="text-dark me-2">
                       {{
                         sp.loaigiam === 1
                           ? (sp.dongia - sp.giamgia).toLocaleString()
                           : (sp.dongia * (1 - sp.giamgia / 100)).toLocaleString()
                       }}₫
                     </span>
-                    <span class="text-muted text-decoration-line-through">
+                    <span class="text-muted text-decoration-line-through small">
                       {{ sp.dongia.toLocaleString() }}₫
                     </span>
-                  </span>
-                  <span v-else class="text-danger fw-bold">
-                    {{ sp.dongia.toLocaleString() }}₫
-                  </span>
+                  </template>
+                  <template v-else>
+                    <span class="text-dark">{{ sp.dongia.toLocaleString() }}₫</span>
+                  </template>
                 </p>
 
-                <div class="d-flex justify-content-center">
-                  <div class="btn btn-primary mt-2">Mua ngay</div>
-                </div>
+                <button class="btn btn-outline-dark w-100 mt-2 rounded-pill">Xem chi tiết</button>
               </div>
             </div>
           </RouterLink>
         </SwiperSlide>
       </Swiper>
-    </div>
-
-    <!-- ❤️ SẢN PHẨM YÊU THÍCH -->
-    <div class="my-4 p-2">
-      <h3 class="h5 fw-bold mb-3">SẢN PHẨM YÊU THÍCH</h3>
-      <Swiper :slides-per-view="1" :space-between="10" :breakpoints="{
-        576: { slidesPerView: 2 },
-        768: { slidesPerView: 3 },
-        992: { slidesPerView: 4 }
-      }" navigation :modules="[Navigation]">
-        <SwiperSlide v-for="sp in sanPhamYeuThich" :key="sp.id_sp">
-          <RouterLink :to="`/sanpham/${sp.id_sp}`" class="text-decoration-none text-dark">
-            <div class="card h-100 mx-1 position-relative">
-              <!-- Badge Giảm giá -->
-              <div
-                class="position-absolute top-0 start-0 bg-danger text-white px-2 py-1 small"
-                v-if="sp.giamgia && sp.loaigiam !== null && new Date(sp.hangiamgia) > now"
-              >
-                Giảm giá
-              </div>
-
-              <img :src="sp.anhgoc" class="card-img-top product-img" alt="Ảnh sản phẩm" />
-              <div class="card-body text-center">
-                <p class="fw-bold mb-1">{{ sp.tensanpham }}</p>
-
-                <!-- Giá -->
-                <p class="mb-2">
-                  <span
-                    v-if="sp.giamgia && sp.loaigiam !== null && new Date(sp.hangiamgia) > now"
-                  >
-                    <span class="text-danger fw-bold me-2">
-                      {{
-                        sp.loaigiam === 1
-                          ? (sp.dongia - sp.giamgia).toLocaleString()
-                          : (sp.dongia * (1 - sp.giamgia / 100)).toLocaleString()
-                      }}₫
-                    </span>
-                    <span class="text-muted text-decoration-line-through">
-                      {{ sp.dongia.toLocaleString() }}₫
-                    </span>
-                  </span>
-                  <span v-else class="text-danger fw-bold">
-                    {{ sp.dongia.toLocaleString() }}₫
-                  </span>
-                </p>
-
-                <div class="d-flex justify-content-center">
-                  <div class="btn btn-primary mt-2">Mua ngay</div>
-                </div>
-              </div>
-            </div>
-          </RouterLink>
-        </SwiperSlide>
-      </Swiper>
-    </div>
-
-    <!-- 💸 SẢN PHẨM GIẢM GIÁ -->
-    <div class="my-4 p-2">
-      <h3 class="h5 fw-bold mb-3">SẢN PHẨM GIẢM GIÁ</h3>
-      <Swiper :slides-per-view="1" :space-between="10" :breakpoints="{
-        576: { slidesPerView: 2 },
-        768: { slidesPerView: 3 },
-        992: { slidesPerView: 4 }
-      }" navigation :modules="[Navigation]">
-        <SwiperSlide v-for="sp in sanPhamXepHang" :key="sp.id_sp">
-          <RouterLink :to="`/sanpham/${sp.id_sp}`" class="text-decoration-none text-dark">
-            <div class="card h-100 mx-1 position-relative">
-              <!-- Badge Giảm giá -->
-              <div
-                class="position-absolute top-0 start-0 bg-danger text-white px-2 py-1 small"
-                v-if="sp.giamgia && sp.loaigiam !== null && new Date(sp.hangiamgia) > now"
-              >
-                Giảm giá
-              </div>
-
-              <img :src="sp.anhgoc" class="card-img-top product-img" alt="Ảnh sản phẩm" />
-              <div class="card-body text-center">
-                <p class="fw-bold mb-1">{{ sp.tensanpham }}</p>
-
-                <!-- Giá -->
-                <p class="mb-2">
-                  <span
-                    v-if="sp.giamgia && sp.loaigiam !== null && new Date(sp.hangiamgia) > now"
-                  >
-                    <span class="text-danger fw-bold me-2">
-                      {{
-                        sp.loaigiam === 1
-                          ? (sp.dongia - sp.giamgia).toLocaleString()
-                          : (sp.dongia * (1 - sp.giamgia / 100)).toLocaleString()
-                      }}₫
-                    </span>
-                    <span class="text-muted text-decoration-line-through">
-                      {{ sp.dongia.toLocaleString() }}₫
-                    </span>
-                  </span>
-                  <span v-else class="text-danger fw-bold">
-                    {{ sp.dongia.toLocaleString() }}₫
-                  </span>
-                </p>
-
-                <div class="d-flex justify-content-center">
-                  <div class="btn btn-primary mt-2">Mua ngay</div>
-                </div>
-              </div>
-            </div>
-          </RouterLink>
-        </SwiperSlide>
-      </Swiper>
-    </div>
+    </section>
 
   </div>
 </template>
 
 <style scoped>
-.product-img {
-  width: 100%;
-  aspect-ratio: 1/1;
+.product-card {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #eee;
+  transition: all 0.3s ease;
+  height: 100%;
+  background-color: #fff;
+}
+
+.product-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.card-img-top.product-img {
+  display: block;
+  margin: auto;
+  width: auto;
+  height: 200px;
+  max-width: 100%;
   object-fit: contain;
-  padding: 10px;
+  background-color: #fff;
+}
+
+
+/* Đảm bảo bo đều các góc ảnh và không bị tràn */
+.card-img-top {
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
 }
 </style>
+

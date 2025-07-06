@@ -246,7 +246,7 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import Swal from 'sweetalert2'
-import useDangKy from '@/components/User/JS/DangKy.js'
+import useDangKy from '@/components/User/LoadDB/DangKy.js'
 
 export default {
   setup() {

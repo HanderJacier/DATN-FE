@@ -1,36 +1,33 @@
 <template>
-  <footer class="footer bg-dark text-white py-5">
+  <footer class="footer text-white py-5 px-5" style="background-color: #1f1f1f; border-top: 4px solid #764ba2;">
     <div class="container">
-      <!-- Giới thiệu trên cùng -->
-      <p class="small">
+      <!-- Giới thiệu -->
+      <p class="fs-6 fw-bold text-center mb-4">
         Hệ thống TechmartVN trên toàn quốc<br />
         Bao gồm Cửa hàng TechMartVN, Trung tâm Laptop, F.Studio, S.Studio, Garmin Brand Store
       </p>
 
-      <!-- 5 cột nội dung -->
-      <div class="row mt-4">
+      <!-- Các cột -->
+      <div class="row justify-content-center mt-4 gy-4">
         <!-- Cột 1 -->
-        <div class="col-lg-2 col-md-6 mb-4">
-          <h6 class="text-uppercase fw-bold text-info">Kết nối với TechMartVN</h6>
-          <div class="d-flex gap-3 align-items-center">
-            <img src="/src/assets/logofb.png" alt="Facebook" width="24" height="24" />
-            <img src="/src/assets/logoytb.png" alt="YouTube" width="24" height="24" />
-            <img src="/src/assets/logotiktok.png" alt="tiktok" width="24" height="24" />
+        <div class="col-lg-3 col-md-6">
+          <h6 class="text-uppercase fw-bold text-info mb-3">Kết nối với TechMartVN</h6>
+          <div class="d-flex gap-3 align-items-center mb-3">
+            <img src="/src/assets/logofb.png" alt="Facebook" width="26" height="26" />
+            <img src="/src/assets/logoytb.png" alt="YouTube" width="26" height="26" />
+            <img src="/src/assets/logotiktok.png" alt="tiktok" width="26" height="26" />
           </div>
           <h6 class="text-uppercase fw-bold mt-3">Tổng đài miễn phí</h6>
           <ul class="list-unstyled small">
-            <li>Tư vấn mua hàng (Miễn phí)</li>
-            <li>1800.6601 (Nhánh 1)</li>
-            <li>Hỗ trợ kỹ thuật</li>
-            <li>1800.6601 (Nhánh 2)</li>
-            <li>Góp ý, khiếu nại</li>
-            <li>1800.6616 (8h00 - 22h00)</li>
+            <li>Tư vấn mua hàng: <strong>1800.6601</strong> (Nhánh 1)</li>
+            <li>Hỗ trợ kỹ thuật: <strong>1800.6601</strong> (Nhánh 2)</li>
+            <li>Góp ý, khiếu nại: <strong>1800.6616</strong> (8h00 - 22h00)</li>
           </ul>
         </div>
 
         <!-- Cột 2 -->
-        <div class="col-lg-2 col-md-6 mb-4">
-          <h6 class="text-uppercase fw-bold">Về chúng tôi</h6>
+        <div class="col-lg-2 col-md-6">
+          <h6 class="text-uppercase fw-bold mb-3">Về chúng tôi</h6>
           <ul class="list-unstyled small">
             <li>Giới thiệu về công ty</li>
             <li>Quy chế hoạt động</li>
@@ -46,8 +43,8 @@
         </div>
 
         <!-- Cột 3 -->
-        <div class="col-lg-2 col-md-6 mb-4">
-          <h6 class="text-uppercase fw-bold">Chính sách</h6>
+        <div class="col-lg-2 col-md-6">
+          <h6 class="text-uppercase fw-bold mb-3">Chính sách</h6>
           <ul class="list-unstyled small">
             <li>Chính sách bảo hành</li>
             <li>Chính sách đổi trả</li>
@@ -62,21 +59,12 @@
         </div>
 
         <!-- Cột 4 -->
-        <div class="col-lg-3 col-md-6 mb-4">
-          <h6 class="text-uppercase fw-bold">Hỗ trợ thanh toán</h6>
+        <div class="col-lg-3 col-md-6">
+          <h6 class="text-uppercase fw-bold mb-3">Hỗ trợ thanh toán</h6>
           <img src="/src/assets/pay.png" alt="Thanh toán" class="img-fluid mb-3" />
 
           <h6 class="text-uppercase fw-bold">Chứng nhận</h6>
           <img src="/src/assets/chungnhan.png" alt="Chứng nhận" class="img-fluid" />
-        </div>
-
-        <!-- ✅ Cột 5: Góp ý -->
-        <div class="col-lg-3 col-md-6 mb-4">
-          <h6 class="text-uppercase fw-bold">Góp ý cho chúng tôi</h6>
-          <form @submit.prevent class="d-flex">
-            <input type="text" class="form-control me-2" placeholder="Nhập góp ý của bạn..." />
-            <button class="btn btn-primary">Gửi</button>
-          </form>
         </div>
       </div>
     </div>
@@ -98,13 +86,14 @@ export default {
 .footer li {
   margin-bottom: 6px;
   font-size: 13px;
+  line-height: 1.6;
 }
 
 .footer h6 {
-  font-size: 14px;
+  font-size: 15px;
 }
 
-input::placeholder {
-  font-size: 13px;
+.footer p {
+  line-height: 1.8;
 }
 </style>
