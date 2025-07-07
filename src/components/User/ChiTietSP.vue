@@ -115,7 +115,8 @@
           </div>
 
           <div class="d-flex justify-content-center mt-5">
-            <button class="btn btn-outline-primary me-3" @click="addToCart">
+            <ThichSanPham :productId="product.id" />
+            <button class="btn btn-outline-primary ml-3 me-3" @click="addToCart">
               <i class="bi bi-cart-fill"></i>
             </button>
             <button class="btn btn-primary px-5 py-2 fw-bold" @click="buyNow">
@@ -143,6 +144,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import useHomeLogic from '@/components/User/LoadDB/ChiTietSP.js'
 
+import ThichSanPham from '@/components/User/ChiTietSP/ThichSanPham.vue'
 import ProductReviews from '@/components/User/ChiTietSP/BinhLuan.vue'
 import OtherProducts from '@/components/User/ChiTietSP/SanPhamKhac.vue'
 
