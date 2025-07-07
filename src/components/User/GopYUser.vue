@@ -38,25 +38,30 @@
 </template>
 
 <script>
-import { RouterLink } from 'vue-router';
+import api from '@/api.js' // đúng đường dẫn
 
 export default {
-    name: 'FeedbackForm',
     data() {
         return {
             feedback: ''
-        };
+        }
     },
     methods: {
-        submitFeedback() {
-            console.log('Nội dung góp ý:', this.feedback);
+        async submitFeedback() {
+            if (!this.feedback.trim()) {
+                alert('Nhập nội dung góp ý trước khi gửi!')
+                return
+            }
 
-            // Reset ô nhập sau khi gửi
-            this.feedback = '';
-
-            alert('Cảm ơn bạn đã gửi góp ý!');
+            try {
+                await api.postFeedback(this.feedback)
+                alert('Góp ý của bạn đã gửi thành công!')
+                this.feedback = ''
+            } catch (error) {
+                console.error('Lỗi gửi góp ý:', error)
+                alert('Lỗi khi gửi góp ý. Kiểm tra console để biết thêm chi tiết.')
+            }
         }
     }
-};
-
+}
 </script>

@@ -25,9 +25,7 @@ export default {
     const showUserLayout = computed(() => {
       const path = route.path
       return (
-        !path.startsWith('/admin') &&
-        path !== '/dangnhap' &&
-        path !== '/dangky'
+        !path.startsWith('/admin')
       )
     })
 

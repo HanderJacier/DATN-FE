@@ -50,7 +50,7 @@
               <p class="text-muted">Tạo tài khoản mới để bắt đầu</p>
             </div>
 
-            <form @submit.prevent="handleRegister">
+            <form @submit.prevent="submitForm">
               <div class="mb-3">
                 <label class="form-label fw-semibold text-dark">
                   <i class="fas fa-user me-2 text-primary"></i>
@@ -62,22 +62,6 @@
                   style="border-radius: 10px; background-color: #f8f9fa; border: 2px solid #e9ecef; transition: all 0.3s ease;"
                   v-model="fullName"
                   placeholder="Nhập họ và tên của bạn"
-                  required 
-                />
-              </div>
-              
-              <!-- Tên đăng nhập -->
-              <div class="mb-3">
-                <label class="form-label fw-semibold text-dark">
-                  <i class="fas fa-user-circle me-2 text-primary"></i>
-                  Tên đăng nhập
-                </label>
-                <input 
-                  type="text" 
-                  class="form-control form-control-lg border-2"
-                  style="border-radius: 10px; background-color: #f8f9fa; border: 2px solid #e9ecef;"
-                  v-model="username"
-                  placeholder="Nhập tên đăng nhập"
                   required 
                 />
               </div>
@@ -197,8 +181,16 @@
                 </label>
               </div>
 
-              <div v-if="errorMessage" class="alert alert-danger d-flex align-items-center mb-4" role="alert">
-                <i class="fas fa-exclamation-triangle me-2"></i>
+              <div 
+                v-if="errorMessage"
+                :class="[
+                  'alert d-flex align-items-center mb-4',
+                  errorMessage.toLowerCase().includes('thành công') ? 'alert-success' : 'alert-danger'
+                ]"
+                role="alert"
+              >
+                <i class="fas me-2"
+                  :class="errorMessage.toLowerCase().includes('thành công') ? 'fa-check-circle' : 'fa-exclamation-triangle'"></i>
                 {{ errorMessage }}
               </div>
 
@@ -251,114 +243,109 @@
 </template>
 
 <script>
-import apiClient from '/src/api.js';
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import Swal from 'sweetalert2'
+import useDangKy from '@/components/User/LoadDB/DangKy.js'
 
 export default {
-  data() {
-    return {
-      fullName: '',
-      username: '',
-      email: '',
-      soDienThoai: '',
-      password: '',
-      confirmPassword: '',
-      showPassword: false,
-      showConfirmPassword: false,
-      agreeTerms: false,
-      errorMessage: '',
-      isSubmitting: false
-    };
-  },
-  
-  computed: {
-    passwordStrength() {
-      if (!this.password) return 0;
-      
-      let strength = 0;
-      if (this.password.length >= 8) strength += 25;
-      if (/[a-z]/.test(this.password)) strength += 25;
-      if (/[A-Z]/.test(this.password)) strength += 25;
-      if (/[0-9]/.test(this.password)) strength += 25;
-      
-      return strength;
-    },
-    
-    passwordStrengthClass() {
-      if (this.passwordStrength < 50) return 'bg-danger';
-      if (this.passwordStrength < 75) return 'bg-warning';
-      return 'bg-success';
-    },
-    
-    passwordStrengthText() {
-      if (this.passwordStrength < 50) return 'Yếu';
-      if (this.passwordStrength < 75) return 'Trung bình';
-      return 'Mạnh';
-    },
-    
-    passwordStrengthTextClass() {
-      if (this.passwordStrength < 50) return 'text-danger';
-      if (this.passwordStrength < 75) return 'text-warning';
-      return 'text-success';
+  setup() {
+    const fullName = ref('')
+    const email = ref('')
+    const soDienThoai = ref('')
+    const password = ref('')
+    const confirmPassword = ref('')
+    const showPassword = ref(false)
+    const showConfirmPassword = ref(false)
+    const agreeTerms = ref(false)
+
+    const router = useRouter()
+    const { isSubmitting, errorMessage, handleRegister } = useDangKy()
+
+    const passwordStrength = computed(() => {
+      let strength = 0
+      if (password.value.length >= 8) strength += 25
+      if (/[a-z]/.test(password.value)) strength += 25
+      if (/[A-Z]/.test(password.value)) strength += 25
+      if (/[0-9]/.test(password.value)) strength += 25
+      return strength
+    })
+
+    const passwordStrengthClass = computed(() => {
+      if (passwordStrength.value < 50) return 'bg-danger'
+      if (passwordStrength.value < 75) return 'bg-warning'
+      return 'bg-success'
+    })
+
+    const passwordStrengthText = computed(() => {
+      if (passwordStrength.value < 50) return 'Yếu'
+      if (passwordStrength.value < 75) return 'Trung bình'
+      return 'Mạnh'
+    })
+
+    const passwordStrengthTextClass = computed(() => {
+      if (passwordStrength.value < 50) return 'text-danger'
+      if (passwordStrength.value < 75) return 'text-warning'
+      return 'text-success'
+    })
+
+    const submitForm = async () => {
+      // Validate input
+      if (!fullName.value || !email.value || !soDienThoai.value || !password.value || !confirmPassword.value) {
+        errorMessage.value = 'Vui lòng nhập đầy đủ thông tin.'
+        return
+      }
+      if (password.value !== confirmPassword.value) {
+        errorMessage.value = 'Mật khẩu không khớp'
+        return
+      }
+      if (password.value.length < 6) {
+        errorMessage.value = 'Mật khẩu phải có ít nhất 6 ký tự'
+        return
+      }
+      if (!agreeTerms.value) {
+        errorMessage.value = 'Vui lòng đồng ý với điều khoản sử dụng'
+        return
+      }
+
+      const result = await handleRegister({
+        fullName: fullName.value,
+        email: email.value,
+        soDienThoai: soDienThoai.value,
+        password: password.value
+      })
+
+      if (result.success) {
+        await Swal.fire({
+          title: 'Thành công!',
+          text: result.message,
+          icon: 'success'
+        })
+        router.push('/dangnhap')
+      }
     }
-  },
 
-  methods: {
-    async handleRegister() {
-      // Validate form
-      if (!this.fullName || !this.username || !this.email || !this.soDienThoai || !this.password || !this.confirmPassword) {
-        this.errorMessage = 'Vui lòng nhập đầy đủ thông tin.';
-        return;
-      }
-      
-      if (this.password !== this.confirmPassword) {
-        this.errorMessage = 'Mật khẩu không khớp';
-        return;
-      }
-      
-      if (this.password.length < 6) {
-        this.errorMessage = 'Mật khẩu phải có ít nhất 6 ký tự';
-        return;
-      }
-      
-      if (!this.agreeTerms) {
-        this.errorMessage = 'Vui lòng đồng ý với điều khoản sử dụng';
-        return;
-      }
-
-      this.isSubmitting = true;
-      this.errorMessage = '';
-
-      try {
-        const response = await apiClient.post('/xacthuc/dangky', {
-          tenDangNhap: this.username,
-          matKhau: this.password,
-          hoVaTen: this.fullName,
-          email: this.email,
-          soDienThoai: this.soDienThoai
-        });
-
-        if (response.data.message === 'Đăng ký thành công') {
-          // Show success message
-          this.$swal({
-            title: 'Thành công!',
-            text: 'Đăng ký tài khoản thành công. Bạn sẽ được chuyển đến trang đăng nhập.',
-            icon: 'success',
-            confirmButtonText: 'OK'
-          }).then(() => {
-            this.$router.push('/dangnhap');
-          });
-        } else {
-          this.errorMessage = response.data.message;
-        }
-      } catch (err) {
-        this.errorMessage = err.response?.data?.message || 'Lỗi đăng ký. Vui lòng thử lại.';
-      } finally {
-        this.isSubmitting = false;
-      }
+    return {
+      fullName,
+      email,
+      soDienThoai,
+      password,
+      confirmPassword,
+      showPassword,
+      showConfirmPassword,
+      agreeTerms,
+      errorMessage,
+      isSubmitting,
+      passwordStrength,
+      passwordStrengthClass,
+      passwordStrengthText,
+      passwordStrengthTextClass,
+      submitForm
     }
   }
-};
+}
 </script>
+
 
 <style scoped>
 /* Custom focus styles */

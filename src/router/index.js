@@ -2,45 +2,67 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import Home from '../components/User/Home.vue'
 import Dashboard from '../components/Admin/Dashboard.vue'
-import ProductDetail from '../components/User/ChiTietSP.vue'
-import UserDetail from '../components/User/UserDetail.vue'
+
+import ThongTinTK from '../components/User/ThongTinTK/ThongTinTK.vue'
+import DiaChi from '../components/User/ThongTinTK/DiaChi.vue'
+import SPYeuThich from '../components/User/ThongTinTK/SPYeuThich.vue'
+import HoaDonChiTiet from '../components/User/ThongTinTK/HoaDonChiTiet.vue'
+import HoaDon from '../components/User/ThongTinTK/HoaDon.vue'
+import DoiMatKhau from '../components/User/ThongTinTK/DoiMatKhau.vue'
+
 import DangNhap from '../components/User/DangNhapUser.vue'
-import DoiMatKhau from '../components/User/DoiMatKhau.vue'
 import DangKyUser from '../components/User/DangKyUser.vue'
-import Cart from '../components/User/Cart.vue'
-import UserAddress from '../components/User/UserAddress.vue'
+import GioHang from '../components/User/GioHang.vue'
+
 import GopY from '../components/Admin/GopY.vue'
 import Order from '../components/Admin/Order.vue'
-import Product from '../components/Admin/Product.vue'
+import QLSanPham from '../components/Admin/QLSanPham.vue'
 import ThongKe from '../components/Admin/ThongKe.vue'
 import User from '../components/Admin/User.vue'
-import FavoriteProduct from '../components/User/FavoriteProduct.vue'
-import Pay from '../components/User/Pay.vue'
-import Bill from '../components/User/Bill.vue'
-import LichSuMuaHang from '../components/User/LichSuMuaHang.vue'
+import ThanhToan from '../components/User/ThanhToan.vue'
+import ChiTietSP from '../components/User/ChiTietSP.vue'
+import TimKiem from '../components/User/TimKiem.vue'
+
+// 🎯 Các trạng thái đơn hàng
+import TatCa from '../components/User/ThongTinTK/LichSuMuaHang/TatCa.vue'
+import DangXuLy from '../components/User/ThongTinTK/LichSuMuaHang/DangXuLy.vue'
+import DangGiao from '../components/User/ThongTinTK/LichSuMuaHang/DangGiao.vue'
+import DaGiao from '../components/User/ThongTinTK/LichSuMuaHang/DaGiao.vue'
+import DaHuy from '../components/User/ThongTinTK/LichSuMuaHang/DaHuy.vue'
+import TraHang from '../components/User/ThongTinTK/LichSuMuaHang/TraHang.vue'
 
 const routes = [
   { path: '/', component: Home },
   { path: '/dangnhap', component: DangNhap },
   { path: '/dangky', component: DangKyUser },
-  { path: '/doimatkhau', component: DoiMatKhau },
-  { path: '/sanpham', component: ProductDetail },
-  { path: '/thongtintk', component: UserDetail },
-  { path: '/giohang', component: Cart },
-  { path: '/diachinguoidung', component: UserAddress },
-  { path: '/sanphamyeuthich', component: FavoriteProduct },
-  { path: '/thanhtoan', component: Pay },
-  { path: '/sanpham/:id',name: 'ChiTietSanPham',component: ProductDetail},
-  { path: '/hoadon', component: Bill },
-  { path: '/lichsumuahang', component: LichSuMuaHang },
 
+  { path: '/thongtintk', component: ThongTinTK },
+  { path: '/sanphamyeuthich', component: SPYeuThich },
+  { path: '/diachinguoidung', component: DiaChi },
+  { path: '/hoadonchitiet', component: HoaDonChiTiet },
+  { path: '/hoadon', component: HoaDon },
+  { path: '/doimatkhau', component: DoiMatKhau },
+
+  { path: '/giohang', component: GioHang },
+  { path: '/thanhtoan', component: ThanhToan },
+  { path: '/sanpham/:id', name: 'ChiTietSanPham', component: ChiTietSP },
+  { path: '/sanpham', component: ChiTietSP },
+  { path: '/timkiem', component: TimKiem },
+
+  // 🎯 Các route lịch sử đơn hàng theo tab
+  { path: '/tatca', component: TatCa },
+  { path: '/dangxuly', component: DangXuLy },
+  { path: '/danggiao', component: DangGiao },
+  { path: '/dagiao', component: DaGiao },
+  { path: '/dahuy', component: DaHuy },
+  { path: '/trahang', component: TraHang },
 
   // Admin layout và nested routes
   {
     path: '/admin',
     component: Dashboard,
     children: [
-      { path: 'sanpham', component: Product },
+      { path: 'qlsanpham', component: QLSanPham },
       { path: 'donhang', component: Order },
       { path: 'nguoidung', component: User },
       { path: 'thongke', component: ThongKe },
