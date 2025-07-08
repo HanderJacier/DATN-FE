@@ -4,15 +4,17 @@ import apiClient from '@/api'
 export default function useHomeLogic() {
   const product = ref(null)
 
- const fetchChiTietSanPham = async (id) => {
+ const fetchChiTietSanPham = async (id_sp) => {
   try {
-    const res = await apiClient.get(`/san-pham/${id}`)
+    const res = await apiClient.get(`/san-pham/${id_sp}`)
+    console.log(res.data);
+    
 
     if (Array.isArray(res.data) && res.data.length > 0) {
       product.value = res.data[0]
     } else {
       product.value = null
-      console.warn('Không tìm thấy sản phẩm với ID:', id)
+      console.warn('Không tìm thấy sản phẩm với ID:', id_sp)
     }
 
   } catch (err) {

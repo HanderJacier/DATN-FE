@@ -166,14 +166,12 @@ const productImages = computed(() => {
   }]
 })
 
-// Giảm giá hợp lệ?
 const isGiamGiaValid = computed(() => {
   const now = new Date()
   const hetHan = product.value?.hangiamgia ? new Date(product.value.hangiamgia) : null
   return product.value?.giamgia > 0 && hetHan && hetHan > now
 })
 
-// Giá thực tế
 const giaHienTai = computed(() => {
   return isGiamGiaValid.value ? product.value.giamgia : product.value.dongia
 })
@@ -186,7 +184,6 @@ const toggleMore = () => {
   showMore.value = !showMore.value
 }
 
-// Lưu vào giỏ
 const addToCart = () => {
   const cart = JSON.parse(localStorage.getItem('cart')) || []
   const item = {
@@ -220,8 +217,11 @@ onMounted(async () => {
   const id = route.params.id
   if (id) {
     await fetchChiTietSanPham(id)
-    const data = product.value
-    if (data) {
+    if (product.value) {
+      // Thêm alias id từ id_sp
+      product.value.id = product.value.id_sp
+
+      const data = product.value
       specs.value = {
         cpu: {
           'Hãng CPU': data.cpuBrand,
@@ -240,10 +240,10 @@ onMounted(async () => {
           'Bộ nhớ': data.gpuMemory,
         },
         other: {
-          RAM: data.ram,
+          'RAM': data.ram,
           'Ổ cứng': data.rom,
           'Màn hình': data.screen,
-        },
+        }
       }
     }
   }
