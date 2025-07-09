@@ -47,6 +47,7 @@
             <th>Địa chỉ ảnh</th>
             <th>Loại giảm (Tên)</th>
             <th>Thương hiệu (Tên)</th>
+            <th>Thao tác</th>
           </tr>
         </thead>
         <tbody>
@@ -91,6 +92,15 @@
             <td>{{ product.diachianh || '-' }}</td>
             <td>{{ product.loaigiamTen || '-' }}</td>
             <td>{{ product.thuonghieuTen || '-' }}</td>
+            <td>
+              <!-- Trong bảng sản phẩm -->
+              <button class="btn btn-sm btn-primary me-1" @click="editProduct(product.id_sp)">
+                Sửa
+              </button>
+              <button class="btn btn-sm btn-danger" @click="deleteProduct(product.id_sp)">
+                Xóa
+              </button>
+            </td>
           </tr>
 
           <tr v-if="pagedProducts.length === 0">
@@ -141,6 +151,13 @@ const { products } = useSanPhamAdmin()
 const searchQuery = ref('')
 const currentPage = ref(1)
 const pageSize = 8
+
+const emit = defineEmits(['edit-product'])
+
+function editProduct(id_sp) {
+  emit('edit-product', id_sp)
+}
+
 
 const filteredProducts = computed(() => {
   if (!searchQuery.value) return products.value
