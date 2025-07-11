@@ -11,23 +11,23 @@
           <input v-model="searchQuery" placeholder="Tìm kiếm người dùng..." class="form-control" />
         </div>
         <div class="col-md-4 text-end">
-          <button class="btn btn-warning fw-bold" @click="resetForm">Thêm người dùng mới</button>
+          <button class="btn btn-warning fw-bold" @click="createUser">Thêm người dùng mới</button>
         </div>
       </div>
 
       <!-- Form nhập người dùng -->
       <div class="row g-3 mb-4">
-        <div class="col-md-3">
+        <div class="col-md-3" v-if="editingId !== null">
           <label class="form-label">ID</label>
-          <input v-model="newUser.id" class="form-control" />
+          <input v-model="newUser.id_tk" class="form-control" disabled />
         </div>
         <div class="col-md-3">
           <label class="form-label">Tên đăng nhập</label>
-          <input v-model="newUser.username" class="form-control" />
+          <input v-model="newUser.tenDangNhap" class="form-control" />
         </div>
         <div class="col-md-3">
           <label class="form-label">Họ tên</label>
-          <input v-model="newUser.fullname" class="form-control" />
+          <input v-model="newUser.hoVaTen" class="form-control" />
         </div>
         <div class="col-md-3">
           <label class="form-label">Email</label>
@@ -35,23 +35,28 @@
         </div>
         <div class="col-md-3">
           <label class="form-label">Mật khẩu</label>
-          <input v-model="newUser.password" class="form-control" />
+          <input v-model="newUser.matKhau" class="form-control" type="password" />
         </div>
         <div class="col-md-3">
           <label class="form-label">SĐT</label>
-          <input v-model="newUser.phone" class="form-control" />
+          <input v-model="newUser.soDienThoai" class="form-control" />
         </div>
         <div class="col-md-3">
           <label class="form-label">Vai trò</label>
-          <input v-model="newUser.role" class="form-control" />
+          <select v-model="newUser.vaiTro" class="form-select">
+            <option :value="true">Quản trị</option>
+            <option :value="false">Người dùng</option>
+          </select>
         </div>
         <div class="col-md-3 d-flex align-items-center">
           <label class="me-2">Trạng thái:</label>
-          <input type="checkbox" v-model="newUser.active" />
+          <input type="checkbox" v-model="newUser.trangThai" />
         </div>
         <div class="col-12 text-end">
           <button class="btn btn-secondary me-2" @click="resetForm">Hủy</button>
-          <button class="btn btn-warning fw-bold" @click="saveUser">Lưu</button>
+          <button class="btn btn-warning fw-bold" @click="handleSave">
+            {{ editingId === null ? 'Thêm' : 'Lưu' }}
+          </button>
         </div>
       </div>
 
@@ -72,24 +77,20 @@
           </thead>
           <tbody>
             <tr v-for="(user, index) in filteredUsers" :key="index">
-              <td>{{ user.id }}</td>
-              <td>{{ user.username }}</td>
-              <td>{{ user.fullname }}</td>
+              <td>{{ user.id_tk }}</td>
+              <td>{{ user.tenDangNhap }}</td>
+              <td>{{ user.hoVaTen }}</td>
               <td>{{ user.email }}</td>
-              <td>{{ user.role }}</td>
-              <td>{{ user.phone }}</td>
+              <td>{{ user.vaiTro ? 'Quản trị' : 'Người dùng' }}</td>
+              <td>{{ user.soDienThoai }}</td>
               <td>
-                <span :class="{ 'text-success': user.active, 'text-danger': !user.active }">
-                  {{ user.active ? '✓' : '✗' }}
+                <span :class="{ 'text-success': user.trangThai, 'text-danger': !user.trangThai }">
+                  {{ user.trangThai ? '✓' : '✗' }}
                 </span>
               </td>
               <td>
-                <button class="btn btn-outline-primary btn-sm me-1" @click="editUser(index)">
-                  ✏️
-                </button>
-                <button class="btn btn-outline-danger btn-sm" @click="deleteUser(index)">
-                  🗑️
-                </button>
+                <button class="btn btn-outline-primary btn-sm me-1" @click="editUser(user)">✏️</button>
+                <button class="btn btn-outline-danger btn-sm" @click="deleteUser(user.id_tk)">🗑️</button>
               </td>
             </tr>
             <tr v-if="filteredUsers.length === 0">
@@ -102,52 +103,98 @@
   </div>
 </template>
 
-<script setup>
-import { ref, computed } from 'vue'
 
-const newUser = ref({
-  id: '', username: '', fullname: '', email: '', password: '',
-  phone: '', role: '', active: true
-})
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import userService from '@/components/Admin/CRUD/QLTaiKhoan/userService.js'
+
 const userList = ref([])
 const searchQuery = ref('')
-const editingIndex = ref(null)
+const editingId = ref(null)
 
-const saveUser = () => {
-  if (editingIndex.value !== null) {
-    userList.value[editingIndex.value] = { ...newUser.value }
-    editingIndex.value = null
-  } else {
-    userList.value.push({ ...newUser.value })
+const newUser = ref({
+  id_tk: null,
+  tenDangNhap: '',
+  hoVaTen: '',
+  email: '',
+  matKhau: '',
+  soDienThoai: '',
+  vaiTro: false,
+  trangThai: true
+})
+
+const fetchUsers = async () => {
+  const res = await userService.getAll()
+  userList.value = res.data
+}
+
+const createUser = async () => {
+  await userService.create(newUser.value)
+  alert('✅ Thêm người dùng thành công')
+  await fetchUsers()
+  resetForm()
+}
+
+const updateUser = async () => {
+  await userService.update(editingId.value, newUser.value)
+  alert('✅ Cập nhật người dùng thành công')
+  await fetchUsers()
+  resetForm()
+}
+
+const handleSave = async () => {
+  try {
+    if (editingId.value === null) {
+      await createUser()
+    } else {
+      await updateUser()
+    }
+  } catch (err) {
+    alert(err.response?.data || '❌ Lỗi xử lý dữ liệu')
   }
+}
+
+const deleteUser = async (id) => {
+  if (confirm('Bạn có chắc muốn xóa người dùng này?')) {
+    await userService.remove(id)
+    await fetchUsers()
+  }
+}
+
+const editUser = (user) => {
+  editingId.value = user.id_tk
+  newUser.value = { ...user }
+}
+
+const startCreateUser = () => {
   resetForm()
 }
 
 const resetForm = () => {
+  editingId.value = null
   newUser.value = {
-    id: '', username: '', fullname: '', email: '', password: '',
-    phone: '', role: '', active: true
+    id_tk: null,
+    tenDangNhap: '',
+    hoVaTen: '',
+    email: '',
+    matKhau: '',
+    soDienThoai: '',
+    vaiTro: false,
+    trangThai: true
   }
-  editingIndex.value = null
-}
-
-const editUser = (index) => {
-  editingIndex.value = index
-  newUser.value = { ...userList.value[index] }
-}
-
-const deleteUser = (index) => {
-  userList.value.splice(index, 1)
 }
 
 const filteredUsers = computed(() => {
   if (!searchQuery.value) return userList.value
   return userList.value.filter(user =>
-    user.username.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    user.fullname.toLowerCase().includes(searchQuery.value.toLowerCase())
+    user.tenDangNhap?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+    user.hoVaTen?.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
 })
+
+onMounted(fetchUsers)
 </script>
+
 
 <style scoped>
 .form-title {
