@@ -24,7 +24,7 @@
             <div class="col-md-6">
                 <form @submit.prevent="submitFeedback">
                     <div class="mb-3">
-                        <textarea class="form-control" rows="4" placeholder="Nội dung góp ý của bạn" v-model="feedback"
+                        <textarea class="form-control" rows="4" placeholder="Nội dung góp ý" v-model="feedback"
                             required></textarea>
                     </div>
                     <div class="d-grid">
@@ -38,29 +38,32 @@
 </template>
 
 <script>
-import api from '@/mockApi.js'
-
+import { postFeedback } from '@/api.js'
 
 export default {
     data() {
         return {
-            feedback: ''
+            feedback: '',
+            id_tk: 1 // ID tài khoản giả lập hoặc từ session/login
         }
     },
     methods: {
         async submitFeedback() {
             if (!this.feedback.trim()) {
-                alert('Nhập nội dung góp ý trước khi gửi!')
+                alert('Vui lòng nhập nội dung góp ý!')
                 return
             }
 
             try {
-                await api.postFeedback(this.feedback)
-                alert('Góp ý của bạn đã gửi thành công!')
+                await postFeedback({
+                    noidung: this.feedback,
+                    id_tk: this.id_tk
+                })
+                alert('Gửi góp ý thành công!')
                 this.feedback = ''
             } catch (error) {
                 console.error('Lỗi gửi góp ý:', error)
-                alert('Lỗi khi gửi góp ý')
+                alert('Lỗi gửi góp ý!')
             }
         }
     }

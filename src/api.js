@@ -10,3 +10,7 @@ const apiClient = axios.create({
 })
 
 export default apiClient
+// ✅ Export hàm đúng cách
+export function postFeedback(data) {
+  return apiClient.post('/san-pham/tao-gop-y', data)
+}
