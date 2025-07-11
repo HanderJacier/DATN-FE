@@ -16,7 +16,7 @@ import GioHang from '../components/User/GioHang.vue'
 
 import GopY from '../components/Admin/GopY.vue'
 import Order from '../components/Admin/Order.vue'
-import QLSanPham from '../components/Admin/QLSanPham.vue'
+import QLSanPham from '../components/Admin/QLSanPham/Table.vue'
 import ThongKe from '../components/Admin/ThongKe.vue'
 import User from '../components/Admin/User.vue'
 import ThanhToan from '../components/User/ThanhToan.vue'
