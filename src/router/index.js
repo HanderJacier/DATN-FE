@@ -22,6 +22,7 @@ import User from '../components/Admin/User.vue'
 import ThanhToan from '../components/User/ThanhToan.vue'
 import ChiTietSP from '../components/User/ChiTietSP.vue'
 import TimKiem from '../components/User/TimKiem.vue'
+import GopYUser from '../components/User/GopYUser.vue'
 
 // 🎯 Các trạng thái đơn hàng
 import TatCa from '../components/User/ThongTinTK/LichSuMuaHang/TatCa.vue'
@@ -48,6 +49,7 @@ const routes = [
   { path: '/sanpham/:id', name: 'ChiTietSanPham', component: ChiTietSP },
   { path: '/sanpham', component: ChiTietSP },
   { path: '/timkiem', component: TimKiem },
+  { path: '/gopynguoidung', component: GopYUser },
 
   // 🎯 Các route lịch sử đơn hàng theo tab
   { path: '/tatca', component: TatCa },

@@ -38,7 +38,8 @@
 </template>
 
 <script>
-import api from '@/api.js' // đúng đường dẫn
+import api from '@/mockApi.js'
+
 
 export default {
     data() {
@@ -59,7 +60,7 @@ export default {
                 this.feedback = ''
             } catch (error) {
                 console.error('Lỗi gửi góp ý:', error)
-                alert('Lỗi khi gửi góp ý. Kiểm tra console để biết thêm chi tiết.')
+                alert('Lỗi khi gửi góp ý')
             }
         }
     }
