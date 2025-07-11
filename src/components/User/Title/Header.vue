@@ -4,7 +4,7 @@
       <div class="d-flex align-items-center justify-content-between flex-wrap">
         <!-- Logo -->
         <router-link to="/" class="d-flex align-items-center text-white text-decoration-none">
-          <img src="/src/assets/logotechmart.png" alt="logo" class="me-2" style="height:30px;" />
+          <img :src="logoImg" alt="logo" class="me-2" style="height:30px;" />
           <span class="fw-bold fs-5">TechMartVN<span class="fs-6">.com</span></span>
         </router-link>
 
@@ -14,9 +14,10 @@
             <input
               type="text"
               class="form-control"
-              v-model="searchText"
+              v-model="searchKey"
               @input="filterProducts"
               @focus="showSuggestions = true"
+              @keyup.enter="goToSearchPage"
               placeholder="Tìm kiếm sản phẩm..."
             />
             <button class="btn btn-light text-primary" type="button" @click="goToSearchPage">
@@ -34,7 +35,7 @@
               v-for="(item, index) in filteredProducts.slice(0, 5)"
               :key="index"
               class="py-1 border-bottom"
-              @click="goToProduct(item)"
+              @click="selectHint(item.tensanpham)"
               style="cursor:pointer;"
             >
               <i class="bi bi-search me-2"></i>{{ item.tensanpham }}
@@ -44,12 +45,8 @@
 
         <!-- Tài khoản & Giỏ hàng -->
         <div class="d-flex align-items-center gap-3">
-          <!-- Dropdown -->
           <div class="dropdown" v-click-outside="() => isDropdownOpen = false">
             <button class="btn btn-light text-dark d-flex align-items-center" @click="toggleDropdown">
-              <span class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width:32px;height:32px;">
-                <i class="fas fa-user"></i>
-              </span>
               <span>{{ displayName }}</span>
               <i class="fas fa-caret-down ms-2"></i>
             </button>
@@ -68,9 +65,8 @@
             </ul>
           </div>
 
-          <!-- Giỏ hàng -->
           <router-link class="btn btn-dark d-flex align-items-center position-relative" to="/giohang">
-            <img src="/src/assets/cart.png" alt="cart" class="me-2" style="width:18px;height:18px;" />
+            <img :src="cartImg" alt="cart" class="me-2" style="width:18px;height:18px;" />
             <span>Giỏ hàng</span>
             <span v-if="cartCount > 0" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.75rem;">
               {{ cartCount }}
@@ -79,29 +75,31 @@
         </div>
       </div>
 
-      <!-- Nav links -->
-      <nav class="nav justify-content-center gap-3 mt-2">
-        <a class="nav-link text-white" href="#">Iphone 16</a>
-        <a class="nav-link text-white" href="#">Ipad</a>
-        <a class="nav-link text-white" href="#">TV Samsung</a>
-        <a class="nav-link text-white" href="#">Chuột logitech</a>
-        <a class="nav-link text-white" href="#">Loa mini</a>
-        <a class="nav-link text-white" href="#">Apple watch</a>
-      </nav>
+      <!-- ✅ Đã tách Nav thành component -->
+      <Catalog />
     </div>
   </header>
 </template>
 
 <script>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import apiClient from '@/api'
+import Catalog from '@/components/User/Title/Catalog.vue'
+
+// ✅ import ảnh đúng chuẩn Vite
+import logoImg from '@/assets/logotechmart.png'
+import cartImg from '@/assets/cart.png'
 
 export default {
   name: "HeaderComponent",
+  components: {
+    Catalog
+  },
   setup() {
     const router = useRouter()
-    const searchText = ref("")
+    const searchKey = ref("")
+    const selectedHint = ref(null)
     const showSuggestions = ref(false)
     const allProducts = ref([])
     const filteredProducts = ref([])
@@ -143,23 +141,24 @@ export default {
     }
 
     const filterProducts = () => {
-      const keyword = searchText.value.toLowerCase().trim()
+      const keyword = searchKey.value.toLowerCase().trim()
       filteredProducts.value = allProducts.value.filter(sp =>
         sp.tensanpham.toLowerCase().includes(keyword)
       )
     }
 
-    const goToProduct = (product) => {
-      router.push(`/sanpham/${product.id}`)
-      searchText.value = ''
-      showSuggestions.value = false
+    const selectHint = (hint) => {
+      selectedHint.value = hint
+      searchKey.value = hint
+      goToSearchPage()
     }
 
     const goToSearchPage = () => {
-      if (!searchText.value.trim()) return
-      router.push({ path: "/timkiem", query: { q: searchText.value.trim() } })
-      searchText.value = ''
+      const keyword = (selectedHint.value || searchKey.value).trim()
+      if (!keyword) return
+      router.push({ path: "/timkiem", query: { q: keyword } })
       showSuggestions.value = false
+      selectedHint.value = null
     }
 
     onMounted(() => {
@@ -170,18 +169,21 @@ export default {
     })
 
     return {
+      logoImg,
+      cartImg,
       isDropdownOpen,
       toggleDropdown,
       displayName,
       logout,
       user,
       cartCount,
-      searchText,
+      searchKey,
+      selectedHint,
       showSuggestions,
       allProducts,
       filteredProducts,
       filterProducts,
-      goToProduct,
+      selectHint,
       goToSearchPage
     }
   }

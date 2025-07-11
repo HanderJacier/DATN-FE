@@ -8,7 +8,7 @@
 
     <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4">
       <div class="col" v-for="sp in pagedProducts" :key="sp.id">
-        <router-link :to="`/sanpham/${sp.id}`" class="text-decoration-none text-dark">
+        <router-link :to="`/sanpham/${sp.id_sp}`" class="text-decoration-none text-dark">
           <div class="card product-card h-100">
 
             <img :src="sp.anhgoc" class="card-img-top product-img" :alt="sp.tensanpham" />
