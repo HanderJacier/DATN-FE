@@ -1,7 +1,5 @@
 // useProductTable composable - QLSP.js
-import { ref, computed } from 'vue'
-  import { nextTick } from 'vue'
-
+import { ref, computed, nextTick } from 'vue'
 import useSanPhamAdmin from '../CRUD/QLSanPham/Select'
 import useSanPhamCreate from '../CRUD/QLSanPham/Create'
 import useSanPhamUpdate from '../CRUD/QLSanPham/Update'
@@ -16,11 +14,14 @@ export function useProductTable() {
   const pageSize = 8
   const productForm = ref({})
   const editingIndex = ref(null)
+  const notification = ref('')
+  const notificationType = ref('') // 'success' | 'error'
 
   const formFields = {
     tensanpham: 'Tên sản phẩm',
     thuonghieu: 'Thương hiệu',
     loai: 'Loại',
+    loaiten: 'Loại tên',
     dongia: 'Giá (VND)',
     mausac: 'Màu sắc',
     cpuBrand: 'CPU Brand',
@@ -43,6 +44,15 @@ export function useProductTable() {
     chip: 'Chip',
     camera: 'Camera',
     pin: 'Pin'
+  }
+
+  function showNotification(message, type = 'success') {
+    notification.value = message
+    notificationType.value = type
+    setTimeout(() => {
+      notification.value = ''
+      notificationType.value = ''
+    }, 3000)
   }
 
   const filteredProducts = computed(() => {
@@ -73,46 +83,95 @@ export function useProductTable() {
     return date ? new Date(date).toLocaleDateString('vi-VN') : '-'
   }
 
-  function mapLoaiTenToValue(loaiTen) {
-    if (loaiTen === 'Điện thoại di động') return '1'
-    if (loaiTen === 'Laptop') return '3'
-    return ''
-  }
+  const loaiMap = {
+  'Điện thoại di động': '1',
+  'Máy tính bảng': '2',
+  'Laptop': '3',
+  'Máy tính để bàn': '4',
+  'Thiết bị đeo thông minh': '5',
+  'Phụ kiện điện thoại': '6',
+  'Phụ kiện máy tính': '7',
+  'Thiết bị mạng': '8',
+  'Thiết bị lưu trữ': '9',
+  'Tivi': '10',
+  'Loa và tai nghe': '11',
+  'Đồng hồ thông minh': '12',
+  'Máy ảnh và máy quay': '13',
+  'Máy in và mực in': '14',
+  'Đồ gia dụng thông minh': '15'
+}
 
+function mapLoaiTenToValue(loaiTen) {
+  return loaiMap[loaiTen] || ''
+}
 
-async function editProduct(index) {
-  handleReset()
-  editingIndex.value = index
-
-  const selected = { ...pagedProducts.value[index] }
-
-  if (!selected.loai) {
-    selected.loai = mapLoaiTenToValue(selected.loaiTen || '')
-  }
-
-  // ⚠️ Bước 1: Gán chỉ loai để trigger visibleFields
-  productForm.value.loai = String(selected.loai)
-
-  // ⚠️ Bắt buộc chờ re-render sau khi loai được cập nhật
-  await nextTick()
-
-  // ⚠️ Bước 2: Gán từng field còn lại (sau khi form đã hiện đúng)
-  for (const key in selected) {
-    if (key !== 'loai') {
-      productForm.value[key] = selected[key]
-    }
-  }
+function mapLoaiValueToTen(loai) {
+  return Object.entries(loaiMap).find(([_, v]) => v === loai)?.[0] || ''
 }
 
 
 
+  function validateProductForm() {
+    const requiredFields = ['tensanpham', 'thuonghieu', 'dongia', 'mausac', 'soluong', 'loai']
 
+    for (const field of requiredFields) {
+      const value = productForm.value[field]
+      if (value === undefined || value === null || value === '') {
+        showNotification(`Vui lòng nhập: ${formFields[field]}`, 'error')
+        return false
+      }
+    }
 
-  function deleteProduct(index) {
-    const globalIndex = (currentPage.value - 1) * pageSize + index
-    products.value.splice(globalIndex, 1)
-    if (editingIndex.value === index) handleReset()
+    if (Number(productForm.value.dongia) < 0) {
+      showNotification('Giá sản phẩm không được nhỏ hơn 0', 'error')
+      return false
+    }
+
+    if (Number(productForm.value.soluong) < 0) {
+      showNotification('Số lượng không được nhỏ hơn 0', 'error')
+      return false
+    }
+
+    return true
   }
+
+  async function editProduct(index) {
+    handleReset()
+    editingIndex.value = index
+
+    const selected = { ...pagedProducts.value[index] }
+
+    if (!selected.loai && selected.loaiTen) {
+      selected.loai = mapLoaiTenToValue(selected.loaiTen)
+    }
+
+    productForm.value.loai = String(selected.loai)
+    productForm.value.loaiTen = mapLoaiValueToTen(productForm.value.loai)
+
+    await nextTick()
+
+    for (const key in selected) {
+      if (key !== 'loai') {
+        productForm.value[key] = selected[key]
+      }
+    }
+  }
+
+  async function deleteProduct(index) {
+  const globalIndex = (currentPage.value - 1) * pageSize + index
+  const sp = { ...products.value[globalIndex], soluong: 0 }
+
+  const result = await updateProduct(sp)
+  if (result.success) {
+    products.value[globalIndex].soluong = 0
+    showNotification('Sản phẩm đã được xóa (số lượng = 0)', 'success')
+  } else {
+    showNotification('Xóa thất bại: ' + result.message, 'error')
+  }
+
+  if (editingIndex.value === index) handleReset()
+}
+
 
   function handleReset() {
     productForm.value = {}
@@ -125,11 +184,6 @@ async function editProduct(index) {
       productForm.value.diachianh = URL.createObjectURL(file)
     }
   }
-
-  const isFixedType = computed(() => {
-    const loai = productForm.value?.loai
-    return loai === '1' || loai === '3'
-  })
 
   const visibleFields = computed(() => {
     const loai = productForm.value?.loai
@@ -146,36 +200,51 @@ async function editProduct(index) {
     ]
     const dienthoaiFields = ['chip', 'ram', 'rom', 'camera', 'pin']
 
-    if (loai === '3') {
-      return ['loai', ...baseFields, ...laptopFields]
-    } else if (loai === '1') {
-      return ['loai', ...baseFields, ...dienthoaiFields]
-    } else {
-      return ['loai', ...baseFields]
+    switch (loai) {
+      case '1':
+      case '2':
+        return [...baseFields, ...dienthoaiFields]
+      case '3':
+      case '4':
+        return [...baseFields, ...laptopFields]
+      case '5':
+      case '12':
+        return [...baseFields, 'pin', 'chip']
+      case '10':
+        return [...baseFields, 'screen', 'rom']
+      case '13':
+        return [...baseFields, 'camera']
+      default:
+        return [...baseFields]
     }
   })
 
   async function createNewProduct() {
+    if (!validateProductForm()) return
+
     const result = await createProduct(productForm.value)
     if (!result.success) {
-      alert(result.message)
+      showNotification(result.message, 'error')
       return
     }
     products.value.push({ ...productForm.value })
+    showNotification('Thêm sản phẩm thành công!', 'success')
     handleReset()
   }
 
   async function updateExistingProduct() {
     if (editingIndex.value === null) return
+    if (!validateProductForm()) return
 
     const result = await updateProduct(productForm.value)
     if (!result.success) {
-      alert(result.message)
+      showNotification(result.message, 'error')
       return
     }
 
     const globalIndex = (currentPage.value - 1) * pageSize + editingIndex.value
     products.value[globalIndex] = { ...productForm.value }
+    showNotification('Cập nhật sản phẩm thành công!', 'success')
     handleReset()
   }
 
@@ -189,7 +258,6 @@ async function editProduct(index) {
     editingIndex,
     productForm,
     formFields,
-    isFixedType,
     visibleFields,
     onImageChange,
     filteredProducts,
@@ -201,6 +269,8 @@ async function editProduct(index) {
     deleteProduct,
     handleReset,
     createNewProduct,
-    updateExistingProduct
+    updateExistingProduct,
+    notification,
+    notificationType
   }
 }

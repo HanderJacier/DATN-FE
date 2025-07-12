@@ -14,6 +14,8 @@
       :visibleFields="visibleFields"
       :editProduct="editProduct"
       :isEditing="editingIndex !== null"
+      :notification="notification"
+      :notificationType="notificationType"
       @create="createNewProduct"
       @update="updateExistingProduct"
       @resetForm="handleReset"
@@ -162,5 +164,7 @@ const {
   onImageChange,
   createNewProduct,
   updateExistingProduct,
+  notification,
+  notificationType
 } = useProductTable()
 </script>

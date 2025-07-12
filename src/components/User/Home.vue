@@ -41,7 +41,7 @@ const now = new Date()
                 <p class="mb-1 text-secondary small">{{ sp.thuonghieu_ten || 'Thương hiệu khác' }}</p>
 
                 <!-- Giá -->
-                <p class="fw-semibold mb-2">
+                <p class="fw-semibold mb-2" v-if="typeof sp.dongia === 'number'">
                   <template v-if="sp.giamgia && sp.loaigiam !== null && new Date(sp.hangiamgia) > now">
                     <span class="text-dark me-2">
                       {{
@@ -58,6 +58,8 @@ const now = new Date()
                     <span class="text-dark">{{ sp.dongia.toLocaleString() }}₫</span>
                   </template>
                 </p>
+
+                <p v-else class="text-muted small mb-2">Chưa có giá</p>
 
                 <button class="btn btn-outline-dark w-100 mt-2 rounded-pill">Xem chi tiết</button>
               </div>
@@ -95,11 +97,8 @@ const now = new Date()
   background-color: #fff;
 }
 
-
-/* Đảm bảo bo đều các góc ảnh và không bị tràn */
 .card-img-top {
   border-top-left-radius: 12px;
   border-top-right-radius: 12px;
 }
 </style>
-
