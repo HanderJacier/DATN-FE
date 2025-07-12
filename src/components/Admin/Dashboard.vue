@@ -3,10 +3,16 @@
     <div class="row g-0">
       <!-- Sidebar -->
       <aside class="col-md-3 col-lg-2 sidebar p-3 text-white">
-        <div class="d-flex align-items-center mb-4">
-          <img src="@/assets/logotechmart.png" alt="Logo" class="me-2" width="30" height="30" />
-          <span class="fw-bold">TechMartVN.com</span>
-        </div>
+        <router-link
+          to="/"
+          class="text-white text-decoration-none fw-bold fs-4 "
+        >
+          <div class="d-flex align-items-center mb-4">
+            <img src="@/assets/logotechmart.png" alt="Logo" class="me-2" width="30" height="30" />
+            <span>TechMartVN.com</span>
+          </div>
+        </router-link>
+
 
         <h6 class="text-uppercase opacity-75">Quản lý</h6>
         <ul class="nav flex-column mt-3">
