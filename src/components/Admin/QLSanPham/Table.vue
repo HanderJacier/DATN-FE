@@ -12,8 +12,7 @@
       :formFields="formFields"
       :isFixedType="isFixedType"
       :visibleFields="visibleFields"
-      :editProduct="editProduct"
-      :isEditing="editingIndex !== null"
+      :isEditing="editingProductId !== null"
       :notification="notification"
       :notificationType="notificationType"
       @create="createNewProduct"
@@ -54,12 +53,11 @@
             <th>Ảnh</th>
             <th>Ngày tạo</th>
             <th>Số lượng</th>
-            <th>Thương hiệu (Tên)</th>
             <th>Thao tác</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(product, index) in pagedProducts" :key="index">
+          <tr v-for="(product, index) in pagedProducts" :key="product.id_sp || index">
             <td>{{ (currentPage - 1) * pageSize + index + 1 }}</td>
             <td>{{ product.tensanpham }}</td>
             <td>{{ product.thuonghieuTen }}</td>
@@ -78,7 +76,6 @@
             </td>
             <td>{{ formatDate(product.ngaytao) }}</td>
             <td>{{ product.soluong }}</td>
-            <td>{{ product.thuonghieuTen }}</td>
             <td>
               <button
                 class="btn btn-sm btn-primary me-1"
@@ -150,7 +147,7 @@ const {
   formFields,
   isFixedType,
   visibleFields,
-  editingIndex,
+  editingProductId,  // đổi từ editingIndex sang editingProductId
   searchQuery,
   currentPage,
   pageSize,

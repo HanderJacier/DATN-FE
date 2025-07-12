@@ -32,7 +32,35 @@
       </select>
     </div>
 
-    <!-- 🔽 Các input -->
+    <!-- 🔽 Dropdown chọn thương hiệu -->
+    <div class="mb-3">
+      <label class="form-label">Chọn thương hiệu</label>
+      <select class="form-select" v-model="productForm.thuonghieu">
+        <option disabled value="">-- Chọn thương hiệu --</option>
+        <option value="1">Apple</option>
+        <option value="2">Samsung</option>
+        <option value="3">Xiaomi</option>
+        <option value="4">Oppo</option>
+        <option value="5">Vivo</option>
+        <option value="6">Realme</option>
+        <option value="7">Nokia</option>
+        <option value="8">ASUS</option>
+        <option value="9">Dell</option>
+        <option value="10">HP</option>
+        <option value="11">Lenovo</option>
+        <option value="12">Acer</option>
+        <option value="13">Sony</option>
+        <option value="14">LG</option>
+        <option value="15">Panasonic</option>
+        <option value="16">Canon</option>
+        <option value="17">Epson</option>
+        <option value="18">JBL</option>
+        <option value="19">Anker</option>
+        <option value="20">Huawei</option>
+      </select>
+    </div>
+
+    <!-- 🔽 Các input khác -->
     <div class="row g-3">
       <div class="col-md-4" v-for="key in visibleFields" :key="key">
         <label class="form-label">{{ formFields[key] }}</label>
@@ -59,11 +87,26 @@
       </div>
     </div>
 
-    <!-- 🔽 Nút -->
+    <!-- 🔽 Các nút thao tác -->
     <div class="mt-4 d-flex justify-content-end gap-2">
       <button type="button" class="btn btn-warning" @click="$emit('resetForm')">Làm Mới</button>
-      <button type="button" class="btn btn-success fw-bold" @click="handleCreate">Thêm</button>
-      <button type="button" class="btn btn-primary fw-bold" @click="handleUpdate">Sửa</button>
+
+      <button
+        type="button"
+        class="btn btn-success fw-bold"
+        @click="handleCreate"
+      >
+        Thêm
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-primary fw-bold"
+        @click="handleUpdate"
+      >
+        Sửa
+      </button>
+
       <button type="button" class="btn btn-danger" @click="$emit('deleteProduct')">Xóa</button>
     </div>
   </form>
@@ -76,7 +119,9 @@ const props = defineProps({
   productForm: Object,
   formFields: Object,
   visibleFields: Array,
-  isEditing: Boolean
+  isEditing: Boolean,
+  notification: String,
+  notificationType: String
 })
 
 const emit = defineEmits([
@@ -87,17 +132,6 @@ const emit = defineEmits([
   'deleteProduct'
 ])
 
-const notification = ref('')
-const notificationType = ref('success') // or 'error'
-
-function showNotification(message, type = 'success') {
-  notification.value = message
-  notificationType.value = type
-  setTimeout(() => {
-    notification.value = ''
-  }, 3000)
-}
-
 function onImageChange(event) {
   emit('imageChange', event)
 }
@@ -107,11 +141,11 @@ function validateForm() {
   for (const field of requiredFields) {
     const value = props.productForm[field]
     if (value === undefined || value === '' || value === null) {
-      showNotification(`❌ Vui lòng nhập: ${props.formFields[field]}`, 'error')
+      alert(`❌ Vui lòng nhập: ${props.formFields[field]}`)
       return false
     }
     if (['dongia', 'soluong'].includes(field) && Number(value) < 0) {
-      showNotification(`❌ ${props.formFields[field]} không được âm`, 'error')
+      alert(`❌ ${props.formFields[field]} không được âm`)
       return false
     }
   }
@@ -121,12 +155,13 @@ function validateForm() {
 function handleCreate() {
   if (!validateForm()) return
   emit('create')
-  showNotification('✅ Thêm sản phẩm thành công', 'success')
 }
 
 function handleUpdate() {
   if (!validateForm()) return
+
+  console.log('🔧 ID gửi cập nhật:', props.productForm.id_sp || '(chưa có)')
   emit('update')
-  showNotification('✅ Cập nhật sản phẩm thành công', 'success')
 }
+
 </script>

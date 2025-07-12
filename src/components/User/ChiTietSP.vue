@@ -114,15 +114,21 @@
             </p>
           </div>
 
-          <div class="d-flex justify-content-center mt-5">
-            <ThichSanPham :productId="product.id" />
-            <button class="btn btn-outline-primary ml-3 me-3" @click="addToCart">
+          <div class="d-flex justify-content-center mt-5 align-items-center flex-wrap gap-3">
+          <ThichSanPham :productId="product.id" />
+          <template v-if="product.soluong > 0">
+            <button class="btn btn-outline-primary" @click="addToCart">
               <i class="bi bi-cart-fill"></i>
             </button>
             <button class="btn btn-primary px-5 py-2 fw-bold" @click="buyNow">
               Mua ngay
             </button>
-          </div>
+          </template>
+          <template v-else>
+            <span class="text-danger fw-bold fs-5">Hết hàng</span>
+          </template>
+        </div>
+
         </div>
       </div>
 
@@ -144,9 +150,9 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import useHomeLogic from '@/components/User/LoadDB/ChiTietSP.js'
 
-import ThichSanPham from '@/components/User/ChiTietSP/ThichSanPham.vue'
-import ProductReviews from '@/components/User/ChiTietSP/BinhLuan.vue'
-import OtherProducts from '@/components/User/ChiTietSP/SanPhamKhac.vue'
+import ThichSanPham from './ChiTietSP/ThichSanPham.vue'
+import ProductReviews from './ChiTietSP/BinhLuan.vue'
+import OtherProducts from './ChiTietSP/SanPhamKhac.vue'
 
 const route = useRoute()
 const router = useRouter()

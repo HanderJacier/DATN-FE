@@ -1,4 +1,3 @@
-// useProductTable composable - QLSP.js
 import { ref, computed, nextTick } from 'vue'
 import useSanPhamAdmin from '../CRUD/QLSanPham/Select'
 import useSanPhamCreate from '../CRUD/QLSanPham/Create'
@@ -13,9 +12,32 @@ export function useProductTable() {
   const currentPage = ref(1)
   const pageSize = 8
   const productForm = ref({})
-  const editingIndex = ref(null)
+  const editingProductId = ref(null)
   const notification = ref('')
-  const notificationType = ref('') // 'success' | 'error'
+  const notificationType = ref('')
+
+  const brandList = [
+    { id: 1, name: 'Apple' },
+    { id: 2, name: 'Samsung' },
+    { id: 3, name: 'Xiaomi' },
+    { id: 4, name: 'Oppo' },
+    { id: 5, name: 'Vivo' },
+    { id: 6, name: 'Realme' },
+    { id: 7, name: 'Nokia' },
+    { id: 8, name: 'ASUS' },
+    { id: 9, name: 'Dell' },
+    { id: 10, name: 'HP' },
+    { id: 11, name: 'Lenovo' },
+    { id: 12, name: 'Acer' },
+    { id: 13, name: 'Sony' },
+    { id: 14, name: 'LG' },
+    { id: 15, name: 'Panasonic' },
+    { id: 16, name: 'Canon' },
+    { id: 17, name: 'Epson' },
+    { id: 18, name: 'JBL' },
+    { id: 19, name: 'Anker' },
+    { id: 20, name: 'Huawei' }
+  ]
 
   const formFields = {
     tensanpham: 'Tên sản phẩm',
@@ -44,6 +66,10 @@ export function useProductTable() {
     chip: 'Chip',
     camera: 'Camera',
     pin: 'Pin'
+  }
+
+  function getBrandNameById(id) {
+    return brandList.find(b => b.id === Number(id))?.name || ''
   }
 
   function showNotification(message, type = 'success') {
@@ -84,32 +110,30 @@ export function useProductTable() {
   }
 
   const loaiMap = {
-  'Điện thoại di động': '1',
-  'Máy tính bảng': '2',
-  'Laptop': '3',
-  'Máy tính để bàn': '4',
-  'Thiết bị đeo thông minh': '5',
-  'Phụ kiện điện thoại': '6',
-  'Phụ kiện máy tính': '7',
-  'Thiết bị mạng': '8',
-  'Thiết bị lưu trữ': '9',
-  'Tivi': '10',
-  'Loa và tai nghe': '11',
-  'Đồng hồ thông minh': '12',
-  'Máy ảnh và máy quay': '13',
-  'Máy in và mực in': '14',
-  'Đồ gia dụng thông minh': '15'
-}
+    'Điện thoại di động': '1',
+    'Máy tính bảng': '2',
+    'Laptop': '3',
+    'Máy tính để bàn': '4',
+    'Thiết bị đeo thông minh': '5',
+    'Phụ kiện điện thoại': '6',
+    'Phụ kiện máy tính': '7',
+    'Thiết bị mạng': '8',
+    'Thiết bị lưu trữ': '9',
+    'Tivi': '10',
+    'Loa và tai nghe': '11',
+    'Đồng hồ thông minh': '12',
+    'Máy ảnh và máy quay': '13',
+    'Máy in và mực in': '14',
+    'Đồ gia dụng thông minh': '15'
+  }
 
-function mapLoaiTenToValue(loaiTen) {
-  return loaiMap[loaiTen] || ''
-}
+  function mapLoaiTenToValue(loaiTen) {
+    return loaiMap[loaiTen] || ''
+  }
 
-function mapLoaiValueToTen(loai) {
-  return Object.entries(loaiMap).find(([_, v]) => v === loai)?.[0] || ''
-}
-
-
+  function mapLoaiValueToTen(loai) {
+    return Object.entries(loaiMap).find(([_, v]) => v === loai)?.[0] || ''
+  }
 
   function validateProductForm() {
     const requiredFields = ['tensanpham', 'thuonghieu', 'dongia', 'mausac', 'soluong', 'loai']
@@ -136,46 +160,58 @@ function mapLoaiValueToTen(loai) {
   }
 
   async function editProduct(index) {
-    handleReset()
-    editingIndex.value = index
+  handleReset()
 
-    const selected = { ...pagedProducts.value[index] }
+  const selected = { ...pagedProducts.value[index] }
 
-    if (!selected.loai && selected.loaiTen) {
-      selected.loai = mapLoaiTenToValue(selected.loaiTen)
-    }
-
-    productForm.value.loai = String(selected.loai)
-    productForm.value.loaiTen = mapLoaiValueToTen(productForm.value.loai)
-
-    await nextTick()
-
-    for (const key in selected) {
-      if (key !== 'loai') {
-        productForm.value[key] = selected[key]
-      }
-    }
+  // ✅ Đồng bộ loại nếu dữ liệu chỉ có tên loại
+  if (!selected.loai && selected.loaiTen) {
+    selected.loai = mapLoaiTenToValue(selected.loaiTen)
   }
 
-  async function deleteProduct(index) {
-  const globalIndex = (currentPage.value - 1) * pageSize + index
-  const sp = { ...products.value[globalIndex], soluong: 0 }
+  productForm.value.loai = String(selected.loai)
+  productForm.value.loaiTen = mapLoaiValueToTen(productForm.value.loai)
 
-  const result = await updateProduct(sp)
-  if (result.success) {
-    products.value[globalIndex].soluong = 0
-    showNotification('Sản phẩm đã được xóa (số lượng = 0)', 'success')
-  } else {
-    showNotification('Xóa thất bại: ' + result.message, 'error')
+  // ✅ Chuyển thương hiệu từ tên về ID
+  // Ưu tiên ID nếu có, nếu không lấy từ thươnghieuTen (tên hiển thị)
+  productForm.value.thuonghieu =
+    selected.thuonghieu ||
+    brandList.find(b => b.name === selected.thuonghieuTen)?.id ||
+    brandList.find(b => b.name === selected.thuonghieu)?.id ||
+    ''
+
+  // ✅ Gán ID sản phẩm đang sửa
+  editingProductId.value = selected.id_sp || null
+
+  // Chờ đồng bộ DOM để tránh lỗi v-model chưa ready
+  await nextTick()
+
+  // ✅ Gán các trường còn lại (trừ 'loai' và 'thuonghieu' đã gán riêng)
+  for (const key in selected) {
+    if (!['loai', 'thuonghieu'].includes(key)) {
+      productForm.value[key] = selected[key]
+    }
   }
-
-  if (editingIndex.value === index) handleReset()
 }
 
+  async function deleteProduct(index) {
+    const globalIndex = (currentPage.value - 1) * pageSize + index
+    const sp = { ...products.value[globalIndex], soluong: 0 }
+
+    const result = await updateProduct(sp)
+    if (result.success) {
+      products.value[globalIndex].soluong = 0
+      showNotification('Sản phẩm đã được xóa (số lượng = 0)', 'success')
+    } else {
+      showNotification('Xóa thất bại: ' + result.message, 'error')
+    }
+
+    if (editingProductId.value === products.value[globalIndex].id_sp) handleReset()
+  }
 
   function handleReset() {
     productForm.value = {}
-    editingIndex.value = null
+    editingProductId.value = null
   }
 
   function onImageChange(event) {
@@ -189,7 +225,7 @@ function mapLoaiValueToTen(loai) {
     const loai = productForm.value?.loai
 
     const baseFields = [
-      'tensanpham', 'thuonghieu', 'dongia', 'mausac',
+      'tensanpham', 'dongia', 'mausac',
       'screen', 'soluong', 'diachianh'
     ]
     const laptopFields = [
@@ -233,8 +269,12 @@ function mapLoaiValueToTen(loai) {
   }
 
   async function updateExistingProduct() {
-    if (editingIndex.value === null) return
+    if (!editingProductId.value) return
     if (!validateProductForm()) return
+
+    if (!productForm.value.id_sp) {
+      productForm.value.id_sp = editingProductId.value
+    }
 
     const result = await updateProduct(productForm.value)
     if (!result.success) {
@@ -242,8 +282,11 @@ function mapLoaiValueToTen(loai) {
       return
     }
 
-    const globalIndex = (currentPage.value - 1) * pageSize + editingIndex.value
-    products.value[globalIndex] = { ...productForm.value }
+    const index = products.value.findIndex(p => p.id_sp === editingProductId.value)
+    if (index !== -1) {
+      products.value[index] = { ...productForm.value }
+    }
+
     showNotification('Cập nhật sản phẩm thành công!', 'success')
     handleReset()
   }
@@ -255,10 +298,11 @@ function mapLoaiValueToTen(loai) {
     searchQuery,
     currentPage,
     pageSize,
-    editingIndex,
+    editingProductId,
     productForm,
     formFields,
     visibleFields,
+    brandList,
     onImageChange,
     filteredProducts,
     totalPages,
@@ -271,6 +315,7 @@ function mapLoaiValueToTen(loai) {
     createNewProduct,
     updateExistingProduct,
     notification,
-    notificationType
+    notificationType,
+    getBrandNameById
   }
 }
