@@ -1,21 +1,21 @@
 <template>
-  <div class="min-vh-100 d-flex align-items-center justify-content-center p-4" 
-       style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-    
-    <div class="card shadow-lg border-0" 
-         style="border-radius: 20px; overflow: hidden; max-width: 900px; width: 100%;">
-      
+  <div class="min-vh-100 d-flex align-items-center justify-content-center p-4"
+    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+
+    <div class="card shadow-lg border-0" style="border-radius: 20px; overflow: hidden; max-width: 900px; width: 100%;">
+
       <div class="row g-0">
         <!-- Image Section -->
         <div class="col-lg-6 d-none d-lg-flex">
-          <div class="d-flex flex-column justify-content-center align-items-center text-white p-5 h-100 position-relative"
-               style="background: linear-gradient(45deg, rgba(102, 126, 234, 0.9), rgba(118, 75, 162, 0.9)); min-height: 600px;">
-            
+          <div
+            class="d-flex flex-column justify-content-center align-items-center text-white p-5 h-100 position-relative"
+            style="background: linear-gradient(45deg, rgba(102, 126, 234, 0.9), rgba(118, 75, 162, 0.9)); min-height: 600px;">
+
             <!-- Background Pattern -->
             <div class="position-absolute top-0 start-0 w-100 h-100 opacity-25"
-                 style="background-image: url('data:image/svg+xml,%3Csvg width=60 height=60 viewBox=0 0 60 60 xmlns=http://www.w3.org/2000/svg%3E%3Cg fill=none fill-rule=evenodd%3E%3Cg fill=%23ffffff fill-opacity=0.4%3E%3Ccircle cx=30 cy=30 r=2/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');">
+              style="background-image: url('data:image/svg+xml,%3Csvg width=60 height=60 viewBox=0 0 60 60 xmlns=http://www.w3.org/2000/svg%3E%3Cg fill=none fill-rule=evenodd%3E%3Cg fill=%23ffffff fill-opacity=0.4%3E%3Ccircle cx=30 cy=30 r=2/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');">
             </div>
-            
+
             <!-- Welcome Content -->
             <div class="text-center position-relative">
               <div class="mb-4">
@@ -56,14 +56,9 @@
                   <i class="fas fa-envelope me-2 text-primary"></i>
                   Email hoặc SĐT
                 </label>
-                <input 
-                  type="text" 
-                  class="form-control form-control-lg border-2"
+                <input type="text" class="form-control form-control-lg border-2"
                   style="border-radius: 10px; background-color: #f8f9fa; border: 2px solid #e9ecef; transition: all 0.3s ease;"
-                  v-model="email"
-                  placeholder="Nhập email hoặc số điện thoại"
-                  required 
-                />
+                  v-model="email" placeholder="Nhập email hoặc số điện thoại" required />
               </div>
 
               <div class="mb-4">
@@ -72,20 +67,11 @@
                   Mật khẩu
                 </label>
                 <div class="position-relative">
-                  <input 
-                    :type="showPassword ? 'text' : 'password'" 
-                    class="form-control form-control-lg border-2 pe-5"
+                  <input :type="showPassword ? 'text' : 'password'" class="form-control form-control-lg border-2 pe-5"
                     style="border-radius: 10px; background-color: #f8f9fa; border: 2px solid #e9ecef; transition: all 0.3s ease;"
-                    v-model="password"
-                    placeholder="Nhập mật khẩu"
-                    required 
-                  />
-                  <button
-                    type="button"
-                    class="btn position-absolute top-50 end-0 translate-middle-y me-2 p-2"
-                    style="border: none; background: none;"
-                    @click="showPassword = !showPassword"
-                  >
+                    v-model="password" placeholder="Nhập mật khẩu" required />
+                  <button type="button" class="btn position-absolute top-50 end-0 translate-middle-y me-2 p-2"
+                    style="border: none; background: none;" @click="showPassword = !showPassword">
                     <i :class="`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'} text-muted`"></i>
                   </button>
                 </div>
@@ -94,13 +80,8 @@
               <div class="row mb-4">
                 <div class="col-6">
                   <div class="form-check">
-                    <input 
-                      type="checkbox" 
-                      class="form-check-input" 
-                      id="rememberMe" 
-                      v-model="rememberMe"
-                      style="border-radius: 4px;"
-                    />
+                    <input type="checkbox" class="form-check-input" id="rememberMe" v-model="rememberMe"
+                      style="border-radius: 4px;" />
                     <label class="form-check-label text-muted" for="rememberMe">
                       Ghi nhớ đăng nhập
                     </label>
@@ -118,11 +99,8 @@
                 {{ errorMessage }}
               </div>
 
-              <button 
-                type="submit" 
-                class="btn btn-primary btn-lg w-100 mb-4"
-                style="border-radius: 10px; background: linear-gradient(45deg, #667eea, #764ba2); border: none; padding: 12px 0; font-weight: 600; transition: all 0.3s ease;"
-              >
+              <button type="submit" class="btn btn-primary btn-lg w-100 mb-4"
+                style="border-radius: 10px; background: linear-gradient(45deg, #667eea, #764ba2); border: none; padding: 12px 0; font-weight: 600; transition: all 0.3s ease;">
                 <i class="fas fa-sign-in-alt me-2"></i>
                 Đăng nhập
               </button>
@@ -135,7 +113,7 @@
                 <span class="px-3 text-muted small">Hoặc đăng nhập bằng</span>
                 <hr class="flex-grow-1">
               </div>
-              
+
               <div class="d-flex gap-2">
                 <button class="btn btn-outline-danger flex-fill" style="border-radius: 10px;">
                   <i class="fab fa-google me-2"></i>
@@ -188,15 +166,21 @@ export default {
           },
           { withCredentials: true }
         );
-          console.log("Login successful:", response.data);
+        console.log("Login successful:", response.data);
         const user = response.data;
 
+        // Thêm id_tk nếu có idtk
+        if (!user.id_tk && user.idtk) {
+          user.id_tk = user.idtk;
+        }
+
+        // Xóa và lưu user
         localStorage.removeItem('user');
         sessionStorage.removeItem('user');
 
         const storage = this.rememberMe ? localStorage : sessionStorage;
         storage.setItem('user', JSON.stringify(user));
-        
+
 
         if (user.vaiTro === 1) {
           this.$router.push('/admin').then(() => window.location.reload());
