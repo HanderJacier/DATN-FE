@@ -186,28 +186,23 @@ export default {
             tenDangNhap: this.email,
             matKhau: this.password,
           },
-          { withCredentials: true } // gửi cookie session
+          { withCredentials: true }
         );
-
+          console.log("Login successful:", response.data);
         const user = response.data;
 
-        // Xóa user cũ nếu có
         localStorage.removeItem('user');
         sessionStorage.removeItem('user');
 
-        // Lưu user mới theo rememberMe
         const storage = this.rememberMe ? localStorage : sessionStorage;
         storage.setItem('user', JSON.stringify(user));
+        
 
-        // Chuyển hướng
-        // ...existing code...
-// Chuyển hướng
-if (user.vaiTro === 1) {
-  this.$router.push('/admin').then(() => window.location.reload());
-} else {
-  this.$router.push('/').then(() => window.location.reload());
-}
-// ...existing code...
+        if (user.vaiTro === 1) {
+          this.$router.push('/admin').then(() => window.location.reload());
+        } else {
+          this.$router.push('/').then(() => window.location.reload());
+        }
       } catch (error) {
         console.error(error);
         this.errorMessage =
@@ -218,18 +213,13 @@ if (user.vaiTro === 1) {
 };
 </script>
 
-
-
-<!-- Không cần scoped nếu bạn dùng Bootstrap -->
-<<style scoped>
-/* Custom focus styles */
+<style scoped>
 .form-control:focus {
   border-color: #667eea !important;
   box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25) !important;
   background-color: white !important;
 }
 
-/* Button hover effects */
 .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
@@ -247,12 +237,11 @@ if (user.vaiTro === 1) {
   color: white;
 }
 
-/* Responsive adjustments */
 @media (max-width: 991.98px) {
   .card {
     margin: 20px;
   }
-  
+
   .p-5 {
     padding: 2rem !important;
   }
@@ -262,17 +251,16 @@ if (user.vaiTro === 1) {
   .p-5 {
     padding: 1.5rem !important;
   }
-  
+
   .d-flex.gap-2 {
     flex-direction: column;
   }
-  
+
   .d-flex.gap-2 .btn {
     margin-bottom: 0.5rem;
   }
 }
 
-/* Animation for form elements */
 .form-control {
   transition: all 0.3s ease;
 }
@@ -281,7 +269,6 @@ if (user.vaiTro === 1) {
   transform: translateY(-1px);
 }
 
-/* Custom checkbox styling */
 .form-check-input:checked {
   background-color: #667eea;
   border-color: #667eea;
