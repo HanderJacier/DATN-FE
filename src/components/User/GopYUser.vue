@@ -48,7 +48,7 @@ export default {
 
         return {
             feedback: '',
-            id_tk: userData?.id_tk || null  // 🟢 Đọc key đã được chuẩn hóa từ login
+            id_tk: userData?.id_tk || null  //Đọc key đã được chuẩn hóa từ login
         };
     },
     methods: {
@@ -69,10 +69,10 @@ export default {
                     noidung: this.feedback,
                     id_tk: this.id_tk
                 });
-                alert('✅ Gửi góp ý thành công!');
+                alert('Gửi góp ý thành công!');
                 this.feedback = '';
             } catch (error) {
-                console.error('❌ Lỗi gửi góp ý:', error);
+                console.error('Lỗi gửi góp ý:', error);
                 alert('Gửi góp ý thất bại!');
             }
         }

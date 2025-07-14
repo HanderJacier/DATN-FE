@@ -10,7 +10,17 @@ const apiClient = axios.create({
 })
 
 export default apiClient
-// ✅ Export hàm đúng cách
+
+
 export function postFeedback(data) {
   return apiClient.post('/san-pham/tao-gop-y', data)
+}
+
+export function fetchFeedback(page = 1, size = 10) {
+  return apiClient.get('/san-pham/gop-y', {
+    params: {
+      p_pageNo: page,
+      p_pageSize: size,
+    },
+  });
 }
