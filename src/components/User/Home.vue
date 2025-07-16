@@ -100,5 +100,6 @@ const now = new Date()
 .card-img-top {
   border-top-left-radius: 12px;
   border-top-right-radius: 12px;
+  padding-top: 10px;
 }
 </style>
