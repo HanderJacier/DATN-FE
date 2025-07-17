@@ -144,6 +144,7 @@
 
 <script>
 import apiClient from '/src/api.js';
+import Swal from 'sweetalert2';
 
 export default {
   data() {
@@ -152,7 +153,6 @@ export default {
       password: '',
       showPassword: false,
       rememberMe: false,
-      errorMessage: '',
     };
   },
   methods: {
@@ -166,31 +166,45 @@ export default {
           },
           { withCredentials: true }
         );
-        console.log("Login successful:", response.data);
+
         const user = response.data;
 
-        // Thêm id_tk nếu có idtk
+        // Đảm bảo có id_tk
         if (!user.id_tk && user.idtk) {
           user.id_tk = user.idtk;
         }
 
-        // Xóa và lưu user
+        // Xoá và lưu tài khoản
         localStorage.removeItem('user');
         sessionStorage.removeItem('user');
-
         const storage = this.rememberMe ? localStorage : sessionStorage;
         storage.setItem('user', JSON.stringify(user));
 
+        // ✅ Thông báo thành công
+        await Swal.fire({
+          icon: 'success',
+          title: 'Đăng nhập thành công!',
+          text: `Chào mừng ${user.hoVaTen || 'bạn'} quay lại.`,
+          timer: 2000,
+          showConfirmButton: false,
+        });
 
+        // Điều hướng
         if (user.vaiTro === 1) {
           this.$router.push('/admin').then(() => window.location.reload());
         } else {
           this.$router.push('/').then(() => window.location.reload());
         }
+
       } catch (error) {
         console.error(error);
-        this.errorMessage =
-          error.response?.data?.message || 'Đăng nhập thất bại. Vui lòng thử lại.';
+
+        // ❌ Thông báo thất bại
+        Swal.fire({
+          icon: 'error',
+          title: 'Đăng nhập thất bại!',
+          text: error.response?.data?.message || 'Vui lòng kiểm tra lại thông tin đăng nhập.',
+        });
       }
     },
   },

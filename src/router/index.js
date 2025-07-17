@@ -79,12 +79,21 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  const user = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user'))
+  const user = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user'));
+
+  // Nếu đã đăng nhập và vào trang đăng nhập thì redirect về trang chủ
   if (to.path === '/dangnhap' && user) {
-    next('/')
-  } else {
-    next()
+    return next('/');
   }
-})
+
+  // Nếu vào trang admin mà chưa đăng nhập thì redirect về trang đăng nhập
+  if (to.path.startsWith('/admin') && !user) {
+    return next('/dangnhap');
+  }
+
+  // Các trường hợp còn lại đều cho phép truy cập
+  next();
+});
+
 
 export default router

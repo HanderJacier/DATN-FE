@@ -55,6 +55,7 @@
                 <li><router-link class="dropdown-item" to="/thongtintk"><i class="fas fa-user me-2"></i> Tài khoản của tôi</router-link></li>
                 <li><router-link class="dropdown-item" to="/hoadon"><i class="fas fa-box me-2 text-primary"></i> Đơn mua</router-link></li>
                 <li><router-link class="dropdown-item" to="/sanphamyeuthich"><i class="fas fa-heart me-2 text-danger"></i> Yêu thích</router-link></li>
+                <li><router-link class="dropdown-item" to="/gopynguoidung"><i class="fas fa-envelope me-2 text-warning"></i> Góp ý</router-link></li>
                 <li><hr class="dropdown-divider" /></li>
                 <li><a class="dropdown-item" href="#" @click.prevent="logout"><i class="fas fa-sign-out-alt text-success me-2"></i> Đăng xuất</a></li>
               </template>
