@@ -12,7 +12,7 @@ export function usePostData() {
     error.value = null
     try {
       const res = await apiClient.post(api, body)
-      const raw = res.data.data
+      const raw = res.data
 
       if (Array.isArray(raw) && raw.length && raw[0].fields) {
         data.value = raw.map(item => item.fields)
@@ -22,12 +22,30 @@ export function usePostData() {
         data.value = raw
       }
     } catch (err) {
-      error.value = err.response?.data?.message || err.message || 'Lỗi không xác định'
-      console.error('API Error:', err)
+      const status = err.response?.status
+      const serverMessage = err.response?.data?.message
+      const detail = err.response?.data || null
+
+      const message = [
+        `[API: ${api}]`,
+        status ? `HTTP ${status}` : '',
+        serverMessage || err.message || 'Lỗi không xác định'
+      ].filter(Boolean).join(' - ')
+
+      error.value = message
+
+      console.error('Chi tiết lỗi API:', {
+        api,
+        status,
+        serverMessage,
+        fullError: err,
+        responseData: detail
+      })
     } finally {
       loading.value = false
     }
   }
+
   return { data, loading, error, callAPI }
 }
 
