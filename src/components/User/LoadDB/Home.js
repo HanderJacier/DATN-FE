@@ -1,30 +1,24 @@
-import { ref, onMounted } from 'vue'
-import apiClient from '@/api'
+import { onMounted } from 'vue'
+import { usePostData } from '../../component_callApi/callAPI'
 
 export default function useHomeLogic() {
-  const sanPhamMoi = ref([])
-  const sanPhamYeuThich = ref([])
-  const sanPhamXepHang = ref([])
+  const { data: sanPhamMoi, callAPI: fetchSanPhamMoi } = usePostData()
+  const { data: sanPhamYeuThich, callAPI: fetchSanPhamYeuThich } = usePostData()
+  const { data: sanPhamXepHang, callAPI: fetchSanPhamXepHang } = usePostData()
 
   onMounted(async () => {
     try {
-      // Gọi sản phẩm mới
-      const resMoi = await apiClient.post('/datn/WBH_US_SEL_XEMSP', {
+      await fetchSanPhamMoi('WBH_US_SEL_XEMSP', {
         params: {}
       })
-      sanPhamMoi.value = resMoi.data.data  // <-- lưu ý data.data
 
-      // Gọi sản phẩm được yêu thích
-      const resTop = await apiClient.post('/datn/WBH_US_SEL_RANKYTSP', {
+      await fetchSanPhamYeuThich('WBH_US_SEL_RANKYTSP', {
         params: {}
       })
-      sanPhamYeuThich.value = resTop.data.data
 
-      // Gọi sản phẩm xếp hạng / giảm giá
-      const resSale = await apiClient.post('/datn/WBH_US_SEL_SALESP', {
+      await fetchSanPhamXepHang('WBH_US_SEL_SALESP', {
         params: {}
       })
-      sanPhamXepHang.value = resSale.data.data
     } catch (error) {
       console.error('Lỗi khi tải dữ liệu trang chủ:', error)
     }

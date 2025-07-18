@@ -2,14 +2,13 @@
 import axios from 'axios'
 
 const apiClient = axios.create({
-  baseURL: 'http://localhost:8080/api',
+  baseURL: 'http://localhost:8080/api/datn/',
   withCredentials: true, // Gửi session cookie
   headers: {
     'Content-Type': 'application/json',
   },
 })
-
-export default apiClient
+export default apiClient;
 
 
 export function postFeedback(data) {
