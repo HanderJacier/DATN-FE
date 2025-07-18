@@ -1,20 +1,5 @@
 <template>
   <div v-if="product">
-    <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb p-2 mt-2 bg-light">
-        <li class="breadcrumb-item">
-          <a href="/" class="text-primary">Trang chủ</a>
-        </li>
-        <li class="breadcrumb-item">
-          <a href="/" class="text-primary">{{ product.thuonghieuTen || 'Danh mục' }}</a>
-        </li>
-        <li class="breadcrumb-item active text-muted" aria-current="page">
-          {{ product.tensanpham || 'Đang tải...' }}
-        </li>
-      </ol>
-    </nav>
-
     <div class="container my-5">
       <div class="row">
         <!-- Hình ảnh & thông số -->
