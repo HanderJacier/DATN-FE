@@ -9,9 +9,7 @@
                         Chọn tất cả ({{ selectedQuantity }})
                     </label>
                 </div>
-
                 <div v-if="cart.length === 0" class="alert alert-warning">Giỏ hàng của bạn đang trống.</div>
-
                 <div v-for="(item, index) in cart" :key="index" class="card mb-3">
                     <div class="bg-white rounded p-3 mb-3">
                         <div class="d-flex align-items-center">
@@ -44,7 +42,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- Thông tin đơn hàng -->
             <div class="col-lg-4" v-if="cart.length > 0">
                 <div class="card p-3">
@@ -61,7 +58,6 @@
                         <span>Cần thanh toán</span>
                         <span class="text-danger fs-5">{{ formatPrice(totalPrice) }} đ</span>
                     </div>
-                    <!-- Thay vì dùng RouterLink -->
                     <button class="btn btn-primary w-50 mt-3 mx-auto text-center" @click="goToCheckout">
                         Thanh toán
                     </button>
@@ -72,6 +68,8 @@
 </template>
 
 <script>
+import { kiemTraPhien } from '../../api';
+
 export default {
     name: 'ProductCart',
     data() {
@@ -110,20 +108,57 @@ export default {
         },
         toggleAll() {
             this.cart.forEach(item => item.selected = this.selectAll);
+            this.saveCart();
         },
         saveCart() {
             localStorage.setItem('cart', JSON.stringify(this.cart));
-            window.dispatchEvent(new Event('storage')); // 👈 Cập nhật Header
+            window.dispatchEvent(new Event('storage')); // Cập nhật Header
         },
-        goToCheckout() {
-            const user =
-                JSON.parse(localStorage.getItem("user")) ||
-                JSON.parse(sessionStorage.getItem("user"));
-            if (user) {
-                this.$router.push("/thanhtoan");
-            } else {
-                this.$router.push("/dangnhap");
+        
+        async checkUserSession() {
+            try {
+                await kiemTraPhien();
+                return true;
+            } catch (error) {
+                console.error('❌ Phiên đăng nhập không hợp lệ:', error);
+                
+                // Xóa thông tin user cũ
+                localStorage.removeItem("user");
+                sessionStorage.removeItem("user");
+                
+                return false;
             }
+        },
+        
+        async goToCheckout() {
+            // Kiểm tra xem có sản phẩm nào được chọn không
+            const selectedItems = this.cart.filter(item => item.selected);
+            if (selectedItems.length === 0) {
+                alert('Vui lòng chọn ít nhất một sản phẩm để thanh toán.');
+                return;
+            }
+
+            // Kiểm tra đăng nhập
+            const user = JSON.parse(localStorage.getItem("user")) || JSON.parse(sessionStorage.getItem("user"));
+            if (!user) {
+                alert('Vui lòng đăng nhập để tiếp tục thanh toán.');
+                this.$router.push("/dangnhap");
+                return;
+            }
+
+            // Kiểm tra phiên đăng nhập có còn hợp lệ không
+            const isSessionValid = await this.checkUserSession();
+            if (!isSessionValid) {
+                alert('⚠️ Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+                this.$router.push('/dangnhap');
+                return;
+            }
+
+            // Lưu các sản phẩm được chọn vào localStorage
+            localStorage.setItem('selectedCart', JSON.stringify(selectedItems));
+            
+            // Chuyển đến trang thanh toán
+            this.$router.push("/thanhtoan");
         }
     },
     watch: {

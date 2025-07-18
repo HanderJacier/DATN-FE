@@ -9,6 +9,7 @@ import SPYeuThich from '../components/User/ThongTinTK/SPYeuThich.vue'
 import HoaDonChiTiet from '../components/User/ThongTinTK/HoaDonChiTiet.vue'
 import HoaDon from '../components/User/ThongTinTK/HoaDon.vue'
 import DoiMatKhau from '../components/User/ThongTinTK/DoiMatKhau.vue'
+import PaymentResult from '../components/User/PaymentForm.vue'
 
 import DangNhap from '../components/User/DangNhapUser.vue'
 import DangKyUser from '../components/User/DangKyUser.vue'
@@ -50,6 +51,7 @@ const routes = [
   { path: '/sanpham', component: ChiTietSP },
   { path: '/timkiem', component: TimKiem },
   { path: '/gopynguoidung', component: GopYUser },
+  { path: '/return', component: PaymentResult },
 
   // 🎯 Các route lịch sử đơn hàng theo tab
   { path: '/tatca', component: TatCa },
