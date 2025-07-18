@@ -72,8 +72,8 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import apiClient from '@/api'
 import ProductFilter from './Loc.vue'
+import useSanPhamSearch from '@/components/User/LoadDB/TimKiem.js' // ✅ import composable
 
 const route = useRoute()
 const keyword = ref(route.query.q || '')
@@ -103,7 +103,6 @@ const loaiMap = {
   'Đồ gia dụng thông minh': '15'
 }
 
-// Đảo ngược lại map: { ID: TÊN }
 const loaiMapReverse = Object.fromEntries(Object.entries(loaiMap).map(([ten, id]) => [id, ten]))
 
 const loaiTen = computed(() => {
@@ -111,27 +110,15 @@ const loaiTen = computed(() => {
   return loaiMapReverse[currentLoai.value] || ''
 })
 
+// 👉 Lấy toàn bộ sản phẩm từ composable
+const { allProducts: fetchedProducts } = useSanPhamSearch()
 
-
-const updateItemsPerPage = () => {
-  itemsPerPage.value = window.innerWidth < 768 ? 12 : 16
-}
-
-const fetchAllProducts = async () => {
-  try {
-    const res = await apiClient.get('/san-pham')
-    allProducts.value = res.data
-    filterProducts()
-  } catch (err) {
-    console.error('Lỗi khi tải sản phẩm:', err)
-  }
-}
-
+// Lọc sản phẩm
 const filterProducts = () => {
   const kw = keyword.value.toLowerCase().trim()
   const loai = currentLoai.value
 
-  filteredProducts.value = allProducts.value.filter(sp => {
+  filteredProducts.value = fetchedProducts.value.filter(sp => {
     const matchKeyword = kw === '' || sp.tensanpham.toLowerCase().includes(kw)
 
     const matchLoai =
@@ -143,7 +130,6 @@ const filterProducts = () => {
 
   currentPage.value = 1
 }
-
 
 const totalPages = computed(() =>
   Math.ceil(filteredProducts.value.length / itemsPerPage.value)
@@ -173,9 +159,18 @@ watch(keyword, () => filterProducts())
 
 onMounted(() => {
   updateItemsPerPage()
-  fetchAllProducts()
   window.addEventListener('resize', updateItemsPerPage)
+
+  // Gán dữ liệu từ composable
+  watch(fetchedProducts, () => {
+    allProducts.value = fetchedProducts.value
+    filterProducts()
+  }, { immediate: true })
 })
+
+const updateItemsPerPage = () => {
+  itemsPerPage.value = window.innerWidth < 768 ? 12 : 16
+}
 </script>
 
 <style scoped>
