@@ -6,7 +6,7 @@ export default function useHomeLogic() {
 
  const fetchChiTietSanPham = async (id_sp) => {
   try {
-    const res = await apiClient.get(`/san-pham/${id_sp}`)
+    const res = await apiClient.post(`/san-pham/${id_sp}`)
     console.log(res.data);
     
 
