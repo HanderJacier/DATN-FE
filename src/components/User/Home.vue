@@ -4,6 +4,7 @@ import 'swiper/css'
 import 'swiper/css/navigation'
 import { Navigation } from 'swiper/modules'
 
+import Banner from './Banner.vue'
 import useHomeLogic from '@/components/User/LoadDB/Home.js'
 
 const { sanPhamMoi, sanPhamYeuThich, sanPhamXepHang } = useHomeLogic()
@@ -11,64 +12,69 @@ const now = new Date()
 </script>
 
 <template>
-  <div class="container my-5">
+  <div>
+    <!-- Banner Section -->
+    <Banner />
+    
+    <div class="container my-5">
 
-    <!-- DANH MỤC SẢN PHẨM -->
-    <section
-      v-for="(list, title) in {
-        'SẢN PHẨM MỚI': sanPhamMoi,
-        'SẢN PHẨM YÊU THÍCH': sanPhamYeuThich,
-        'SẢN PHẨM GIẢM GIÁ': sanPhamXepHang
-      }"
-      :key="title"
-      class="mb-5"
-    >
-      <h4 class="fw-semibold border-bottom pb-2 mb-3 fw-bold">{{ title }}</h4>
-
-      <Swiper
-        :slides-per-view="1"
-        :space-between="10"
-        :breakpoints="{ 576: { slidesPerView: 2 }, 768: { slidesPerView: 3 }, 992: { slidesPerView: 4 } }"
-        navigation
-        :modules="[Navigation]"
+      <!-- DANH MỤC SẢN PHẨM -->
+      <section
+        v-for="(list, title) in {
+          'SẢN PHẨM MỚI': sanPhamMoi,
+          'SẢN PHẨM YÊU THÍCH': sanPhamYeuThich,
+          'SẢN PHẨM GIẢM GIÁ': sanPhamXepHang
+        }"
+        :key="title"
+        class="mb-5"
       >
-        <SwiperSlide v-for="sp in list" :key="sp.id_sp">
-          <RouterLink :to="`/sanpham/${sp.id_sp}`" class="text-decoration-none text-dark">
-            <div class="card product-card mx-2">
-              <img :src="sp.anhgoc" class="card-img-top product-img" :alt="sp.tensanpham" />
-              <div class="card-body">
-                <h6 class="fw-bold text-truncate">{{ sp.tensanpham }}</h6>
-                <p class="mb-1 text-secondary small">{{ sp.thuonghieu_ten || 'Thương hiệu khác' }}</p>
+        <h4 class="fw-semibold border-bottom pb-2 mb-3 fw-bold">{{ title }}</h4>
 
-                <!-- Giá -->
-                <p class="fw-semibold mb-2" v-if="typeof sp.dongia === 'number'">
-                  <template v-if="sp.giamgia && sp.loaigiam !== null && new Date(sp.hangiamgia) > now">
-                    <span class="text-dark me-2">
-                      {{
-                        sp.loaigiam === 1
-                          ? (sp.dongia - sp.giamgia).toLocaleString()
-                          : (sp.dongia * (1 - sp.giamgia / 100)).toLocaleString()
-                      }}₫
-                    </span>
-                    <span class="text-muted text-decoration-line-through small">
-                      {{ sp.dongia.toLocaleString() }}₫
-                    </span>
-                  </template>
-                  <template v-else>
-                    <span class="text-dark">{{ sp.dongia.toLocaleString() }}₫</span>
-                  </template>
-                </p>
+        <Swiper
+          :slides-per-view="1"
+          :space-between="10"
+          :breakpoints="{ 576: { slidesPerView: 2 }, 768: { slidesPerView: 3 }, 992: { slidesPerView: 4 } }"
+          navigation
+          :modules="[Navigation]"
+        >
+          <SwiperSlide v-for="sp in list" :key="sp.id_sp">
+            <RouterLink :to="`/sanpham/${sp.id_sp}`" class="text-decoration-none text-dark">
+              <div class="card product-card mx-2">
+                <img :src="sp.anhgoc" class="card-img-top product-img" :alt="sp.tensanpham" />
+                <div class="card-body">
+                  <h6 class="fw-bold text-truncate">{{ sp.tensanpham }}</h6>
+                  <p class="mb-1 text-secondary small">{{ sp.thuonghieu_ten || 'Thương hiệu khác' }}</p>
 
-                <p v-else class="text-muted small mb-2">Chưa có giá</p>
+                  <!-- Giá -->
+                  <p class="fw-semibold mb-2" v-if="typeof sp.dongia === 'number'">
+                    <template v-if="sp.giamgia && sp.loaigiam !== null && new Date(sp.hangiamgia) > now">
+                      <span class="text-dark me-2">
+                        {{
+                          sp.loaigiam === 1
+                            ? (sp.dongia - sp.giamgia).toLocaleString()
+                            : (sp.dongia * (1 - sp.giamgia / 100)).toLocaleString()
+                        }}₫
+                      </span>
+                      <span class="text-muted text-decoration-line-through small">
+                        {{ sp.dongia.toLocaleString() }}₫
+                      </span>
+                    </template>
+                    <template v-else>
+                      <span class="text-dark">{{ sp.dongia.toLocaleString() }}₫</span>
+                    </template>
+                  </p>
 
-                <button class="btn btn-outline-dark w-100 mt-2 rounded-pill">Xem chi tiết</button>
+                  <p v-else class="text-muted small mb-2">Chưa có giá</p>
+
+                  <button class="btn btn-outline-dark w-100 mt-2 rounded-pill">Xem chi tiết</button>
+                </div>
               </div>
-            </div>
-          </RouterLink>
-        </SwiperSlide>
-      </Swiper>
-    </section>
+            </RouterLink>
+          </SwiperSlide>
+        </Swiper>
+      </section>
 
+    </div>
   </div>
 </template>
 
