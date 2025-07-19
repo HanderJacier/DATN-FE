@@ -80,6 +80,8 @@ const keyword = ref(route.query.q || '')
 const currentLoai = ref(route.query.loai || '')
 const allProducts = ref([])
 const filteredProducts = ref([])
+const filterType = ref(route.query.filter || '') // 'moi' | 'giamgia' | ''
+
 
 const itemsPerPage = ref(16)
 const currentPage = ref(1)
@@ -110,6 +112,19 @@ const loaiTen = computed(() => {
   return loaiMapReverse[currentLoai.value] || ''
 })
 
+const sanPhamMoi = computed(() => {
+  return [...fetchedProducts.value]
+    .sort((a, b) => new Date(b.ngaytao) - new Date(a.ngaytao))
+    .slice(0, 8) // lấy 8 sản phẩm mới nhất
+})
+
+const sanPhamGiamGia = computed(() => {
+  return fetchedProducts.value.filter(sp =>
+    Number(sp.giakhuyenmai) > 0 &&
+    Number(sp.giakhuyenmai) < Number(sp.giaban)
+  ).slice(0, 8) // lấy 8 sản phẩm có giảm giá
+})
+
 // 👉 Lấy toàn bộ sản phẩm từ composable
 const { allProducts: fetchedProducts } = useSanPhamSearch()
 
@@ -117,6 +132,7 @@ const { allProducts: fetchedProducts } = useSanPhamSearch()
 const filterProducts = () => {
   const kw = keyword.value.toLowerCase().trim()
   const loai = currentLoai.value
+  const filter = filterType.value
 
   filteredProducts.value = fetchedProducts.value.filter(sp => {
     const matchKeyword = kw === '' || sp.tensanpham.toLowerCase().includes(kw)
@@ -125,11 +141,20 @@ const filterProducts = () => {
       !loai ||
       String(sp.loai) === String(loai) ||
       (loai === 'phukien' && (sp.loai === 6 || sp.loai === 7))
-    return matchKeyword && matchLoai
+
+    const matchFilter =
+      filter === 'moi'
+        ? new Date(sp.ngaytao) >= new Date(Date.now() - 1000 * 60 * 60 * 24 * 30) // trong 30 ngày
+        : filter === 'giamgia'
+        ? Number(sp.giamgia) > 0 && new Date(sp.hangiamgia) > new Date()
+        : true
+
+    return matchKeyword && matchLoai && matchFilter
   })
 
   currentPage.value = 1
 }
+
 
 const totalPages = computed(() =>
   Math.ceil(filteredProducts.value.length / itemsPerPage.value)
@@ -154,6 +179,12 @@ watch(() => route.query.loai, (newLoai) => {
   currentLoai.value = newLoai || ''
   filterProducts()
 })
+
+watch(() => route.query.filter, (newFilter) => {
+  filterType.value = newFilter || ''
+  filterProducts()
+})
+
 
 watch(keyword, () => filterProducts())
 

@@ -6,8 +6,12 @@
         <div class="col-md-6">
           <div id="productCarousel" class="carousel slide" data-bs-ride="carousel">
             <div class="carousel-inner">
-              <div class="carousel-item" :class="{ active: index === currentIndex }"
-                   v-for="(image, index) in productImages" :key="index">
+              <div
+                class="carousel-item"
+                :class="{ active: index === currentIndex }"
+                v-for="(image, index) in productImages"
+                :key="index"
+              >
                 <div class="fixed-image-frame d-flex justify-content-center align-items-center">
                   <img :src="image.src" :alt="image.alt" class="fixed-product-img" />
                 </div>
@@ -25,10 +29,15 @@
 
           <!-- Thumbnails -->
           <div class="d-flex flex-wrap gap-2 mt-3 justify-content-center">
-            <img v-for="(image, index) in productImages" :key="index" :src="image.src"
-                 class="img-thumbnail border border-2" :class="{ 'border-dark': index === currentIndex }"
-                 style="width: 100px; height: 100px; object-fit: cover; cursor: pointer"
-                 @click="changeImage(index)" />
+            <img
+              v-for="(image, index) in productImages"
+              :key="index"
+              :src="image.src"
+              class="img-thumbnail border border-2"
+              :class="{ 'border-dark': index === currentIndex }"
+              style="width: 100px; height: 100px; object-fit: cover; cursor: pointer"
+              @click="changeImage(index)"
+            />
           </div>
 
           <!-- Thông số kỹ thuật -->
@@ -100,20 +109,19 @@
           </div>
 
           <div class="d-flex justify-content-center mt-5 align-items-center flex-wrap gap-3">
-          <ThichSanPham :productId="product.id" />
-          <template v-if="product.soluong > 0">
-            <button class="btn btn-outline-primary" @click="addToCart">
-              <i class="bi bi-cart-fill"></i>
-            </button>
-            <button class="btn btn-primary px-5 py-2 fw-bold" @click="buyNow">
-              Mua ngay
-            </button>
-          </template>
-          <template v-else>
-            <span class="text-danger fw-bold fs-5">Hết hàng</span>
-          </template>
-        </div>
-
+            <ThichSanPham :productId="product.id" />
+            <template v-if="product.soluong > 0">
+              <button class="btn btn-outline-primary" @click="addToCart">
+                <i class="bi bi-cart-fill"></i>
+              </button>
+              <button class="btn btn-primary px-5 py-2 fw-bold" @click="buyNow">
+                Mua ngay
+              </button>
+            </template>
+            <template v-else>
+              <span class="text-danger fw-bold fs-5">Hết hàng</span>
+            </template>
+          </div>
         </div>
       </div>
 
@@ -141,21 +149,12 @@ import OtherProducts from './ChiTietSP/SanPhamKhac.vue'
 
 const route = useRoute()
 const router = useRouter()
-const { product, fetchChiTietSanPham } = useHomeLogic()
+const { product, productImages, fetchChiTietSanPham } = useHomeLogic()
 
 const currentIndex = ref(0)
 const showMore = ref(false)
 
 const specs = ref({ cpu: {}, gpu: {}, other: {} })
-
-const productImages = computed(() => {
-  if (!product.value) return []
-  const hasImage = product.value.anhgoc && product.value.anhgoc.trim() !== ''
-  return [{
-    src: hasImage ? product.value.anhgoc : '/images/default.png',
-    alt: product.value.tensanpham || 'Ảnh sản phẩm',
-  }]
-})
 
 const isGiamGiaValid = computed(() => {
   const now = new Date()
@@ -181,7 +180,7 @@ const addToCart = () => {
     id: product.value.id,
     name: product.value.tensanpham,
     price: giaHienTai.value,
-    image: product.value.anhgoc,
+    image: productImages.value[0]?.src || product.value.anhgoc,
     quantity: 1,
     variant: product.value.mausac || 'Mặc định',
     selected: true,
@@ -209,9 +208,6 @@ onMounted(async () => {
   if (id) {
     await fetchChiTietSanPham(id)
     if (product.value) {
-      // Thêm alias id từ id_sp
-      product.value.id = product.value.id_sp
-
       const data = product.value
       specs.value = {
         cpu: {
