@@ -12,7 +12,7 @@ import {
 } from './List'
 
 export function useProductTable() {
-  const { products, loading, error } = useSanPhamAdmin()
+  const { products, loading, error, fetchProducts } = useSanPhamAdmin()
   const { createProduct } = useSanPhamCreate()
   const { updateProduct } = useSanPhamUpdate()
 
@@ -164,9 +164,15 @@ export function useProductTable() {
   }
 
   function handleReset() {
-    productForm.value = { anhphu: [] }
-    editingProductId.value = null
+  // Reset một số trường cụ thể thay vì toàn bộ form
+  productForm.value.anhphu = []
+  // Không reset các trường khác nếu chúng đã có giá trị
+  if (!editingProductId.value) {
+    productForm.value = { ...defaultProduct }
   }
+  editingProductId.value = null
+}
+
 
   async function onImageChange(event) {
     const file = event.target.files[0]
@@ -201,79 +207,114 @@ export function useProductTable() {
   }
 
   async function createNewProduct() {
-    if (!validateProductForm()) return
+  if (!validateProductForm()) return
 
-    try {
-      if (productForm.value._imageFile) {
-        const imageUrl = await uploadImageToCloud(productForm.value._imageFile)
-        productForm.value.anhgoc = imageUrl
-        delete productForm.value._imageFile
-      }
-
-      const cleanForm = {}
-      for (const key of allowedProductFields) {
-        cleanForm[key] = productForm.value[key] ?? ''
-      }
-      if (Array.isArray(productForm.value.anhphu)) {
-        cleanForm.anhphu = JSON.stringify(productForm.value.anhphu)
-      }
-
-
-
-      if (Array.isArray(productForm.value.anhphu)) {
-        cleanForm.anhphu = JSON.stringify(productForm.value.anhphu)
-      }
-
-      const result = await createProduct(cleanForm)
-
-      if (!result.success) {
-        showNotification(result.message, 'error')
-        return
-      }
-
-      productForm.value.loaiTen = mapLoaiValueToTen(productForm.value.loai)
-
-      products.value.push({ ...productForm.value })
-      showNotification('Thêm sản phẩm thành công!', 'success')
-      handleReset()
-    } catch (error) {
-      showNotification('Tải ảnh thất bại', 'error')
+  try {
+    // Tải ảnh nếu có
+    if (productForm.value._imageFile) {
+      const imageUrl = await uploadImageToCloud(productForm.value._imageFile)
+      productForm.value.anhgoc = imageUrl
+      delete productForm.value._imageFile
     }
+  } catch (error) {
+    showNotification('Tải ảnh thất bại', 'error')
+    return
   }
 
+  try {
+    const cleanForm = {}
+    for (const key of allowedProductFields) {
+      cleanForm[key] = productForm.value[key] ?? ''
+    }
+
+    if (Array.isArray(productForm.value.anhphu)) {
+      cleanForm.anhphu = JSON.stringify(productForm.value.anhphu)
+    }
+
+    const result = await createProduct(cleanForm)
+
+    // 👉 Dynamic API: nếu không có lỗi hoặc result rỗng => coi là thành công
+    const isEmptyResult = result === undefined || result === null || result === '' || (Array.isArray(result) && result.length === 0)
+
+    const isError =
+      result && typeof result === 'object' &&
+      ('success' in result && result.success === false || 'message' in result)
+
+    if (isError) {
+      const errorMsg = result.message || 'Thêm sản phẩm thất bại!'
+      showNotification(errorMsg, 'error')
+      return
+    }
+
+    // Xóa dòng này nếu không muốn gọi load lại danh sách:
+    // await fetchProducts()
+
+    showNotification('Thêm sản phẩm thành công!', 'success')
+    handleReset()
+  } catch (error) {
+    console.error('Lỗi khi tạo sản phẩm:', error)
+    showNotification('Lỗi khi tạo sản phẩm', 'error')
+  }
+}
+
   async function updateExistingProduct() {
-    try {
-      if (!productForm.value) return
+  try {
+    if (!productForm.value) return
+    loading.value = true
 
-      loading.value = true
-
-      if (productForm.value._imageFile) {
+    // 👉 Upload ảnh nếu có
+    if (productForm.value._imageFile) {
+      try {
         const imageUrl = await uploadImageToCloud(productForm.value._imageFile)
         productForm.value.diachianh = imageUrl
         productForm.value.anhgoc = imageUrl
         delete productForm.value._imageFile
+      } catch (error) {
+        showNotification('Tải ảnh thất bại', 'error')
+        return
       }
-
-      const payload = {
-        ...productForm.value,
-        anhphu: JSON.stringify(productForm.value.anhphu || [])
-      }
-
-      const success = await updateProduct(payload)
-
-      if (success) {
-        showNotification("Cập nhật sản phẩm thành công", 'success')
-        handleReset()
-      } else {
-        showNotification("Cập nhật thất bại", 'error')
-      }
-    } catch (err) {
-      console.error("Lỗi cập nhật sản phẩm:", err)
-      showNotification("Đã xảy ra lỗi khi cập nhật sản phẩm", 'error')
-    } finally {
-      loading.value = false
     }
+
+    // 👉 Chuẩn bị dữ liệu gửi
+    const payload = { ...productForm.value }
+
+    // Đảm bảo `id_sp` có mặt trong payload khi gửi
+    payload.id_sp = editingProductId.value // Đảm bảo giá trị này không bị thiếu
+
+    payload.anhphu = JSON.stringify(payload.anhphu || [])
+
+    console.log('Payload update:', payload) // Kiểm tra payload trước khi gửi
+
+    // Gọi API để cập nhật sản phẩm
+    const result = await updateProduct(payload)
+
+    // 👉 Xử lý phản hồi dynamic API
+    const isEmptyResult = result === undefined || result === null || result === '' || (Array.isArray(result) && result.length === 0)
+
+    const isError =
+      result && typeof result === 'object' &&
+      ('success' in result && result.success === false || 'message' in result)
+
+    if (isError) {
+      const errorMsg = result.message || 'Cập nhật sản phẩm thất bại!'
+      showNotification(errorMsg, 'error')
+      return
+    }
+
+    // 👉 Nếu thành công
+    showNotification('Cập nhật sản phẩm thành công!', 'success')
+    handleReset()
+
+    // Gọi lại danh sách nếu cần:
+    // await fetchProducts()
+
+  } catch (err) {
+    console.error("Lỗi cập nhật sản phẩm:", err)
+    showNotification("Đã xảy ra lỗi khi cập nhật sản phẩm", 'error')
+  } finally {
+    loading.value = false
   }
+}
 
   return {
     products,
@@ -301,7 +342,7 @@ export function useProductTable() {
     updateExistingProduct,
     notification,
     notificationType,
-    getBrandNameById
+    getBrandNameById,
   }
 }
 

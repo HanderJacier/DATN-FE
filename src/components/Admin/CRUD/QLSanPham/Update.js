@@ -1,17 +1,33 @@
 // src/CRUD/QLSanPham/Update.js
-import apiClient from '@/api'
+import { usePostData } from '@/components/component_callApi/callAPI'
 
 export default function useSanPhamUpdate() {
-  const updateProduct = async (product) => {
+  const { data: response, callAPI, loading, error } = usePostData()
+
+  const updateProduct = async (updatedProduct) => {
     try {
-      const res = await apiClient.put('/san-pham/cap-nhat', product)
-      console.log('✅ Cập nhật:', res.data)
-      return { success: true, message: res.data }
+      const paramsWithPrefix = {}
+      for (const key in updatedProduct) {
+        if (Object.hasOwnProperty.call(updatedProduct, key)) {
+          paramsWithPrefix[`p_${key}`] = updatedProduct[key]
+        }
+      }
+
+      const { data } = await callAPI('WBH_AD_UPD_SUASP', {
+        params: paramsWithPrefix
+      })
+
+      console.log('✅ Cập nhật sản phẩm thành công:', data)
+      return { success: true, message: data }
     } catch (err) {
-      console.error('❌ Lỗi cập nhật:', err)
-      return { success: false, message: err.response?.data || 'Cập nhật thất bại' }
+      console.error('❌ Lỗi cập nhật sản phẩm:', err)
+      return { success: false, message: err.response?.data || 'Cập nhật sản phẩm thất bại' }
     }
   }
 
-  return { updateProduct }
+  return {
+    updateProduct,
+    loading,
+    error
+  }
 }

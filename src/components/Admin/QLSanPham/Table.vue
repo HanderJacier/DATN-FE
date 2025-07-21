@@ -122,6 +122,7 @@ const {
   createNewProduct,
   updateExistingProduct,
   notification,
-  notificationType
+  notificationType,
+  fetchProducts
 } = useProductTable()
 </script>

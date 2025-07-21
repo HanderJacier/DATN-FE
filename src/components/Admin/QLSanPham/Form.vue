@@ -80,11 +80,19 @@ const loaiOptions = computed(() =>
       <div class="col-md-4" v-for="key in visibleFields" :key="key">
         <label class="form-label">{{ formFields[key] }}</label>
         <input
-          v-if="key !== 'diachianh'"
+          v-if="!['anhgoc', 'anhphu'].includes(key)"
           :type="['dongia', 'soluong'].includes(key) ? 'number' : 'text'"
           class="form-control"
           v-model="productForm[key]"
         />
+
+        <input
+          v-else
+          type="file"
+          class="form-control"
+          @change="(e) => onImageChange(e, key)"
+        />
+
         <input v-else type="file" class="form-control" @change="onImageChange" />
       </div>
 
