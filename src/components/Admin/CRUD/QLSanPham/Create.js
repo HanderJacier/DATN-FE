@@ -1,17 +1,35 @@
-// src/CRUD/QLSanPham/Create.js
-import apiClient from '@/api'
+import { ref } from 'vue'
+import { usePostData } from '@/components/component_callApi/callAPI'
 
 export default function useSanPhamCreate() {
+  const { data: response, callAPI: createProductAPI, loading, error } = usePostData()
+  const success = ref(false)
+
   const createProduct = async (newProduct) => {
-    try {
-      const res = await apiClient.post('/san-pham/tao', newProduct)
-      console.log('✅ Tạo sản phẩm:', res.data)
-      return { success: true, message: res.data }
-    } catch (err) {
-      console.error('❌ Lỗi tạo sản phẩm:', err)
-      return { success: false, message: err.response?.data || 'Tạo sản phẩm thất bại' }
+    success.value = false
+
+    // Map các trường newProduct thành key p_...
+    const paramsWithPrefix = {}
+    for (const key in newProduct) {
+      if (Object.hasOwnProperty.call(newProduct, key)) {
+        paramsWithPrefix[`p_${key}`] = newProduct[key]
+      }
+    }
+
+    await createProductAPI('WBH_AD_CRT_THEMSP', {
+      params: paramsWithPrefix
+    })
+
+    if (!error.value) {
+      success.value = true
     }
   }
 
-  return { createProduct }
+  return {
+    createProduct,
+    response,
+    loading,
+    error,
+    success,
+  }
 }

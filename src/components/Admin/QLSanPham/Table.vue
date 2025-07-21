@@ -1,8 +1,6 @@
 <template>
   <div class="container-fluid py-4">
-    <h5
-      class="form-title mb-3 bg-warning text-dark fw-bold px-3 py-2 rounded-2 d-inline-block"
-    >
+    <h5 class="form-title mb-3 bg-warning text-dark fw-bold px-3 py-2 rounded-2 d-inline-block">
       QUẢN LÝ SẢN PHẨM
     </h5>
 
@@ -34,14 +32,8 @@
     </div>
 
     <!-- Bảng hiển thị -->
-    <div
-      class="table-responsive"
-      style="max-height: 600px; overflow-x: auto;"
-    >
-      <table
-        class="table table-bordered table-hover align-middle text-center bg-white"
-        style="width: max-content; min-width: 100%;"
-      >
+    <div class="table-responsive" style="max-height: 600px; overflow-x: auto;">
+      <table class="table table-bordered table-hover align-middle text-center bg-white" style="width: max-content; min-width: 100%;">
         <thead class="table-warning">
           <tr>
             <th>STT</th>
@@ -77,16 +69,10 @@
             <td>{{ formatDate(product.ngaytao) }}</td>
             <td>{{ product.soluong }}</td>
             <td>
-              <button
-                class="btn btn-sm btn-primary me-1"
-                @click="editProduct(index)"
-              >
+              <button class="btn btn-sm btn-primary me-1" @click="editProduct(index)">
                 Sửa
               </button>
-              <button
-                class="btn btn-sm btn-danger"
-                @click="deleteProduct(index)"
-              >
+              <button class="btn btn-sm btn-danger" @click="deleteProduct(index)">
                 Xóa
               </button>
             </td>
@@ -98,40 +84,14 @@
     <!-- Phân trang -->
     <nav class="mt-3">
       <ul class="pagination justify-content-center">
-        <li
-          class="page-item"
-          :class="{ disabled: currentPage === 1 }"
-        >
-          <a
-            class="page-link"
-            href="#"
-            @click.prevent="changePage(currentPage - 1)"
-            >Previous</a
-          >
+        <li class="page-item" :class="{ disabled: currentPage === 1 }">
+          <a class="page-link" href="#" @click.prevent="changePage(currentPage - 1)">Previous</a>
         </li>
-        <li
-          v-for="page in totalPages"
-          :key="page"
-          class="page-item"
-          :class="{ active: currentPage === page }"
-        >
-          <a
-            class="page-link"
-            href="#"
-            @click.prevent="changePage(page)"
-            >{{ page }}</a
-          >
+        <li v-for="page in totalPages" :key="page" class="page-item" :class="{ active: currentPage === page }">
+          <a class="page-link" href="#" @click.prevent="changePage(page)">{{ page }}</a>
         </li>
-        <li
-          class="page-item"
-          :class="{ disabled: currentPage === totalPages }"
-        >
-          <a
-            class="page-link"
-            href="#"
-            @click.prevent="changePage(currentPage + 1)"
-            >Next</a
-          >
+        <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+          <a class="page-link" href="#" @click.prevent="changePage(currentPage + 1)">Next</a>
         </li>
       </ul>
     </nav>
@@ -147,7 +107,7 @@ const {
   formFields,
   isFixedType,
   visibleFields,
-  editingProductId,  // đổi từ editingIndex sang editingProductId
+  editingProductId,
   searchQuery,
   currentPage,
   pageSize,
