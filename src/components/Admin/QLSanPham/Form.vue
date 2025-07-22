@@ -19,19 +19,23 @@ function onImageChange(event) {
 
 function validateForm() {
   const requiredFields = ['tensanpham', 'thuonghieu', 'dongia', 'soluong', 'loai']
+
   for (const field of requiredFields) {
     const value = props.productForm[field]
     if (value === undefined || value === '' || value === null) {
-      alert(`❌ Vui lòng nhập: ${props.formFields[field]}`)
+      emit('showNotification', `❌ Vui lòng nhập: ${props.formFields[field]}`, 'error')
       return false
     }
+
     if (['dongia', 'soluong'].includes(field) && Number(value) < 0) {
-      alert(`❌ ${props.formFields[field]} không được âm`)
+      emit('showNotification', `❌ ${props.formFields[field]} không được âm`, 'error')
       return false
     }
   }
+
   return true
 }
+
 
 function handleCreate() {
   if (!validateForm()) return
