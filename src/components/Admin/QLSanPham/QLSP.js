@@ -275,18 +275,22 @@ export function useProductTable() {
       }
     }
 
-    // 👉 Chuẩn bị dữ liệu gửi
-    const payload = { ...productForm.value }
+    const payload = {
+      id_sp: editingProductId.value, // <== thêm ID sản phẩm vào payload
+      ...productForm.value,
+      id_gg: productForm.value.id_gg ?? 0,
+      hangiamgia: productForm.value.hangiamgia ?? '',
+    }
 
-    // Đảm bảo `id_sp` có mặt trong payload khi gửi
-    payload.id_sp = editingProductId.value // Đảm bảo giá trị này không bị thiếu
+    delete payload.loaiTen
+    delete payload.diachianh
 
     payload.anhphu = JSON.stringify(payload.anhphu || [])
 
-    console.log('Payload update:', payload) // Kiểm tra payload trước khi gửi
+    console.log('Payload update:', payload)
 
-    // Gọi API để cập nhật sản phẩm
     const result = await updateProduct(payload)
+
 
     // 👉 Xử lý phản hồi dynamic API
     const isEmptyResult = result === undefined || result === null || result === '' || (Array.isArray(result) && result.length === 0)
