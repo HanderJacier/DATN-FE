@@ -1,26 +1,26 @@
-import { ref, onMounted } from 'vue'
-import apiClient from '@/api'
+import { onMounted } from 'vue'
+import { usePostData } from '../../component_callApi/callAPI'
 
 export default function useHomeLogic() {
-  const sanPhamMoi = ref([])             // Sản phẩm mới
-  const sanPhamYeuThich = ref([])       // Top sản phẩm yêu thích + đánh giá cao
-  const sanPhamXepHang = ref([])       // Top sản phẩm xếp hạng cao
+  const { data: sanPhamMoi, callAPI: fetchSanPhamMoi } = usePostData()
+  const { data: sanPhamYeuThich, callAPI: fetchSanPhamYeuThich } = usePostData()
+  const { data: sanPhamXepHang, callAPI: fetchSanPhamXepHang } = usePostData()
 
   onMounted(async () => {
     try {
-      // Gọi sản phẩm mới
-      const resMoi = await apiClient.get('/san-pham/ngay-tao')
-      sanPhamMoi.value = resMoi.data
+      await fetchSanPhamMoi('WBH_US_SEL_XEMSP', {
+        params: {}
+      })
 
-      // Gọi sản phẩm được yêu thích
-      const resTop = await apiClient.get('/san-pham/yeu-thich')
-      sanPhamYeuThich.value = resTop.data
+      await fetchSanPhamYeuThich('WBH_US_SEL_RANKYTSP', {
+        params: {}
+      })
 
-      // Gọi sản phẩm được giảm giá
-      const resSale = await apiClient.get('/san-pham/giam-gia')
-      sanPhamXepHang.value = resTop.data
+      await fetchSanPhamXepHang('WBH_US_SEL_SALESP', {
+        params: {}
+      })
     } catch (error) {
-      console.error('Lỗi khi tải dữ liệu:', error)
+      console.error('Lỗi khi tải dữ liệu trang chủ:', error)
     }
   })
 

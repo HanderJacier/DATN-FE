@@ -89,9 +89,9 @@ router.beforeEach((to, from, next) => {
   }
 
   // Nếu vào trang admin mà chưa đăng nhập thì redirect về trang đăng nhập
-  if (to.path.startsWith('/admin') && !user) {
-    return next('/dangnhap');
-  }
+  // if (to.path.startsWith('/admin') && !user) {
+  //   return next('/dangnhap');
+  // }
 
   // Các trường hợp còn lại đều cho phép truy cập
   next();

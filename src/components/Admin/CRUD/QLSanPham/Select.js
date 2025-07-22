@@ -1,17 +1,17 @@
-// src/composables/useSanPhamAdmin.js
 import { ref, onMounted } from 'vue'
-import apiClient from '@/api'
+import { usePostData } from '@/components/component_callApi/callAPI' // đường dẫn bạn dùng trong home logic
 
 export default function useSanPhamAdmin() {
-  const products = ref([])
+  const { data: products, callAPI: fetchProducts } = usePostData()
   const loading = ref(false)
   const error = ref(null)
 
   onMounted(async () => {
     loading.value = true
     try {
-      const res = await apiClient.get('/san-pham') // API lấy toàn bộ sản phẩm
-      products.value = res.data
+      await fetchProducts('WBH_US_SEL_XEMSP', {
+        params: {} // truyền param nếu cần lọc, phân trang, v.v.
+      })
     } catch (err) {
       error.value = err.message || 'Lỗi tải sản phẩm'
       console.error(error.value)

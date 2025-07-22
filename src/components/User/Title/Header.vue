@@ -85,8 +85,8 @@
 <script>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import apiClient from '@/api'
 import Catalog from '@/components/User/Title/Catalog.vue'
+import useSanPhamSearch from '@/components/User/LoadDB/Header.js'
 
 // ✅ import ảnh đúng chuẩn Vite
 import logoImg from '@/assets/logotechmart.png'
@@ -102,12 +102,13 @@ export default {
     const searchKey = ref("")
     const selectedHint = ref(null)
     const showSuggestions = ref(false)
-    const allProducts = ref([])
     const filteredProducts = ref([])
 
     const isDropdownOpen = ref(false)
     const user = ref(null)
     const cartCount = ref(0)
+
+    const { allProducts } = useSanPhamSearch()  // ✅ dùng từ composable
 
     const displayName = computed(() => user.value?.hoVaTen || "Tài khoản")
 
@@ -130,15 +131,6 @@ export default {
     const updateCartCount = () => {
       const cart = JSON.parse(localStorage.getItem("cart")) || []
       cartCount.value = cart.reduce((sum, item) => sum + item.quantity, 0)
-    }
-
-    const fetchProducts = async () => {
-      try {
-        const res = await apiClient.get('/san-pham')
-        allProducts.value = res.data
-      } catch (err) {
-        console.error("Không tải được sản phẩm:", err)
-      }
     }
 
     const filterProducts = () => {
@@ -165,7 +157,6 @@ export default {
     onMounted(() => {
       getStoredUser()
       updateCartCount()
-      fetchProducts()
       window.addEventListener("storage", updateCartCount)
     })
 

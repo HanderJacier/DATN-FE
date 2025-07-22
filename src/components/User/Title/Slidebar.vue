@@ -102,11 +102,20 @@ export default {
   name: 'Slidebar',
   data() {
     return {
-      username: 'Thuy Tien', // set cứng
+      username: '',
     };
+  },
+  mounted() {
+    const storageUser = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user'));
+    if (storageUser && storageUser.hoVaTen) {
+      this.username = storageUser.hoVaTen;
+    } else {
+      this.username = 'Người dùng';
+    }
   },
 };
 </script>
+
 
 <style scoped>
 .link-item {

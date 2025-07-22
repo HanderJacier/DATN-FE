@@ -1,78 +1,63 @@
 <template>
-  <div class="mb-3 mt-5">
-    <!-- Gửi đánh giá -->
-    <div class="mb-4" v-if="isLoggedIn">
-      <textarea
-        v-model="newComment.noidung"
-        class="form-control mb-2"
-        placeholder="Viết đánh giá..."
-        rows="4"
-      ></textarea>
-      <select v-model="newComment.diemso" class="form-select w-auto mb-2">
-        <option v-for="n in 5" :key="n" :value="n">{{ n }} sao</option>
-      </select>
-      <button class="btn btn-warning" @click="submitReview">Gửi đánh giá</button>
-    </div>
-    <div v-else class="alert alert-warning">
-      Vui lòng đăng nhập để gửi đánh giá.
-    </div>
+  <div class="container my-4">
+    <h4>Đánh giá sản phẩm</h4>
 
-    <!-- Danh sách đánh giá -->
-    <div v-if="paginatedReviews.length" class="mb-3">
-      <div class="d-flex mb-3" v-for="(review, index) in paginatedReviews" :key="index">
-        <div
-          class="rounded-circle text-white d-flex justify-content-center align-items-center me-3"
-          :class="review.bgClass"
-          style="width: 40px; height: 40px"
-        >
-          {{ review.initial }}
-        </div>
-        <div>
-          <div class="fw-bold">
-            {{ review.name }}
-            <span class="text-muted fs-6">· {{ review.time }}</span>
+    <!-- Hiển thị danh sách đánh giá -->
+    <div v-if="paginatedReviews.length > 0" class="my-3">
+      <div v-for="(review, index) in paginatedReviews" :key="index" class="border p-3 rounded mb-3">
+        <div class="d-flex align-items-center mb-2">
+          <div class="rounded-circle text-white d-flex justify-content-center align-items-center me-2"
+               :class="['text-white', review.bgClass]"
+               style="width: 40px; height: 40px;">
+            {{ review.initial }}
           </div>
-          <div class="text-warning">
-            <span v-for="n in 5" :key="n">
-              <span v-if="n <= review.stars">★</span>
-              <span v-else class="text-secondary">☆</span>
+          <div>
+            <strong>{{ review.name }}</strong>
+            <div class="text-muted" style="font-size: 13px;">{{ review.time }}</div>
+          </div>
+          <div class="ms-auto">
+            <span v-for="star in 5" :key="star" class="text-warning">
+              <i :class="star <= review.stars ? 'fas fa-star' : 'far fa-star'"></i>
             </span>
           </div>
-          <div>{{ review.comment }}</div>
-          <button class="btn btn-sm btn-outline-secondary mt-1">
-            👍 {{ review.likes }}
-          </button>
-          <button
-            v-if="review.taikhoan === currentUserId"
-            class="btn btn-sm btn-outline-danger mt-1 ms-2"
-            @click="deleteReview(review.idDg)"
-          >
-            Xóa
-          </button>
         </div>
+        <p class="mb-0">{{ review.comment }}</p>
+        <button v-if="review.taikhoan === currentUserId" class="btn btn-sm btn-outline-danger mt-2" @click="deleteReview(review.idDg)">
+          Xóa đánh giá
+        </button>
       </div>
-    </div>
-    <div v-else class="alert alert-info">Chưa có đánh giá nào.</div>
 
-    <!-- Phân trang -->
-    <nav v-if="totalPages > 1" class="mt-4">
-      <ul class="pagination justify-content-center">
-        <li class="page-item" :class="{ disabled: currentPage === 1 }">
-          <button class="page-link" @click="currentPage--">« Trước</button>
-        </li>
-        <li
-          class="page-item"
-          v-for="page in totalPages"
-          :key="page"
-          :class="{ active: page === currentPage }"
-        >
-          <button class="page-link" @click="currentPage = page">{{ page }}</button>
-        </li>
-        <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-          <button class="page-link" @click="currentPage++">Tiếp »</button>
-        </li>
-      </ul>
-    </nav>
+      <!-- Phân trang -->
+      <nav class="d-flex justify-content-center mt-4">
+        <ul class="pagination">
+          <li class="page-item" :class="{ disabled: currentPage === 1 }">
+            <button class="page-link" @click="currentPage--">Trước</button>
+          </li>
+          <li v-for="page in totalPages" :key="page" class="page-item" :class="{ active: currentPage === page }">
+            <button class="page-link" @click="currentPage = page">{{ page }}</button>
+          </li>
+          <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+            <button class="page-link" @click="currentPage++">Sau</button>
+          </li>
+        </ul>
+      </nav>
+    </div>
+    <div v-else class="text-muted my-3">Chưa có đánh giá nào</div>
+
+    <!-- Form đánh giá -->
+    <div v-if="isLoggedIn" class="mt-4">
+      <h5>Gửi đánh giá của bạn</h5>
+      <div class="mb-3">
+        <label>Điểm đánh giá:</label><br>
+        <span v-for="star in 5" :key="star" class="text-warning" style="cursor: pointer;" @click="newComment.diemso = star">
+          <i :class="star <= newComment.diemso ? 'fas fa-star' : 'far fa-star'"></i>
+        </span>
+      </div>
+      <div class="mb-3">
+        <textarea class="form-control" rows="3" v-model="newComment.noidung" placeholder="Nội dung đánh giá..."></textarea>
+      </div>
+      <button class="btn btn-primary" @click="submitReview">Gửi đánh giá</button>
+    </div>
   </div>
 </template>
 
@@ -85,9 +70,9 @@ import danhGiaService from './danhGiaService.js'
 dayjs.extend(relativeTime)
 
 const reviews = ref([])
-const productId = 1 // hoặc prop nếu cần truyền vào
-const currentUserId = ref(2) // ID người dùng (giả lập)
-const isLoggedIn = ref(true)
+const productId = 1 // ID sản phẩm đang xem
+const currentUserId = ref(2) // giả lập ID người dùng
+const isLoggedIn = ref(true) // giả lập trạng thái đăng nhập
 const currentPage = ref(1)
 const pageSize = 5
 
@@ -100,7 +85,7 @@ const newComment = ref({
 
 const resetForm = () => {
   Object.assign(newComment.value, {
-    taikhoan: currentUserId.value, // ✅ lấy giá trị động
+    taikhoan: currentUserId.value,
     sanpham: productId,
     noidung: '',
     diemso: 5,
@@ -123,8 +108,7 @@ const loadReviews = async () => {
     }))
     currentPage.value = 1
   } catch (err) {
-    alert('Lỗi tải đánh giá')
-    console.error(err)
+    console.error('Lỗi tải đánh giá:', err)
   }
 }
 
@@ -134,28 +118,28 @@ const submitReview = async () => {
     return
   }
 
-  newComment.value.taikhoan = currentUserId.value // ✅ Gán lại tại đây
+  newComment.value.taikhoan = currentUserId.value
 
   try {
     await danhGiaService.create(newComment.value)
     alert('✅ Gửi đánh giá thành công')
+    // Bạn có thể **bỏ dòng này nếu muốn tĩnh hoàn toàn**:
     await loadReviews()
     resetForm()
   } catch (err) {
-    alert('❌ Lỗi khi gửi đánh giá')
-    console.error(err)
+    console.error('❌ Lỗi khi gửi đánh giá:', err)
   }
 }
-
 
 const deleteReview = async (idDg) => {
   if (confirm('Bạn có chắc muốn xóa đánh giá này?')) {
     try {
       await danhGiaService.delete(idDg)
       alert('✅ Đã xóa đánh giá')
+      // Nếu không muốn tự cập nhật lại, bạn có thể xóa dòng dưới:
       await loadReviews()
     } catch (err) {
-      alert('❌ Lỗi khi xóa đánh giá')
+      console.error('❌ Lỗi khi xóa đánh giá:', err)
     }
   }
 }
@@ -174,13 +158,7 @@ onMounted(loadReviews)
 </script>
 
 <style scoped>
-.form-control {
-  resize: vertical;
-}
-.pagination .page-link {
-  cursor: pointer;
-}
-.alert {
-  font-size: 0.9rem;
+textarea {
+  resize: none;
 }
 </style>
