@@ -263,8 +263,6 @@ export function useProductTable() {
         cleanForm.anhphu = JSON.stringify(productForm.value.anhphu)
       }
 
-      delete cleanForm.id_ts
-
       const result = await createProduct(cleanForm)
 
       // 👉 Dynamic API: nếu không có lỗi hoặc result rỗng => coi là thành công

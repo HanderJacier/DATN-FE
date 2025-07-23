@@ -77,7 +77,7 @@ export const allowedProductFields = [
   'anhgoc', 'cpuBrand', 'cpuModel', 'cpuType', 'cpuMinSpeed', 'cpuMaxSpeed',
   'cpuCores', 'cpuThreads', 'cpuCache', 'gpuBrand', 'gpuModel', 'gpuFullName',
   'gpuMemory', 'ram', 'rom', 'screen', 'mausac', 'soluong', 'anhphu',
-  'id_gg', 'hangiamgia', 'id_ts'
+  'id_gg', 'hangiamgia'
 ]
 
 // Trả về danh sách field hiển thị tùy theo loại
@@ -134,5 +134,4 @@ export const defaultProduct = {
   anhphu: '',
   id_gg: 0,
   hangiamgia: "",
-  id_ts: ""
 }

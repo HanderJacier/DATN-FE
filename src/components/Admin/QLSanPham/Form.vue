@@ -4,8 +4,6 @@ import { computed } from 'vue'
 import useGiamGiaList from '../CRUD/QLSanPham/GiamGia'
 const { giamGiaList, loading: loadingDiscounts, error } = useGiamGiaList()
 
-
-
 const props = defineProps({
   productForm: Object,
   formFields: Object,
