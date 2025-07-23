@@ -47,6 +47,7 @@ export const formFields = {
   mausac: 'Màu sắc',
   soluong: 'Số lượng',
   anhphu: 'Ảnh phụ',
+  hangiamgia: 'Hạn giảm giá'
 }
 
 
@@ -76,7 +77,7 @@ export const allowedProductFields = [
   'anhgoc', 'cpuBrand', 'cpuModel', 'cpuType', 'cpuMinSpeed', 'cpuMaxSpeed',
   'cpuCores', 'cpuThreads', 'cpuCache', 'gpuBrand', 'gpuModel', 'gpuFullName',
   'gpuMemory', 'ram', 'rom', 'screen', 'mausac', 'soluong', 'anhphu',
-  'id_gg', 'hangiamgia'
+  'id_gg', 'hangiamgia', 'id_ts'
 ]
 
 // Trả về danh sách field hiển thị tùy theo loại
@@ -132,5 +133,6 @@ export const defaultProduct = {
   soluong: 0,
   anhphu: '',
   id_gg: 0,
-  hangiamgia: "2025-08-30"
+  hangiamgia: "",
+  id_ts: ""
 }
