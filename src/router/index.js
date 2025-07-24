@@ -32,6 +32,7 @@ import DangGiao from '../components/User/ThongTinTK/LichSuMuaHang/DangGiao.vue'
 import DaGiao from '../components/User/ThongTinTK/LichSuMuaHang/DaGiao.vue'
 import DaHuy from '../components/User/ThongTinTK/LichSuMuaHang/DaHuy.vue'
 import TraHang from '../components/User/ThongTinTK/LichSuMuaHang/TraHang.vue'
+import XacNhanDonHang from '../components/User/ThongTinTK/XacNhanDonHang.vue'
 
 const routes = [
   { path: '/', component: Home },
@@ -52,6 +53,7 @@ const routes = [
   { path: '/timkiem', component: TimKiem },
   { path: '/gopynguoidung', component: GopYUser },
   { path: '/return', component: PaymentResult },
+  { path: '/xacnhandonhang', component: XacNhanDonHang },
 
   // 🎯 Các route lịch sử đơn hàng theo tab
   { path: '/tatca', component: TatCa },
