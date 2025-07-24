@@ -2,6 +2,7 @@ import { ref, computed, nextTick } from 'vue'
 import useSanPhamAdmin from '../CRUD/QLSanPham/Select'
 import useSanPhamCreate from '../CRUD/QLSanPham/Create'
 import useSanPhamUpdate from '../CRUD/QLSanPham/Update'
+
 import {
   brandList,
   formFields,
@@ -45,12 +46,24 @@ export function useProductTable() {
     const query = searchQuery.value.toLowerCase()
     return Array.isArray(products.value)
       ? products.value.filter(product =>
-          Object.values(product).some(val =>
-            String(val).toLowerCase().includes(query)
-          )
+        Object.values(product).some(val =>
+          String(val).toLowerCase().includes(query)
         )
+      )
       : []
   })
+  function handleReset() {
+    // Reset về mặc định
+    Object.assign(productForm.value, { ...defaultProduct })
+
+    // Xóa ảnh phụ và ảnh gốc nếu có
+    productForm.value.anhphu = []
+    productForm.value.diachianh = ''
+    delete productForm.value._imageFile
+
+    // Reset trạng thái editing
+    editingProductId.value = null
+  }
 
   const totalPages = computed(() =>
     Math.ceil(filteredProducts.value.length / pageSize)
@@ -123,14 +136,18 @@ export function useProductTable() {
     productForm.value.diachianh = selected.diachianh || selected.anhgoc || ''
     editingProductId.value = selected.id_sp || null
 
+    // **Gán id giảm giá (id_gg) nếu có trong selected**
+    productForm.value.id_gg = selected.id_gg || null
+
     await nextTick()
 
     for (const key in selected) {
-      if (!['loai', 'thuonghieu', 'diachianh'].includes(key)) {
+      if (selected[key] !== undefined) {
         productForm.value[key] = selected[key]
       }
     }
   }
+
 
   async function uploadImageToCloud(file) {
     const formData = new FormData()
@@ -148,30 +165,45 @@ export function useProductTable() {
     return data.secure_url
   }
 
-  async function deleteProduct(index) {
-    const globalIndex = (currentPage.value - 1) * pageSize + index
-    const sp = { ...products.value[globalIndex], soluong: 0 }
+  async function deleteProduct() {
+    try {
+      if (!productForm.value) return
+      loading.value = true
 
-    const result = await updateProduct(sp)
-    if (result.success) {
-      products.value[globalIndex].soluong = 0
+      // 👉 Dùng payload y hệt update nhưng chỉ set soluong = 0
+      const cleanPayload = {
+        id_sp: editingProductId.value,
+      }
+
+      for (const key of allowedProductFields) {
+        cleanPayload[key] = productForm.value[key] ?? ''
+      }
+
+      cleanPayload.soluong = 0
+      cleanPayload.anhphu = JSON.stringify(productForm.value.anhphu || [])
+
+      const result = await updateProduct(cleanPayload)
+
+      const isError =
+        result && typeof result === 'object' &&
+        ('success' in result && result.success === false || 'message' in result)
+
+      if (isError) {
+        showNotification(result.message || 'Xóa sản phẩm thất bại!', 'error')
+        return
+      }
+
       showNotification('Sản phẩm đã được xóa (số lượng = 0)', 'success')
-    } else {
-      showNotification('Xóa thất bại: ' + result.message, 'error')
+      await fetchProducts()
+      handleReset()
+    } catch (err) {
+      console.error("Lỗi xóa sản phẩm:", err)
+      showNotification("Đã xảy ra lỗi khi xóa sản phẩm", 'error')
+    } finally {
+      loading.value = false
     }
-
-    if (editingProductId.value === products.value[globalIndex].id_sp) handleReset()
   }
 
-  function handleReset() {
-  // Reset một số trường cụ thể thay vì toàn bộ form
-  productForm.value.anhphu = []
-  // Không reset các trường khác nếu chúng đã có giá trị
-  if (!editingProductId.value) {
-    productForm.value = { ...defaultProduct }
-  }
-  editingProductId.value = null
-}
 
 
   async function onImageChange(event) {
@@ -207,114 +239,115 @@ export function useProductTable() {
   }
 
   async function createNewProduct() {
-  if (!validateProductForm()) return
+    if (!validateProductForm()) return
 
-  try {
-    // Tải ảnh nếu có
-    if (productForm.value._imageFile) {
-      const imageUrl = await uploadImageToCloud(productForm.value._imageFile)
-      productForm.value.anhgoc = imageUrl
-      delete productForm.value._imageFile
-    }
-  } catch (error) {
-    showNotification('Tải ảnh thất bại', 'error')
-    return
-  }
-
-  try {
-    const cleanForm = {}
-    for (const key of allowedProductFields) {
-      cleanForm[key] = productForm.value[key] ?? ''
-    }
-
-    if (Array.isArray(productForm.value.anhphu)) {
-      cleanForm.anhphu = JSON.stringify(productForm.value.anhphu)
-    }
-
-    const result = await createProduct(cleanForm)
-
-    // 👉 Dynamic API: nếu không có lỗi hoặc result rỗng => coi là thành công
-    const isEmptyResult = result === undefined || result === null || result === '' || (Array.isArray(result) && result.length === 0)
-
-    const isError =
-      result && typeof result === 'object' &&
-      ('success' in result && result.success === false || 'message' in result)
-
-    if (isError) {
-      const errorMsg = result.message || 'Thêm sản phẩm thất bại!'
-      showNotification(errorMsg, 'error')
-      return
-    }
-
-    // Xóa dòng này nếu không muốn gọi load lại danh sách:
-    // await fetchProducts()
-
-    showNotification('Thêm sản phẩm thành công!', 'success')
-    handleReset()
-  } catch (error) {
-    console.error('Lỗi khi tạo sản phẩm:', error)
-    showNotification('Lỗi khi tạo sản phẩm', 'error')
-  }
-}
-
-  async function updateExistingProduct() {
-  try {
-    if (!productForm.value) return
-    loading.value = true
-
-    // 👉 Upload ảnh nếu có
-    if (productForm.value._imageFile) {
-      try {
+    try {
+      // Tải ảnh nếu có
+      if (productForm.value._imageFile) {
         const imageUrl = await uploadImageToCloud(productForm.value._imageFile)
-        productForm.value.diachianh = imageUrl
         productForm.value.anhgoc = imageUrl
         delete productForm.value._imageFile
-      } catch (error) {
-        showNotification('Tải ảnh thất bại', 'error')
-        return
       }
-    }
-
-    // 👉 Chuẩn bị dữ liệu gửi
-    const payload = { ...productForm.value }
-
-    // Đảm bảo `id_sp` có mặt trong payload khi gửi
-    payload.id_sp = editingProductId.value // Đảm bảo giá trị này không bị thiếu
-
-    payload.anhphu = JSON.stringify(payload.anhphu || [])
-
-    console.log('Payload update:', payload) // Kiểm tra payload trước khi gửi
-
-    // Gọi API để cập nhật sản phẩm
-    const result = await updateProduct(payload)
-
-    // 👉 Xử lý phản hồi dynamic API
-    const isEmptyResult = result === undefined || result === null || result === '' || (Array.isArray(result) && result.length === 0)
-
-    const isError =
-      result && typeof result === 'object' &&
-      ('success' in result && result.success === false || 'message' in result)
-
-    if (isError) {
-      const errorMsg = result.message || 'Cập nhật sản phẩm thất bại!'
-      showNotification(errorMsg, 'error')
+    } catch (error) {
+      showNotification('Tải ảnh thất bại', 'error')
       return
     }
 
-    // 👉 Nếu thành công
-    showNotification('Cập nhật sản phẩm thành công!', 'success')
-    handleReset()
+    try {
+      const cleanForm = {}
+      for (const key of allowedProductFields) {
+        cleanForm[key] = productForm.value[key] ?? ''
+      }
 
-    // Gọi lại danh sách nếu cần:
-    // await fetchProducts()
+      if (Array.isArray(productForm.value.anhphu)) {
+        cleanForm.anhphu = JSON.stringify(productForm.value.anhphu)
+      }
 
-  } catch (err) {
-    console.error("Lỗi cập nhật sản phẩm:", err)
-    showNotification("Đã xảy ra lỗi khi cập nhật sản phẩm", 'error')
-  } finally {
-    loading.value = false
+      const result = await createProduct(cleanForm)
+
+      // 👉 Dynamic API: nếu không có lỗi hoặc result rỗng => coi là thành công
+      const isEmptyResult = result === undefined || result === null || result === '' || (Array.isArray(result) && result.length === 0)
+
+      const isError =
+        result && typeof result === 'object' &&
+        ('success' in result && result.success === false || 'message' in result)
+
+      if (isError) {
+        const errorMsg = result.message || 'Thêm sản phẩm thất bại!'
+        showNotification(errorMsg, 'error')
+        return
+      }
+
+      // Xóa dòng này nếu không muốn gọi load lại danh sách:
+      await fetchProducts()
+
+      showNotification('Thêm sản phẩm thành công!', 'success')
+      handleReset()
+    } catch (error) {
+      console.error('Lỗi khi tạo sản phẩm:', error)
+      showNotification('Lỗi khi tạo sản phẩm', 'error')
+    }
   }
-}
+
+  async function updateExistingProduct() {
+    try {
+      if (!productForm.value) return
+      loading.value = true
+
+      // 👉 Upload ảnh nếu có
+      if (productForm.value._imageFile) {
+        try {
+          const imageUrl = await uploadImageToCloud(productForm.value._imageFile)
+          productForm.value.diachianh = imageUrl
+          productForm.value.anhgoc = imageUrl
+          delete productForm.value._imageFile
+        } catch (error) {
+          showNotification('Tải ảnh thất bại', 'error')
+          return
+        }
+      }
+
+      const cleanPayload = {
+        id_sp: editingProductId.value,
+      }
+
+      for (const key of allowedProductFields) {
+        cleanPayload[key] = productForm.value[key] ?? ''
+      }
+
+      // Format ảnh phụ (nếu có)
+      cleanPayload.anhphu = JSON.stringify(productForm.value.anhphu || [])
+
+      console.log('✅ Payload update:', cleanPayload)
+
+      const result = await updateProduct(cleanPayload)
+
+      const isEmptyResult = result === undefined || result === null || result === '' || (Array.isArray(result) && result.length === 0)
+
+      const isError =
+        result && typeof result === 'object' &&
+        ('success' in result && result.success === false || 'message' in result)
+
+      if (isError) {
+        const errorMsg = result.message || 'Cập nhật sản phẩm thất bại!'
+        showNotification(errorMsg, 'error')
+        return
+      }
+
+      showNotification('Cập nhật sản phẩm thành công!', 'success')
+      handleReset()
+
+      // Nếu cần load lại danh sách:
+      await fetchProducts()
+
+    } catch (err) {
+      console.error("Lỗi cập nhật sản phẩm:", err)
+      showNotification("Đã xảy ra lỗi khi cập nhật sản phẩm", 'error')
+    } finally {
+      loading.value = false
+    }
+  }
+
 
   return {
     products,

@@ -1,6 +1,8 @@
 <script setup>
 import { loaiMap, brandList } from './List'
 import { computed } from 'vue'
+import useGiamGiaList from '../CRUD/QLSanPham/GiamGia'
+const { giamGiaList, loading: loadingDiscounts, error } = useGiamGiaList()
 
 const props = defineProps({
   productForm: Object,
@@ -19,19 +21,23 @@ function onImageChange(event) {
 
 function validateForm() {
   const requiredFields = ['tensanpham', 'thuonghieu', 'dongia', 'soluong', 'loai']
+
   for (const field of requiredFields) {
     const value = props.productForm[field]
     if (value === undefined || value === '' || value === null) {
-      alert(`❌ Vui lòng nhập: ${props.formFields[field]}`)
+      emit('showNotification', `❌ Vui lòng nhập: ${props.formFields[field]}`, 'error')
       return false
     }
+
     if (['dongia', 'soluong'].includes(field) && Number(value) < 0) {
-      alert(`❌ ${props.formFields[field]} không được âm`)
+      emit('showNotification', `❌ ${props.formFields[field]} không được âm`, 'error')
       return false
     }
   }
+
   return true
 }
+
 
 function handleCreate() {
   if (!validateForm()) return
@@ -75,23 +81,26 @@ const loaiOptions = computed(() =>
       </select>
     </div>
 
+    <!-- Dropdown chọn giảm giá -->
+    <div class="mb-3">
+      <label class="form-label">Chọn giảm giá</label>
+      <select class="form-select" v-model="productForm.id_gg" :disabled="loadingDiscounts">
+        <option v-for="item in giamGiaList" :key="item.id_gg" :value="item.id_gg">
+          Giảm {{ item.loaigiamTen }}%
+        </option>
+      </select>
+    </div>
+
+
     <!-- Other Inputs -->
     <div class="row g-3">
       <div class="col-md-4" v-for="key in visibleFields" :key="key">
         <label class="form-label">{{ formFields[key] }}</label>
-        <input
-          v-if="!['anhgoc', 'anhphu'].includes(key)"
-          :type="['dongia', 'soluong'].includes(key) ? 'number' : 'text'"
-          class="form-control"
-          v-model="productForm[key]"
-        />
+        <input v-if="!['anhgoc', 'anhphu'].includes(key)"
+          :type="['dongia', 'soluong'].includes(key) ? 'number' : 'text'" class="form-control"
+          v-model="productForm[key]" />
 
-        <input
-          v-else
-          type="file"
-          class="form-control"
-          @change="(e) => onImageChange(e, key)"
-        />
+        <input v-else type="file" class="form-control" @change="(e) => onImageChange(e, key)" />
 
         <input v-else type="file" class="form-control" @change="onImageChange" />
       </div>
@@ -104,29 +113,21 @@ const loaiOptions = computed(() =>
     </div>
 
     <!-- Buttons -->
-<div class="mt-4 d-flex justify-content-end gap-2">
-  <button type="button" class="btn btn-warning" @click="$emit('resetForm')">Làm Mới</button>
+    <div class="mt-4 d-flex justify-content-end gap-2">
+      <button type="button" class="btn btn-warning" @click="$emit('resetForm')">Làm Mới</button>
 
-  <!-- Nút Thêm -->
-  <button
-    type="button"
-    class="btn btn-primary fw-bold me-2"
-    @click="handleCreate"
-  >
-    Thêm
-  </button>
+      <!-- Nút Thêm -->
+      <button type="button" class="btn btn-primary fw-bold me-2" @click="handleCreate">
+        Thêm
+      </button>
 
-  <!-- Nút Cập nhật -->
-  <button
-    type="button"
-    class="btn btn-warning fw-bold"
-    @click="handleUpdate"
-  >
-    Cập nhật
-  </button>
+      <!-- Nút Cập nhật -->
+      <button type="button" class="btn btn-warning fw-bold" @click="handleUpdate">
+        Cập nhật
+      </button>
 
-  <button type="button" class="btn btn-danger" @click="$emit('deleteProduct')">Xóa</button>
-</div>
+      <button type="button" class="btn btn-danger" @click="$emit('deleteProduct')">Xóa</button>
+    </div>
 
   </form>
 </template>

@@ -47,7 +47,6 @@ export const formFields = {
   mausac: 'Màu sắc',
   soluong: 'Số lượng',
   anhphu: 'Ảnh phụ',
-  id_gg: 'Loại giảm giá',
   hangiamgia: 'Hạn giảm giá'
 }
 
@@ -74,7 +73,6 @@ export const loaiMap = {
 // src/constants/productConstants.js
 
 export const allowedProductFields = [
-  'id_sp', // Thêm dòng này để bao gồm id
   'tensanpham', 'dongia', 'loai', 'thuonghieu',
   'anhgoc', 'cpuBrand', 'cpuModel', 'cpuType', 'cpuMinSpeed', 'cpuMaxSpeed',
   'cpuCores', 'cpuThreads', 'cpuCache', 'gpuBrand', 'gpuModel', 'gpuFullName',
@@ -87,7 +85,6 @@ export function getVisibleFields(loai) {
   const commonFields = [
     'tensanpham', 'thuonghieu', 'loai', 'dongia', 'mausac', 'soluong',
     'anhgoc', 'anhphu',
-    'id_gg', 'hangiamgia'
   ]
 
   if (loai === 1) {
@@ -110,8 +107,6 @@ export function getVisibleFields(loai) {
   // Phụ kiện hoặc loại khác
   return [...commonFields]
 }
-
-
 
 export const defaultProduct = {
   tensanpham: '',
@@ -138,5 +133,5 @@ export const defaultProduct = {
   soluong: 0,
   anhphu: '',
   id_gg: 0,
-  hangiamgia: "2025-08-30"
+  hangiamgia: "",
 }
