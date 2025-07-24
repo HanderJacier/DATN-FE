@@ -1,16 +1,16 @@
 import { ref, onMounted } from 'vue'
-import { usePostData } from '@/components/component_callApi/callAPI' // đường dẫn bạn dùng trong home logic
+import { usePostData } from '@/components/component_callApi/callAPI'
 
 export default function useSanPhamAdmin() {
-  const { data: products, callAPI: fetchProducts } = usePostData()
+  const { data: products, callAPI } = usePostData()
   const loading = ref(false)
   const error = ref(null)
 
-  onMounted(async () => {
+  const loadProducts = async () => {
     loading.value = true
     try {
-      await fetchProducts('WBH_US_SEL_XEMSP', {
-        params: {} // truyền param nếu cần lọc, phân trang, v.v.
+      await callAPI('WBH_US_SEL_XEMSP', {
+        params: {}
       })
     } catch (err) {
       error.value = err.message || 'Lỗi tải sản phẩm'
@@ -18,7 +18,16 @@ export default function useSanPhamAdmin() {
     } finally {
       loading.value = false
     }
+  }
+
+  onMounted(() => {
+    loadProducts()
   })
 
-  return { products, loading, error }
+  return {
+    products,
+    loading,
+    error,
+    fetchProducts: loadProducts // ✅ Trả ra đây để component khác dùng
+  }
 }

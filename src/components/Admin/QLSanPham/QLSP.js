@@ -2,6 +2,7 @@ import { ref, computed, nextTick } from 'vue'
 import useSanPhamAdmin from '../CRUD/QLSanPham/Select'
 import useSanPhamCreate from '../CRUD/QLSanPham/Create'
 import useSanPhamUpdate from '../CRUD/QLSanPham/Update'
+
 import {
   brandList,
   formFields,
@@ -135,14 +136,18 @@ export function useProductTable() {
     productForm.value.diachianh = selected.diachianh || selected.anhgoc || ''
     editingProductId.value = selected.id_sp || null
 
+    // **Gán id giảm giá (id_gg) nếu có trong selected**
+    productForm.value.id_gg = selected.id_gg || null
+
     await nextTick()
 
     for (const key in selected) {
       if (selected[key] !== undefined) {
-        productForm.value[key] = selected[key];
+        productForm.value[key] = selected[key]
       }
     }
   }
+
 
   async function uploadImageToCloud(file) {
     const formData = new FormData()

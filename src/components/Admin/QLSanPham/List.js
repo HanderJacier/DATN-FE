@@ -47,6 +47,7 @@ export const formFields = {
   mausac: 'Màu sắc',
   soluong: 'Số lượng',
   anhphu: 'Ảnh phụ',
+  hangiamgia: 'Hạn giảm giá'
 }
 
 
@@ -132,5 +133,5 @@ export const defaultProduct = {
   soluong: 0,
   anhphu: '',
   id_gg: 0,
-  hangiamgia: "2025-08-30"
+  hangiamgia: "",
 }
