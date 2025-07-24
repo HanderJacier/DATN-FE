@@ -53,7 +53,6 @@
               <span class="carousel-control-next-icon" aria-hidden="true"></span>
               <span class="visually-hidden">Next</span>
             </button>
-
           </div>
 
           <!-- Thumbnails -->
@@ -104,7 +103,6 @@
             </div>
           </div>
 
-
           <!-- Thông số kỹ thuật -->
           <h5 class="fw-bold mb-4 mt-3">Thông số kỹ thuật </h5>
           <!-- Box bọc bảng -->
@@ -117,13 +115,11 @@
                     <th class="fw-semibold text-secondary py-2 w-25">{{ label }}</th>
                     <td class="py-2">{{ value }}</td>
                   </tr>
-
                   <!-- GPU -->
                   <tr v-for="(value, label) in specs.gpu" :key="'gpu-' + label" class="border-0 border-bottom">
                     <th class="fw-semibold text-secondary py-2">{{ label }}</th>
                     <td class="py-2">{{ value }}</td>
                   </tr>
-
                   <!-- Other -->
                   <template v-if="showMore">
                     <tr v-for="(value, label) in specs.other" :key="'other-' + label" class="border-0 border-bottom">
@@ -167,19 +163,16 @@
               </span>
             </div>
           </div>
-
           <div class="mb-2 mt-3">
             <label class="fw-semibold me-3">Màu sắc</label>
             <button class="btn btn-outline-primary active">{{ product.mausac }}</button>
           </div>
-
           <div>
             <label class="fw-semibold me-3">Phiên bản</label>
             <button class="btn btn-outline-primary active">
               {{ product.ram }} {{ product.gpuMemory }}
             </button>
           </div>
-
           <div class="d-flex justify-content-center mt-5 align-items-center flex-wrap gap-3">
             <ThichSanPham :productId="product.id" />
             <template v-if="product.soluong > 0">
@@ -201,14 +194,11 @@
               </div>
             </template>
 
-
-
             <!--Hình ảnh vu vơ-->
             <div class="mt-1" style="  border-radius: 16px;">
               <img src="/src/components/User/ChiTietSP/simDinhQuaChat.png" alt="" width="550px"
                 style="border-radius: 12px;">
             </div>
-
 
             <!--Khuyế mãi-->
             <div class="p-4 mt-1"
@@ -244,15 +234,12 @@
                 </li>
               </ul>
             </div>
-
-
           </div>
         </div>
       </div>
       <OtherProducts />
     </div>
     <ProductReviews />
-
   </div>
 
   <!-- Loading -->
