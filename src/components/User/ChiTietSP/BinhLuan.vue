@@ -7,8 +7,7 @@
       <div v-for="(review, index) in paginatedReviews" :key="index" class="border p-3 rounded mb-3">
         <div class="d-flex align-items-center mb-2">
           <div class="rounded-circle text-white d-flex justify-content-center align-items-center me-2"
-               :class="['text-white', review.bgClass]"
-               style="width: 40px; height: 40px;">
+            :class="['text-white', review.bgClass]" style="width: 40px; height: 40px;">
             {{ review.initial }}
           </div>
           <div>
@@ -22,7 +21,8 @@
           </div>
         </div>
         <p class="mb-0">{{ review.comment }}</p>
-        <button v-if="review.taikhoan === currentUserId" class="btn btn-sm btn-outline-danger mt-2" @click="deleteReview(review.idDg)">
+        <button v-if="review.taikhoan === currentUserId" class="btn btn-sm btn-outline-danger mt-2"
+          @click="deleteReview(review.idDg)">
           Xóa đánh giá
         </button>
       </div>
@@ -44,20 +44,40 @@
     </div>
     <div v-else class="text-muted my-3">Chưa có đánh giá nào</div>
 
-    <!-- Form đánh giá -->
-    <div v-if="isLoggedIn" class="mt-4">
-      <h5>Gửi đánh giá của bạn</h5>
-      <div class="mb-3">
-        <label>Điểm đánh giá:</label><br>
-        <span v-for="star in 5" :key="star" class="text-warning" style="cursor: pointer;" @click="newComment.diemso = star">
-          <i :class="star <= newComment.diemso ? 'fas fa-star' : 'far fa-star'"></i>
-        </span>
+    <!-- Form đánh giá giống CellphoneS -->
+    <div v-if="isLoggedIn" class="mt-4 p-4 bg-light rounded">
+      <h5 class="mb-3">Đánh giá và bình luận</h5>
+      <div class="d-flex align-items-start">
+        <!-- Nhân vật minh họa -->
+        <img
+          src="https://sdmntprnorthcentralus.oaiusercontent.com/files/00000000-eb4c-622f-8e54-454b98a44be2/raw?se=2025-07-24T22%3A24%3A14Z&sp=r&sv=2024-08-04&sr=b&scid=dc42d998-bc42-5d46-a534-067a78dfebf0&skoid=24a7dec3-38fc-4904-b888-8abe0855c442&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-24T19%3A07%3A33Z&ske=2025-07-25T19%3A07%3A33Z&sks=b&skv=2024-08-04&sig=g4fIrJE1fvXWQ1N%2BBFx7sVrjw/Yvu7rWfY1il7g6Yuo%3D"
+          alt="Ảnh icon" style="width: 100px; height: auto;" class="me-3" />
+
+        <!-- Nội dung form -->
+        <div class="flex-grow-1">
+          <!-- Chọn sao -->
+          <div class="mt-3">
+            <label class="fw-semibold">Điểm đánh giá:</label>
+            <span v-for="star in 5" :key="star" class="text-warning" style="cursor: pointer;"
+              @click="newComment.diemso = star">
+              <i :class="star <= newComment.diemso ? 'fas fa-star' : 'far fa-star'"></i>
+            </span>
+          </div>
+
+          <!-- Ô nhập nội dung -->
+          <div class="input-group mt-2">
+            <input v-model="newComment.noidung" type="text" class="form-control"
+              placeholder="Viết đánh giá của bạn tại đây" />
+            <button class="btn btn-danger" @click="submitReview">
+              Gửi đánh giá
+              <i class="fas fa-paper-plane ms-1"></i>
+            </button>
+          </div>
+
+        </div>
       </div>
-      <div class="mb-3">
-        <textarea class="form-control" rows="3" v-model="newComment.noidung" placeholder="Nội dung đánh giá..."></textarea>
-      </div>
-      <button class="btn btn-primary" @click="submitReview">Gửi đánh giá</button>
     </div>
+
   </div>
 </template>
 

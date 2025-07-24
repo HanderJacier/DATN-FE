@@ -2,71 +2,31 @@ import { ref, computed, nextTick } from 'vue'
 import useSanPhamAdmin from '../CRUD/QLSanPham/Select'
 import useSanPhamCreate from '../CRUD/QLSanPham/Create'
 import useSanPhamUpdate from '../CRUD/QLSanPham/Update'
+import {
+  brandList,
+  formFields,
+  loaiMap,
+  allowedProductFields,
+  getVisibleFields,
+  defaultProduct
+} from './List'
 
 export function useProductTable() {
-  const { products, loading, error } = useSanPhamAdmin()
+  const { products, loading, error, fetchProducts } = useSanPhamAdmin()
   const { createProduct } = useSanPhamCreate()
   const { updateProduct } = useSanPhamUpdate()
 
   const searchQuery = ref('')
   const currentPage = ref(1)
   const pageSize = 8
-  const productForm = ref({})
+  const productForm = ref({ ...defaultProduct })
   const editingProductId = ref(null)
   const notification = ref('')
   const notificationType = ref('')
 
-  const brandList = [
-    { id: 1, name: 'Apple' },
-    { id: 2, name: 'Samsung' },
-    { id: 3, name: 'Xiaomi' },
-    { id: 4, name: 'Oppo' },
-    { id: 5, name: 'Vivo' },
-    { id: 6, name: 'Realme' },
-    { id: 7, name: 'Nokia' },
-    { id: 8, name: 'ASUS' },
-    { id: 9, name: 'Dell' },
-    { id: 10, name: 'HP' },
-    { id: 11, name: 'Lenovo' },
-    { id: 12, name: 'Acer' },
-    { id: 13, name: 'Sony' },
-    { id: 14, name: 'LG' },
-    { id: 15, name: 'Panasonic' },
-    { id: 16, name: 'Canon' },
-    { id: 17, name: 'Epson' },
-    { id: 18, name: 'JBL' },
-    { id: 19, name: 'Anker' },
-    { id: 20, name: 'Huawei' }
-  ]
-
-  const formFields = {
-    tensanpham: 'Tên sản phẩm',
-    thuonghieu: 'Thương hiệu',
-    loai: 'Loại',
-    loaiten: 'Loại tên',
-    dongia: 'Giá (VND)',
-    mausac: 'Màu sắc',
-    cpuBrand: 'CPU Brand',
-    cpuModel: 'CPU Model',
-    cpuType: 'CPU Type',
-    cpuMinSpeed: 'CPU Min Speed',
-    cpuMaxSpeed: 'CPU Max Speed',
-    cpuCores: 'CPU Cores',
-    cpuThreads: 'CPU Threads',
-    cpuCache: 'CPU Cache',
-    gpuBrand: 'GPU Brand',
-    gpuModel: 'GPU Model',
-    gpuFullName: 'GPU Full Name',
-    gpuMemory: 'GPU Memory',
-    ram: 'RAM',
-    rom: 'ROM',
-    screen: 'Màn hình',
-    soluong: 'Số lượng',
-    diachianh: 'Chọn ảnh',
-    chip: 'Chip',
-    camera: 'Camera',
-    pin: 'Pin'
-  }
+  const visibleFields = computed(() =>
+    getVisibleFields(productForm.value?.loai)
+  )
 
   function getBrandNameById(id) {
     return brandList.find(b => b.id === Number(id))?.name || ''
@@ -83,12 +43,26 @@ export function useProductTable() {
 
   const filteredProducts = computed(() => {
     const query = searchQuery.value.toLowerCase()
-    return products.value.filter(product =>
-      Object.values(product).some(val =>
-        String(val).toLowerCase().includes(query)
+    return Array.isArray(products.value)
+      ? products.value.filter(product =>
+        Object.values(product).some(val =>
+          String(val).toLowerCase().includes(query)
+        )
       )
-    )
+      : []
   })
+  function handleReset() {
+    // Reset về mặc định
+    Object.assign(productForm.value, { ...defaultProduct })
+
+    // Xóa ảnh phụ và ảnh gốc nếu có
+    productForm.value.anhphu = []
+    productForm.value.diachianh = ''
+    delete productForm.value._imageFile
+
+    // Reset trạng thái editing
+    editingProductId.value = null
+  }
 
   const totalPages = computed(() =>
     Math.ceil(filteredProducts.value.length / pageSize)
@@ -107,24 +81,6 @@ export function useProductTable() {
 
   function formatDate(date) {
     return date ? new Date(date).toLocaleDateString('vi-VN') : '-'
-  }
-
-  const loaiMap = {
-    'Điện thoại di động': '1',
-    'Máy tính bảng': '2',
-    'Laptop': '3',
-    'Máy tính để bàn': '4',
-    'Thiết bị đeo thông minh': '5',
-    'Phụ kiện điện thoại': '6',
-    'Phụ kiện máy tính': '7',
-    'Thiết bị mạng': '8',
-    'Thiết bị lưu trữ': '9',
-    'Tivi': '10',
-    'Loa và tai nghe': '11',
-    'Đồng hồ thông minh': '12',
-    'Máy ảnh và máy quay': '13',
-    'Máy in và mực in': '14',
-    'Đồ gia dụng thông minh': '15'
   }
 
   function mapLoaiTenToValue(loaiTen) {
@@ -161,10 +117,8 @@ export function useProductTable() {
 
   async function editProduct(index) {
     handleReset()
-
     const selected = { ...pagedProducts.value[index] }
 
-    // ✅ Đồng bộ loại nếu dữ liệu chỉ có tên loại
     if (!selected.loai && selected.loaiTen) {
       selected.loai = mapLoaiTenToValue(selected.loaiTen)
     }
@@ -172,24 +126,20 @@ export function useProductTable() {
     productForm.value.loai = String(selected.loai)
     productForm.value.loaiTen = mapLoaiValueToTen(productForm.value.loai)
 
-    // ✅ Chuyển thương hiệu từ tên về ID
-    // Ưu tiên ID nếu có, nếu không lấy từ thươnghieuTen (tên hiển thị)
     productForm.value.thuonghieu =
       selected.thuonghieu ||
       brandList.find(b => b.name === selected.thuonghieuTen)?.id ||
       brandList.find(b => b.name === selected.thuonghieu)?.id ||
       ''
 
-    // ✅ Gán ID sản phẩm đang sửa
+    productForm.value.diachianh = selected.diachianh || selected.anhgoc || ''
     editingProductId.value = selected.id_sp || null
 
-    // Chờ đồng bộ DOM để tránh lỗi v-model chưa ready
     await nextTick()
 
-    // ✅ Gán các trường còn lại (trừ 'loai' và 'thuonghieu' đã gán riêng)
     for (const key in selected) {
-      if (!['loai', 'thuonghieu'].includes(key)) {
-        productForm.value[key] = selected[key]
+      if (selected[key] !== undefined) {
+        productForm.value[key] = selected[key];
       }
     }
   }
@@ -197,163 +147,201 @@ export function useProductTable() {
   async function uploadImageToCloud(file) {
     const formData = new FormData()
     formData.append('file', file)
-    formData.append('upload_preset', 'DATN_PICTURES') // đúng preset bạn đã tạo
+    formData.append('upload_preset', 'DATN_PICTURES')
 
     const response = await fetch('https://api.cloudinary.com/v1_1/dkztehmmk/image/upload', {
       method: 'POST',
       body: formData
     })
 
-    if (!response.ok) {
-      throw new Error('Tải ảnh lên thất bại')
-    }
+    if (!response.ok) throw new Error('Tải ảnh lên thất bại')
 
     const data = await response.json()
-    return data.secure_url // trả về link ảnh trên Cloudinary
+    return data.secure_url
   }
 
-  async function deleteProduct(index) {
-    const globalIndex = (currentPage.value - 1) * pageSize + index
-    const sp = { ...products.value[globalIndex], soluong: 0 }
+  async function deleteProduct() {
+    try {
+      if (!productForm.value) return
+      loading.value = true
 
-    const result = await updateProduct(sp)
-    if (result.success) {
-      products.value[globalIndex].soluong = 0
+      // 👉 Dùng payload y hệt update nhưng chỉ set soluong = 0
+      const cleanPayload = {
+        id_sp: editingProductId.value,
+      }
+
+      for (const key of allowedProductFields) {
+        cleanPayload[key] = productForm.value[key] ?? ''
+      }
+
+      cleanPayload.soluong = 0
+      cleanPayload.anhphu = JSON.stringify(productForm.value.anhphu || [])
+
+      const result = await updateProduct(cleanPayload)
+
+      const isError =
+        result && typeof result === 'object' &&
+        ('success' in result && result.success === false || 'message' in result)
+
+      if (isError) {
+        showNotification(result.message || 'Xóa sản phẩm thất bại!', 'error')
+        return
+      }
+
       showNotification('Sản phẩm đã được xóa (số lượng = 0)', 'success')
-    } else {
-      showNotification('Xóa thất bại: ' + result.message, 'error')
+      await fetchProducts()
+      handleReset()
+    } catch (err) {
+      console.error("Lỗi xóa sản phẩm:", err)
+      showNotification("Đã xảy ra lỗi khi xóa sản phẩm", 'error')
+    } finally {
+      loading.value = false
     }
-
-    if (editingProductId.value === products.value[globalIndex].id_sp) handleReset()
   }
 
-  function handleReset() {
-    productForm.value = {}
-    editingProductId.value = null
-  }
 
 
   async function onImageChange(event) {
-  const file = event.target.files[0]
-  if (file) {
-    const previewUrl = URL.createObjectURL(file)
-    productForm.value.diachianh = previewUrl
-    // Lưu file gốc vào productForm để upload sau này
-    productForm.value._imageFile = file
-  }
-}
-
-async function uploadImageToCloud(file) {
-  const formData = new FormData()
-  formData.append('file', file)
-  formData.append('upload_preset', 'DATN_PICTURES') // Thay bằng preset của bạn
-
-  const response = await fetch('https://api.cloudinary.com/v1_1/dkztehmmk/image/upload', {
-    method: 'POST',
-    body: formData
-  })
-
-  if (!response.ok) {
-    throw new Error('Tải ảnh lên thất bại')
-  }
-
-  const data = await response.json()
-  return data.secure_url // Link ảnh Cloudinary
-}
-
-
-  const visibleFields = computed(() => {
-    const loai = productForm.value?.loai
-
-    const baseFields = [
-      'tensanpham', 'dongia', 'mausac',
-      'screen', 'soluong', 'diachianh'
-    ]
-    const laptopFields = [
-      'cpuBrand', 'cpuModel', 'cpuType', 'cpuMinSpeed', 'cpuMaxSpeed',
-      'cpuCores', 'cpuThreads', 'cpuCache',
-      'gpuBrand', 'gpuModel', 'gpuFullName', 'gpuMemory',
-      'ram', 'rom'
-    ]
-    const dienthoaiFields = ['chip', 'ram', 'rom', 'camera', 'pin']
-
-    switch (loai) {
-      case '1':
-      case '2':
-        return [...baseFields, ...dienthoaiFields]
-      case '3':
-      case '4':
-        return [...baseFields, ...laptopFields]
-      case '5':
-      case '12':
-        return [...baseFields, 'pin', 'chip']
-      case '10':
-        return [...baseFields, 'screen', 'rom']
-      case '13':
-        return [...baseFields, 'camera']
-      default:
-        return [...baseFields]
+    const file = event.target.files[0]
+    if (file) {
+      const previewUrl = URL.createObjectURL(file)
+      productForm.value.diachianh = previewUrl
+      productForm.value._imageFile = file
     }
-  })
+  }
+
+  async function onMultipleImagesChange(event) {
+    const files = Array.from(event.target.files || [])
+    const uploadedUrls = []
+
+    for (const file of files) {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('upload_preset', 'DATN_PICTURES')
+
+      const response = await fetch('https://api.cloudinary.com/v1_1/dkztehmmk/image/upload', {
+        method: 'POST',
+        body: formData
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        uploadedUrls.push(data.secure_url)
+      }
+    }
+
+    productForm.value.anhphu = uploadedUrls
+  }
 
   async function createNewProduct() {
-  if (!validateProductForm()) return
+    if (!validateProductForm()) return
 
-  try {
-    if (productForm.value._imageFile) {
-      const imageUrl = await uploadImageToCloud(productForm.value._imageFile)
-      productForm.value.diachianh = imageUrl
-      productForm.value.anhgoc = imageUrl
-      delete productForm.value._imageFile // xóa file tạm sau khi upload
-    }
-
-    const result = await createProduct(productForm.value)
-    if (!result.success) {
-      showNotification(result.message, 'error')
+    try {
+      // Tải ảnh nếu có
+      if (productForm.value._imageFile) {
+        const imageUrl = await uploadImageToCloud(productForm.value._imageFile)
+        productForm.value.anhgoc = imageUrl
+        delete productForm.value._imageFile
+      }
+    } catch (error) {
+      showNotification('Tải ảnh thất bại', 'error')
       return
     }
-    products.value.push({ ...productForm.value })
-    showNotification('Thêm sản phẩm thành công!', 'success')
-    handleReset()
-  } catch (error) {
-    showNotification('Tải ảnh thất bại', 'error')
-  }
-}
 
+    try {
+      const cleanForm = {}
+      for (const key of allowedProductFields) {
+        cleanForm[key] = productForm.value[key] ?? ''
+      }
+
+      if (Array.isArray(productForm.value.anhphu)) {
+        cleanForm.anhphu = JSON.stringify(productForm.value.anhphu)
+      }
+
+      const result = await createProduct(cleanForm)
+
+      // 👉 Dynamic API: nếu không có lỗi hoặc result rỗng => coi là thành công
+      const isEmptyResult = result === undefined || result === null || result === '' || (Array.isArray(result) && result.length === 0)
+
+      const isError =
+        result && typeof result === 'object' &&
+        ('success' in result && result.success === false || 'message' in result)
+
+      if (isError) {
+        const errorMsg = result.message || 'Thêm sản phẩm thất bại!'
+        showNotification(errorMsg, 'error')
+        return
+      }
+
+      // Xóa dòng này nếu không muốn gọi load lại danh sách:
+      await fetchProducts()
+
+      showNotification('Thêm sản phẩm thành công!', 'success')
+      handleReset()
+    } catch (error) {
+      console.error('Lỗi khi tạo sản phẩm:', error)
+      showNotification('Lỗi khi tạo sản phẩm', 'error')
+    }
+  }
 
   async function updateExistingProduct() {
-  if (!editingProductId.value) return
-  if (!validateProductForm()) return
+    try {
+      if (!productForm.value) return
+      loading.value = true
 
-  if (!productForm.value.id_sp) {
-    productForm.value.id_sp = editingProductId.value
+      // 👉 Upload ảnh nếu có
+      if (productForm.value._imageFile) {
+        try {
+          const imageUrl = await uploadImageToCloud(productForm.value._imageFile)
+          productForm.value.diachianh = imageUrl
+          productForm.value.anhgoc = imageUrl
+          delete productForm.value._imageFile
+        } catch (error) {
+          showNotification('Tải ảnh thất bại', 'error')
+          return
+        }
+      }
+
+      const cleanPayload = {
+        id_sp: editingProductId.value,
+      }
+
+      for (const key of allowedProductFields) {
+        cleanPayload[key] = productForm.value[key] ?? ''
+      }
+
+      // Format ảnh phụ (nếu có)
+      cleanPayload.anhphu = JSON.stringify(productForm.value.anhphu || [])
+
+      console.log('✅ Payload update:', cleanPayload)
+
+      const result = await updateProduct(cleanPayload)
+
+      const isEmptyResult = result === undefined || result === null || result === '' || (Array.isArray(result) && result.length === 0)
+
+      const isError =
+        result && typeof result === 'object' &&
+        ('success' in result && result.success === false || 'message' in result)
+
+      if (isError) {
+        const errorMsg = result.message || 'Cập nhật sản phẩm thất bại!'
+        showNotification(errorMsg, 'error')
+        return
+      }
+
+      showNotification('Cập nhật sản phẩm thành công!', 'success')
+      handleReset()
+
+      // Nếu cần load lại danh sách:
+      await fetchProducts()
+
+    } catch (err) {
+      console.error("Lỗi cập nhật sản phẩm:", err)
+      showNotification("Đã xảy ra lỗi khi cập nhật sản phẩm", 'error')
+    } finally {
+      loading.value = false
+    }
   }
-
-  try {
-    if (productForm.value._imageFile) {
-      const imageUrl = await uploadImageToCloud(productForm.value._imageFile)
-      productForm.value.diachianh = imageUrl
-      productForm.value.anhgoc = imageUrl
-      delete productForm.value._imageFile
-    }
-
-    const result = await updateProduct(productForm.value)
-    if (!result.success) {
-      showNotification(result.message, 'error')
-      return
-    }
-
-    const index = products.value.findIndex(p => p.id_sp === editingProductId.value)
-    if (index !== -1) {
-      products.value[index] = { ...productForm.value }
-    }
-
-    showNotification('Cập nhật sản phẩm thành công!', 'success')
-    handleReset()
-  } catch (error) {
-    showNotification('Tải ảnh thất bại', 'error')
-  }
-}
 
 
   return {
@@ -369,6 +357,7 @@ async function uploadImageToCloud(file) {
     visibleFields,
     brandList,
     onImageChange,
+    onMultipleImagesChange,
     filteredProducts,
     totalPages,
     pagedProducts,
@@ -381,6 +370,7 @@ async function uploadImageToCloud(file) {
     updateExistingProduct,
     notification,
     notificationType,
-    getBrandNameById
+    getBrandNameById,
   }
 }
+

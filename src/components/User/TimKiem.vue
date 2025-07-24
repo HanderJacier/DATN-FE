@@ -7,7 +7,7 @@
         <span v-if="keyword">cho: "{{ keyword }}"</span>
         <span v-else-if="loaiTen">theo loại: "{{ loaiTen }}"</span>
       </h4>
-      <ProductFilter v-model:keyword="keyword" />
+      <Loc @onFilter="onCustomFilter" />
     </div>
 
     <!-- Nếu không có sản phẩm -->
@@ -72,8 +72,19 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import ProductFilter from './Loc.vue'
 import useSanPhamSearch from '@/components/User/LoadDB/TimKiem.js' // ✅ import composable
+import Loc from './Loc.vue' // chính là component lọc bạn làm
+
+const advancedFilter = ref({
+  ten: '',
+  min: null,
+  max: null,
+})
+
+const onCustomFilter = (newFilter) => {
+  advancedFilter.value = newFilter
+  filterProducts()
+}
 
 const route = useRoute()
 const keyword = ref(route.query.q || '')
@@ -86,6 +97,7 @@ const filterType = ref(route.query.filter || '') // 'moi' | 'giamgia' | ''
 const itemsPerPage = ref(16)
 const currentPage = ref(1)
 const now = new Date()
+
 
 const loaiMap = {
   'Điện thoại di động': '1',
@@ -128,11 +140,11 @@ const sanPhamGiamGia = computed(() => {
 // 👉 Lấy toàn bộ sản phẩm từ composable
 const { allProducts: fetchedProducts } = useSanPhamSearch()
 
-// Lọc sản phẩm
 const filterProducts = () => {
   const kw = keyword.value.toLowerCase().trim()
   const loai = currentLoai.value
   const filter = filterType.value
+  const { ten, min, max } = advancedFilter.value
 
   filteredProducts.value = fetchedProducts.value.filter(sp => {
     const matchKeyword = kw === '' || sp.tensanpham.toLowerCase().includes(kw)
@@ -144,12 +156,16 @@ const filterProducts = () => {
 
     const matchFilter =
       filter === 'moi'
-        ? new Date(sp.ngaytao) >= new Date(Date.now() - 1000 * 60 * 60 * 24 * 30) // trong 30 ngày
+        ? new Date(sp.ngaytao) >= new Date(Date.now() - 1000 * 60 * 60 * 24 * 30)
         : filter === 'giamgia'
         ? Number(sp.giamgia) > 0 && new Date(sp.hangiamgia) > new Date()
         : true
 
-    return matchKeyword && matchLoai && matchFilter
+    const matchTen = !ten || sp.tensanpham.toLowerCase().includes(ten.toLowerCase())
+    const matchMin = !min || Number(sp.dongia) >= min
+    const matchMax = !max || Number(sp.dongia) <= max
+
+    return matchKeyword && matchLoai && matchFilter && matchTen && matchMin && matchMax
   })
 
   currentPage.value = 1

@@ -1,14 +1,10 @@
 <template>
-  <div class="container mt-5 p-3">
-    <h5 class="fw-bold mb-4">Sản phẩm khác</h5>
+  <h5 class="fw-bold mb-4 mt-5">Có thể bạn cũng thích </h5>
+  <div class="container mt-1 p-1">
     <div class="row row-cols-2 row-cols-md-4 g-3">
       <div class="col" v-for="(sp, idx) in otherProducts" :key="idx">
         <div class="card h-100 shadow-sm">
-          <img
-            :src="sp.image"
-            class="card-img-top"
-            style="height: 180px; object-fit: contain"
-          />
+          <img :src="sp.image" class="card-img-top" style="height: 180px; object-fit: contain" />
           <div class="card-body">
             <h6 class="card-title text-truncate">{{ sp.name }}</h6>
             <p class="text-danger fw-bold">{{ sp.price.toLocaleString() }}₫</p>
