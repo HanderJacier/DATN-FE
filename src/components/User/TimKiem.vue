@@ -79,12 +79,20 @@ const advancedFilter = ref({
   ten: '',
   min: null,
   max: null,
+  thuonghieu: ''
 })
 
+
 const onCustomFilter = (newFilter) => {
-  advancedFilter.value = newFilter
+  advancedFilter.value = {
+    ten: newFilter.ten || '',
+    min: newFilter.min || null,
+    max: newFilter.max || null,
+    thuonghieu: newFilter.thuonghieu || ''
+  }
   filterProducts()
 }
+
 
 const route = useRoute()
 const keyword = ref(route.query.q || '')
@@ -141,13 +149,26 @@ const sanPhamGiamGia = computed(() => {
 const { allProducts: fetchedProducts } = useSanPhamSearch()
 
 const filterProducts = () => {
-  const kw = keyword.value.toLowerCase().trim()
+  const kwRaw = keyword.value.trim()
+  const kw = kwRaw.toLowerCase()
+  const isShowAll = kwRaw === 'tatca'
   const loai = currentLoai.value
   const filter = filterType.value
-  const { ten, min, max } = advancedFilter.value
+  const { ten, min, max, thuonghieu } = advancedFilter.value
+
+  // Nếu không có điều kiện lọc nào -> lấy toàn bộ
+  const noFilter =
+  isShowAll || (!kw && !loai && !filter && !ten && !min && !max)
+
+  if (noFilter) {
+    filteredProducts.value = fetchedProducts.value
+    currentPage.value = 1
+    return
+  }
 
   filteredProducts.value = fetchedProducts.value.filter(sp => {
     const matchKeyword = kw === '' || sp.tensanpham.toLowerCase().includes(kw)
+    const matchThuongHieu = !thuonghieu || String(sp.thuonghieu) === String(thuonghieu)
 
     const matchLoai =
       !loai ||
@@ -165,7 +186,8 @@ const filterProducts = () => {
     const matchMin = !min || Number(sp.dongia) >= min
     const matchMax = !max || Number(sp.dongia) <= max
 
-    return matchKeyword && matchLoai && matchFilter && matchTen && matchMin && matchMax
+    return matchKeyword && matchLoai && matchFilter && matchTen && matchMin && matchMax && matchThuongHieu
+
   })
 
   currentPage.value = 1
@@ -188,19 +210,21 @@ const goNextPage = () => { if (currentPage.value < totalPages.value) currentPage
 
 watch(() => route.query.q, (newQ) => {
   keyword.value = newQ || ''
+  advancedFilter.value = { ten: '', min: null, max: null } // ✅ reset lọc
   filterProducts()
 })
 
 watch(() => route.query.loai, (newLoai) => {
   currentLoai.value = newLoai || ''
+  advancedFilter.value = { ten: '', min: null, max: null } // ✅ reset lọc
   filterProducts()
 })
 
 watch(() => route.query.filter, (newFilter) => {
   filterType.value = newFilter || ''
+  advancedFilter.value = { ten: '', min: null, max: null } // ✅ reset lọc
   filterProducts()
 })
-
 
 watch(keyword, () => filterProducts())
 

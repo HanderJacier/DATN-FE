@@ -80,32 +80,83 @@ export const allowedProductFields = [
   'id_gg', 'hangiamgia'
 ]
 
-// Trả về danh sách field hiển thị tùy theo loại
+// Trả về danh sách field hiển thị tùy theo loại sản phẩm
 export function getVisibleFields(loai) {
   const commonFields = [
-    'tensanpham', 'thuonghieu', 'loai', 'dongia', 'mausac', 'soluong',
-    'anhgoc', 'anhphu',
-  ]
+    'tensanpham', 'thuonghieu', 'loai', 'dongia',
+    'mausac', 'soluong', 'anhgoc', 'anhphu', 'hangiamgia'
+  ];
 
-  if (loai === 1) {
-    return [
-      ...commonFields,
-      'cpuBrand', 'cpuModel', 'cpuType', 'cpuMinSpeed', 'cpuMaxSpeed',
-      'cpuCores', 'cpuThreads', 'cpuCache',
-      'gpuBrand', 'gpuModel', 'gpuFullName', 'gpuMemory',
-      'ram', 'rom', 'screen'
-    ]
+  switch (Number(loai)) {
+    case 1: // Điện thoại di động
+    case 5: // Thiết bị đeo thông minh
+    case 12: // Đồng hồ thông minh
+      return [
+        ...commonFields,
+        'cpuBrand', 'cpuModel', 'cpuType', 'cpuMinSpeed', 'cpuMaxSpeed',
+        'cpuCores', 'cpuThreads', 'cpuCache',
+        'gpuBrand', 'gpuModel', 'gpuFullName', 'gpuMemory',
+        'ram', 'rom', 'screen'
+      ];
+
+    case 2: // Máy tính bảng
+      return [
+        ...commonFields,
+        'ram', 'rom', 'screen',
+        'cpuBrand', 'cpuModel',
+      ];
+
+    case 3: // Laptop
+    case 4: // Máy tính để bàn
+      return [
+        ...commonFields,
+        'cpuBrand', 'cpuModel', 'cpuType', 'cpuMinSpeed', 'cpuMaxSpeed',
+        'cpuCores', 'cpuThreads', 'cpuCache',
+        'gpuBrand', 'gpuModel', 'gpuFullName', 'gpuMemory',
+        'ram', 'rom', 'screen'
+      ];
+
+    case 6: // Phụ kiện điện thoại
+    case 7: // Phụ kiện máy tính
+    case 8: // Thiết bị mạng
+    case 9: // Thiết bị lưu trữ
+      return [
+        ...commonFields
+      ];
+
+    case 10: // Tivi
+      return [
+        ...commonFields,
+        'screen', 'gpuBrand', 'gpuModel'
+      ];
+
+    case 11: // Loa và tai nghe
+      return [
+        ...commonFields,
+        'gpuBrand', 'gpuModel'
+      ];
+
+    case 13: // Máy ảnh và máy quay
+      return [
+        ...commonFields,
+        'gpuBrand', 'gpuModel', 'ram', 'rom'
+      ];
+
+    case 14: // Máy in và mực in
+      return [
+        ...commonFields,
+        'cpuBrand', 'ram', 'rom'
+      ];
+
+    case 15: // Đồ gia dụng thông minh
+      return [
+        ...commonFields,
+        'screen', 'cpuBrand', 'ram'
+      ];
+
+    default:
+      return [...commonFields];
   }
-
-  if (loai === 2) {
-    return [
-      ...commonFields,
-      'ram', 'rom', 'screen'
-    ]
-  }
-
-  // Phụ kiện hoặc loại khác
-  return [...commonFields]
 }
 
 export const defaultProduct = {

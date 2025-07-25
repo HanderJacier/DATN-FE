@@ -1,14 +1,10 @@
 <template>
   <div>
     <!-- Nút mở bộ lọc -->
-    <button
-      type="button"
-      class="btn btn-outline-secondary"
-      style="width: 40px; height: 40px; padding: 0;"
-      @click="showFilter = !showFilter"
-    >
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
-        class="bi bi-funnel" viewBox="0 0 16 16">
+    <button type="button" class="btn btn-outline-secondary" style="width: 40px; height: 40px; padding: 0;"
+      @click="showFilter = !showFilter">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-funnel"
+        viewBox="0 0 16 16">
         <path
           d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .39.812L10 8.5v5a.5.5 0 0 1-.79.407L7 11.07V8.5L1.11 1.812A.5.5 0 0 1 1.5 1.5z" />
       </svg>
@@ -16,9 +12,17 @@
 
     <!-- Form lọc -->
     <div v-if="showFilter" class="filter-form">
-      <input v-model="filter.ten" type="text" placeholder="Tên sản phẩm" />
       <input v-model.number="filter.min" type="number" placeholder="Giá từ" />
       <input v-model.number="filter.max" type="number" placeholder="Giá đến" />
+
+      <!-- Dropdown thương hiệu -->
+      <select v-model="filter.thuonghieu">
+        <option value="">Tất cả thương hiệu</option>
+        <option v-for="brand in brandList" :key="brand.id" :value="brand.id">
+          {{ brand.name }}
+        </option>
+      </select>
+
       <button @click="applyFilter">Áp dụng</button>
       <button @click="resetFilter">Reset</button>
     </div>
@@ -27,12 +31,14 @@
 
 <script setup>
 import { ref } from 'vue'
+import { brandList } from './JS/List'
 
 const showFilter = ref(false)
+
 const filter = ref({
-  ten: '',
   min: null,
   max: null,
+  thuonghieu: ''
 })
 
 const emit = defineEmits(['onFilter'])
@@ -42,7 +48,11 @@ const applyFilter = () => {
 }
 
 const resetFilter = () => {
-  filter.value = { ten: '', min: null, max: null }
+  filter.value = {
+    min: null,
+    max: null,
+    thuonghieu: ''
+  }
   emit('onFilter', { ...filter.value })
 }
 </script>
@@ -53,19 +63,28 @@ button {
   justify-content: center;
   align-items: center;
   border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
 }
+
 button:hover {
   background-color: #f0f0f0;
 }
+
 .filter-form {
   margin-top: 10px;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-direction: row; /* hiển thị ngang */
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
 }
-input {
-  padding: 6px;
+
+input,
+select {
+  padding: 6px 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
+  min-width: 120px;
 }
 </style>
