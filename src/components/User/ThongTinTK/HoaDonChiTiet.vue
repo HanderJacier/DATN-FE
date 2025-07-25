@@ -55,39 +55,107 @@
 </template>
 
 <script>
-import Slidebar from '@/components/User/Title/Slidebar.vue';
+import { ref, computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import Slidebar from '@/components/User/Title/Slidebar.vue'
+import useOrderHistory from '@/components/User/LoadDB/useOrderHistory.js'
 
 export default {
-  name: 'HoaDonDetail',
+  name: 'HoaDonChiTiet',
   components: { Slidebar },
-  data() {
-    return {
-      hoaDon: {
-        so: this.$route.params.so || 'HD001',
-        ngay: '2025-07-01',
-        khachHang: 'Nguyễn Văn A',
-        diaChi: '12 Nguyễn Trãi, Q1, TP.HCM',
-        trangThai: 'Đã thanh toán',
-        sanPham: [
-          { ten: 'iPhone 15', soLuong: 1, donGia: 22990000 },
-          { ten: 'Tai nghe Bluetooth', soLuong: 2, donGia: 350000 },
-        ],
-      },
-    };
-  },
-  methods: {
-    tinhTongTien() {
-      return this.hoaDon.sanPham.reduce(
-        (tong, sp) => tong + sp.soLuong * sp.donGia,
-        0
-      );
-    },
-    formatCurrency(value) {
+  setup() {
+    const route = useRoute()
+    const router = useRouter()
+    
+    const {
+      orderDetail,
+      orderProducts,
+      paymentInfo,
+      detailLoading,
+      detailError,
+      fetchOrderDetail
+    } = useOrderHistory()
+
+    const orderId = computed(() => {
+      return parseInt(route.params.id) || null
+    })
+
+    const loadOrderDetail = async () => {
+      if (orderId.value) {
+        await fetchOrderDetail(orderId.value)
+      }
+    }
+
+    const calculateSubtotal = () => {
+      if (!orderProducts.value || !Array.isArray(orderProducts.value)) return 0
+      return orderProducts.value.reduce((sum, product) => sum + (product.thanhtien || 0), 0)
+    }
+
+    const formatDateTime = (dateString) => {
+      if (!dateString) return '-'
+      return new Date(dateString).toLocaleString('vi-VN')
+    }
+
+    const formatCurrency = (value) => {
       return new Intl.NumberFormat('vi-VN', {
         style: 'currency',
         currency: 'VND',
-      }).format(value);
-    },
-  },
-};
+      }).format(value || 0)
+    }
+
+    const getStatusClass = (status) => {
+      switch (status) {
+        case 'Đã thanh toán':
+          return 'badge bg-success'
+        case 'Chờ thanh toán':
+          return 'badge bg-warning'
+        case 'Đang xử lý':
+          return 'badge bg-info'
+        case 'Đang giao hàng':
+          return 'badge bg-primary'
+        case 'Đã giao hàng':
+          return 'badge bg-success'
+        case 'Đã hủy':
+          return 'badge bg-danger'
+        default:
+          return 'badge bg-secondary'
+      }
+    }
+
+    const goBack = () => {
+      router.go(-1)
+    }
+
+    const cancelOrder = () => {
+      if (confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')) {
+        // TODO: Implement cancel order API
+        alert('Tính năng hủy đơn hàng đang được phát triển')
+      }
+    }
+
+    const printInvoice = () => {
+      window.print()
+    }
+
+    onMounted(() => {
+      loadOrderDetail()
+    })
+
+    return {
+      orderDetail,
+      orderProducts,
+      paymentInfo,
+      detailLoading,
+      detailError,
+      orderId,
+      calculateSubtotal,
+      formatDateTime,
+      formatCurrency,
+      getStatusClass,
+      goBack,
+      cancelOrder,
+      printInvoice
+    }
+  }
+}
 </script>
