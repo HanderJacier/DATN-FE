@@ -39,7 +39,13 @@
           >
             <i class="fa fa-user me-2"></i> Người dùng
           </router-link>
-
+          <router-link
+            to="/admin/qlhoadon"
+            class="nav-link text-white py-2 rounded"
+            :class="{ active: $route.path.includes('/admin/qlhoadon') }"
+          >
+            <i class="fa fa-chart-bar me-2"></i> Quản lý hóa đơn
+          </router-link>
           <router-link
             to="/admin/thongke"
             class="nav-link text-white py-2 rounded"

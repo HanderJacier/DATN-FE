@@ -143,72 +143,58 @@
 </template>
 
 <script>
-import apiClient from '/src/api.js';
-import Swal from 'sweetalert2';
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import Swal from 'sweetalert2'
+import useLogin from './LoadDB/useLogin'
 
 export default {
-  data() {
-    return {
-      email: '',
-      password: '',
-      showPassword: false,
-      rememberMe: false,
-    };
-  },
-  methods: {
-    async handleLogin() {
-      try {
-        const response = await apiClient.post(
-          '/xacthuc/dangnhap',
-          {
-            tenDangNhap: this.email,
-            matKhau: this.password,
-          },
-          { withCredentials: true }
-        );
+  setup() {
+    const { userData, loginError, login } = useLogin()
 
-        const user = response.data;
+    const email = ref('')
+    const password = ref('')
+    const rememberMe = ref(false)
+    const showPassword = ref(false)
 
-        // Đảm bảo có id_tk
-        if (!user.id_tk && user.idtk) {
-          user.id_tk = user.idtk;
-        }
+    const router = useRouter()
 
-        // Xoá và lưu tài khoản
-        localStorage.removeItem('user');
-        sessionStorage.removeItem('user');
-        const storage = this.rememberMe ? localStorage : sessionStorage;
-        storage.setItem('user', JSON.stringify(user));
+    const handleLogin = async () => {
+      await login(email.value, password.value)
 
-        // ✅ Thông báo thành công
-        await Swal.fire({
-          icon: 'success',
-          title: 'Đăng nhập thành công!',
-          text: `Chào mừng ${user.hoVaTen || 'bạn'} quay lại.`,
-          timer: 2000,
-          showConfirmButton: false,
-        });
+      if (userData.value) {
+        const storage = rememberMe.value ? localStorage : sessionStorage
+        storage.setItem('user', JSON.stringify(userData.value))
 
-        // Điều hướng
-        if (user.vaiTro === 1) {
-          this.$router.push('/admin').then(() => window.location.reload());
+        const vaiTro = userData.value.vaitro
+        if (vaiTro === true) {
+          router.push('/admin').then(() => window.location.reload())
         } else {
-          this.$router.push('/').then(() => window.location.reload());
+          router.push('/').then(() => window.location.reload())
         }
-
-      } catch (error) {
-        console.error(error);
-
-        // ❌ Thông báo thất bại
+      } else {
         Swal.fire({
           icon: 'error',
-          title: 'Đăng nhập thất bại!',
-          text: error.response?.data?.message || 'Vui lòng kiểm tra lại thông tin đăng nhập.',
-        });
+          title: 'Đăng nhập thất bại',
+          text: loginError.value,
+        })
       }
-    },
-  },
-};
+
+      console.log('userData:', userData.value)
+      console.log('loginError:', loginError.value)
+    }
+
+    return {
+      email,
+      password,
+      rememberMe,
+      showPassword,
+      handleLogin,
+      loginError,
+    }
+  }
+}
+
 </script>
 
 <style scoped>

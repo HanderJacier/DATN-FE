@@ -1,48 +1,107 @@
-// src/services/userService.js
-import apiClient from '/src/api.js';
+import { ref } from 'vue'
+import { usePostData } from '../../../component_callApi/callAPI'
 
-const endpoint = '/taikhoan'
+export function useAdminUserService() {
+  const users = ref([])
+  const userDetail = ref(null)
+  const actionResult = ref(null)
 
-const userService = {
-  // ✅ Lấy tất cả người dùng
-  getAll() {
-    return apiClient.get(`${endpoint}/all`)
-  },
+  const { data, callAPI, loading, error } = usePostData()
 
-  // ✅ Lấy người dùng theo ID
-  getById(id) {
-    return apiClient.get(`${endpoint}/${id}`)
-  },
+  const fetchAllUsers = async (pageNo = 1, pageSize = 10, keyword = null) => {
+    try {
+      await callAPI('WBH_AD_SEL_DANH_SACH_NGUOI_DUNG', {
+        params: {
+          p_pageNo: pageNo,
+          p_pageSize: pageSize,
+          p_keyword: keyword,
+        },
+      })
+      if (data.value) {
+        users.value = Array.isArray(data.value) ? data.value : []
+      }
+    } catch (err) {
+      console.error('Error fetching all users:', err)
+    }
+  }
 
-  // ✅ Thêm người dùng mới
-  create(user) {
-    return apiClient.post(`${endpoint}/create`, user)
-  },
+  const fetchUserDetail = async (userId) => {
+    try {
+      await callAPI('WBH_US_SEL_THONG_TIN_TAI_KHOAN', {
+        params: { p_id_tk: userId },
+      })
+      if (data.value && data.value.length > 0) {
+        userDetail.value = data.value[0]
+      }
+    } catch (err) {
+      console.error('Error fetching user detail:', err)
+    }
+  }
 
-  // ✅ Cập nhật người dùng theo ID
-  update(id, user) {
-    return apiClient.put(`${endpoint}/update/${id}`, user)
-  },
+  const toggleUserStatus = async (userId, status) => {
+    try {
+      await callAPI('WBH_AD_UPD_TRANG_THAI_TAI_KHOAN', {
+        params: {
+          p_id_tk: userId,
+          p_trangthai: status,
+        },
+      })
+      if (data.value && data.value.length > 0) {
+        actionResult.value = data.value[0]
+        return actionResult.value.affected_rows > 0
+      }
+      return false
+    } catch (err) {
+      console.error('Error toggling user status:', err)
+      return false
+    }
+  }
 
-  // ✅ Xóa người dùng
-  remove(id) {
-    return apiClient.delete(`${endpoint}/delete/${id}`)
-  },
+  const updateUserRole = async (userId, role) => {
+    try {
+      await callAPI('WBH_AD_UPD_VAI_TRO_TAI_KHOAN', {
+        params: {
+          p_id_tk: userId,
+          p_vaitro: role,
+        },
+      })
+      if (data.value && data.value.length > 0) {
+        actionResult.value = data.value[0]
+        return actionResult.value.affected_rows > 0
+      }
+      return false
+    } catch (err) {
+      console.error('Error updating user role:', err)
+      return false
+    }
+  }
 
-  // ✅ Lấy thông tin tài khoản từ session
-  getCurrentUser() {
-    return apiClient.get(`${endpoint}/thongtin`)
-  },
+  const deleteUser = async (userId) => {
+    try {
+      await callAPI('WBH_AD_DEL_TAI_KHOAN', {
+        params: { p_id_tk: userId },
+      })
+      if (data.value && data.value.length > 0) {
+        actionResult.value = data.value[0]
+        return actionResult.value.success === 1
+      }
+      return false
+    } catch (err) {
+      console.error('Error deleting user:', err)
+      return false
+    }
+  }
 
-  // ✅ Cập nhật thông tin người dùng đang đăng nhập
-  updateCurrentUser(data) {
-    return apiClient.put(`${endpoint}/capnhat`, data)
-  },
-
-  // ✅ Đổi mật khẩu
-  changePassword(payload) {
-    return apiClient.put(`${endpoint}/doi-mat-khau`, payload)
+  return {
+    users,
+    userDetail,
+    actionResult,
+    loading,
+    error,
+    fetchAllUsers,
+    fetchUserDetail,
+    toggleUserStatus,
+    updateUserRole,
+    deleteUser,
   }
 }
-
-export default userService

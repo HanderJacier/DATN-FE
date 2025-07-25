@@ -246,7 +246,7 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import Swal from 'sweetalert2'
-import useDangKy from '@/components/User/LoadDB/DangKy.js'
+import useRegister from '@/components/User/LoadDB/useRegister.js'
 
 export default {
   setup() {
@@ -258,9 +258,11 @@ export default {
     const showPassword = ref(false)
     const showConfirmPassword = ref(false)
     const agreeTerms = ref(false)
+    const isSubmitting = ref(false)
 
+    const errorMessage = ref('')
+    const { register, registerError, registerSuccess } = useRegister()
     const router = useRouter()
-    const { isSubmitting, errorMessage, handleRegister } = useDangKy()
 
     const passwordStrength = computed(() => {
       let strength = 0
@@ -290,7 +292,8 @@ export default {
     })
 
     const submitForm = async () => {
-      // Validate input
+      errorMessage.value = ''
+
       if (!fullName.value || !email.value || !soDienThoai.value || !password.value || !confirmPassword.value) {
         errorMessage.value = 'Vui lòng nhập đầy đủ thông tin.'
         return
@@ -308,20 +311,27 @@ export default {
         return
       }
 
-      const result = await handleRegister({
-        fullName: fullName.value,
+      isSubmitting.value = true
+
+      await register({
+        tendangnhap: fullName.value && email.value, // hoặc email.value nếu bạn dùng email để đăng nhập
+        matkhau: password.value,
+        hoveten: fullName.value,
+        sodienthoai: soDienThoai.value,
         email: email.value,
-        soDienThoai: soDienThoai.value,
-        password: password.value
       })
 
-      if (result.success) {
+      isSubmitting.value = false
+
+      if (registerSuccess.value) {
         await Swal.fire({
           title: 'Thành công!',
-          text: result.message,
+          text: 'Tài khoản đã được tạo thành công.',
           icon: 'success'
         })
         router.push('/dangnhap')
+      } else {
+        errorMessage.value = registerError.value || 'Đăng ký thất bại'
       }
     }
 
@@ -345,6 +355,8 @@ export default {
   }
 }
 </script>
+
+
 
 
 <style scoped>

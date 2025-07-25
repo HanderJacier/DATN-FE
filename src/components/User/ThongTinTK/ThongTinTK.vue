@@ -15,37 +15,45 @@
             <div class="mb-3 row w-75 mx-auto">
               <label class="col-sm-3 col-form-label">Tên đăng nhập</label>
               <div class="col-sm-9">
-                <input type="text" class="form-control" v-model="username" disabled />
+                <input type="text" class="form-control" :value="userInfo?.tendangnhap" disabled />
               </div>
             </div>
 
             <div class="mb-3 row w-75 mx-auto">
               <label class="col-sm-3 col-form-label">Họ và tên</label>
               <div class="col-sm-9">
-                <input type="text" class="form-control" v-model="hoVaTen" />
+                <input type="text" class="form-control" v-model="formData.hoveten" />
               </div>
             </div>
 
             <div class="mb-3 row w-75 mx-auto">
               <label class="col-sm-3 col-form-label">Email</label>
               <div class="col-sm-9">
-                <input type="email" class="form-control" v-model="email" />
+                <input type="email" class="form-control" v-model="formData.email" />
               </div>
             </div>
 
             <div class="mb-3 row w-75 mx-auto">
               <label class="col-sm-3 col-form-label">Số điện thoại</label>
               <div class="col-sm-9">
-                <input type="text" class="form-control" v-model="phone" />
+                <input type="text" class="form-control" v-model="formData.sodienthoai" />
               </div>
             </div>
 
             <div class="text-center w-75 mx-auto">
-              <button type="submit" class="btn btn-primary">
-                <i class="bi bi-pencil-square me-1"></i> Cập nhật thông tin
+              <button type="submit" class="btn btn-primary" :disabled="updateLoading">
+                <i class="bi bi-pencil-square me-1"></i> 
+                {{ updateLoading ? 'Đang cập nhật...' : 'Cập nhật thông tin' }}
               </button>
             </div>
 
+            <!-- Thông báo -->
+            <div v-if="updateSuccess" class="alert alert-success mt-3 w-75 mx-auto">
+              ✅ Cập nhật thông tin thành công!
+            </div>
+            <div v-if="updateError" class="alert alert-danger mt-3 w-75 mx-auto">
+              ❌ {{ updateError }}
+            </div>
           </form>
         </div>
       </div>
@@ -54,57 +62,73 @@
 </template>
 
 <script>
-import Slidebar from '@/components/User/Title/Slidebar.vue';
-import apiClient from '/src/api.js';
+import { ref, reactive, onMounted } from 'vue'
+import Slidebar from '../Title/Slidebar.vue'
+import useUserProfile from '../LoadDB/useUserProfile.js'
 
 export default {
   components: { Slidebar },
   name: 'PersonalInfoPage',
-  data() {
-    return {
-      username: '',
-      hoVaTen: '',
+  setup() {
+    const {
+      userInfo,
+      updateSuccess,
+      updateError,
+      profileLoading,
+      updateLoading,
+      fetchUserProfile,
+      updateUserProfile
+    } = useUserProfile()
+
+    const formData = reactive({
+      hoveten: '',
       email: '',
-      phone: '',
-    };
-  },
-  mounted() {
-    this.layThongTinTaiKhoan();
-  },
-  methods: {
-    async layThongTinTaiKhoan() {
-      try {
-        const res = await apiClient.get('/taikhoan/thongtin', {
-          withCredentials: true
-        });
-        const data = res.data;
-        this.username = data.tenDangNhap;
-        this.email = data.email;
-        this.phone = data.soDienThoai;
-        this.hoVaTen = data.hoVaTen;
-      } catch (err) {
-        console.error(err);
-        alert("Không thể tải thông tin tài khoản.");
-      }
-    },
+      sodienthoai: ''
+    })
 
-    async submitForm() {
-      try {
-        const res = await apiClient.put('/taikhoan/capnhat',
-          {
-            hoVaTen: this.hoVaTen,
-            email: this.email,
-            soDienThoai: this.phone
-          },
-          { withCredentials: true }
-        );
+    const getCurrentUserId = () => {
+      const user = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user'))
+      return user?.id_tk
+    }
 
-        alert("Thông tin đã được cập nhật!");
-      } catch (err) {
-        console.error(err);
-        alert(err.response?.data?.message || "Lỗi cập nhật thông tin");
+    const loadUserProfile = async () => {
+      const userId = getCurrentUserId()
+      if (userId) {
+        await fetchUserProfile(userId)
+        
+        // Cập nhật form data khi có thông tin user
+        if (userInfo.value) {
+          formData.hoveten = userInfo.value.hoveten || ''
+          formData.email = userInfo.value.email || ''
+          formData.sodienthoai = userInfo.value.sodienthoai || ''
+        }
       }
+      console.log('User profile loaded:', formData)
+    }
+
+    const submitForm = async () => {
+      const userId = getCurrentUserId()
+      if (!userId) {
+        alert('Vui lòng đăng nhập lại')
+        return
+      }
+
+      await updateUserProfile(userId, formData)
+    }
+
+    onMounted(() => {
+      loadUserProfile()
+    })
+
+    return {
+      userInfo,
+      formData,
+      updateSuccess,
+      updateError,
+      profileLoading,
+      updateLoading,
+      submitForm
     }
   }
-};
+}
 </script>

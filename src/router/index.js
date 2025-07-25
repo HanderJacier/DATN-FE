@@ -33,6 +33,7 @@ import DaGiao from '../components/User/ThongTinTK/LichSuMuaHang/DaGiao.vue'
 import DaHuy from '../components/User/ThongTinTK/LichSuMuaHang/DaHuy.vue'
 import TraHang from '../components/User/ThongTinTK/LichSuMuaHang/TraHang.vue'
 import XacNhanDonHang from '../components/User/ThongTinTK/XacNhanDonHang.vue'
+import OrderManagement from '../components/Admin/OrderManagement.vue'
 
 const routes = [
   { path: '/', component: Home },
@@ -71,6 +72,7 @@ const routes = [
       { path: 'qlsanpham', component: QLSanPham },
       { path: 'donhang', component: Order },
       { path: 'nguoidung', component: User },
+      { path: 'qlhoadon', component: OrderManagement },
       { path: 'thongke', component: ThongKe },
       { path: 'gopy', component: GopY },
     ]
