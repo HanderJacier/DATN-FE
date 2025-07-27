@@ -74,34 +74,37 @@ const loaiOptions = computed(() =>
       {{ notification }}
     </div>
 
-    <!-- Dropdown chọn loại sản phẩm -->
-    <div class="mb-3">
-      <label class="form-label">Chọn loại sản phẩm</label>
-      <select class="form-select" v-model="productForm.loai">
-        <option disabled value="">-- Chọn loại --</option>
-        <option v-for="item in loaiOptions" :key="item.value" :value="item.value">{{ item.name }}</option>
-      </select>
-    </div>
+    <!-- 3 dropdown cùng 1 hàng -->
+    <div class="row">
+      <!-- Dropdown chọn loại sản phẩm -->
+      <div class="col-md-4 mb-3">
+        <label class="form-label">Chọn loại sản phẩm</label>
+        <select class="form-select" v-model="productForm.loai">
+          <option disabled value="">-- Chọn loại --</option>
+          <option v-for="item in loaiOptions" :key="item.value" :value="item.value">{{ item.name }}</option>
+        </select>
+      </div>
 
-    <!-- Dropdown chọn thương hiệu -->
-    <div class="mb-3">
-      <label class="form-label">Chọn thương hiệu</label>
-      <select class="form-select" v-model="productForm.thuonghieu">
-        <option disabled value="">-- Chọn thương hiệu --</option>
-        <option v-for="brand in brandList" :key="brand.id" :value="brand.id">
-          {{ brand.name }}
-        </option>
-      </select>
-    </div>
+      <!-- Dropdown chọn thương hiệu -->
+      <div class="col-md-4 mb-3">
+        <label class="form-label">Chọn thương hiệu</label>
+        <select class="form-select" v-model="productForm.thuonghieu">
+          <option disabled value="">-- Chọn thương hiệu --</option>
+          <option v-for="brand in brandList" :key="brand.id" :value="brand.id">
+            {{ brand.name }}
+          </option>
+        </select>
+      </div>
 
-    <!-- Dropdown chọn giảm giá -->
-    <div class="mb-3">
-      <label class="form-label">Chọn giảm giá</label>
-      <select class="form-select" v-model="productForm.id_gg" :disabled="loadingDiscounts">
-        <option v-for="item in giamGiaList" :key="item.id_gg" :value="item.id_gg">
-          Giảm {{ item.loaigiamTen }}%
-        </option>
-      </select>
+      <!-- Dropdown chọn giảm giá -->
+      <div class="col-md-4 mb-3">
+        <label class="form-label">Chọn giảm giá</label>
+        <select class="form-select" v-model="productForm.id_gg" :disabled="loadingDiscounts">
+          <option v-for="item in giamGiaList" :key="item.id_gg" :value="item.id_gg">
+            Giảm {{ item.loaigiamTen }}%
+          </option>
+        </select>
+      </div>
     </div>
 
     <!-- Other Inputs -->
