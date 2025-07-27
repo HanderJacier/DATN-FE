@@ -1,7 +1,7 @@
 import { ref, computed, nextTick } from 'vue'
-import useSanPhamAdmin from '../CRUD/QLSanPham/Select'
-import useSanPhamCreate from '../CRUD/QLSanPham/Create'
-import useSanPhamUpdate from '../CRUD/QLSanPham/Update'
+import useSanPhamAdmin from '../../CRUD/QLSanPham/Select'
+import useSanPhamCreate from '../../CRUD/QLSanPham/Create'
+import useSanPhamUpdate from '../../CRUD/QLSanPham/Update'
 
 import {
   brandList,

@@ -26,8 +26,6 @@ export const brandList = [
 export const formFields = {
   tensanpham: 'Tên sản phẩm',
   dongia: 'Giá (VND)',
-  loai: 'Loại',
-  thuonghieu: 'Thương hiệu',
   anhgoc: 'Ảnh gốc',
   cpuBrand: 'CPU Brand',
   cpuModel: 'CPU Model',
@@ -46,11 +44,9 @@ export const formFields = {
   screen: 'Màn hình',
   mausac: 'Màu sắc',
   soluong: 'Số lượng',
-  anhphu: 'Ảnh phụ',
+  anhphu: 'Ảnh phụ (có thể chọn nhiều)',
   hangiamgia: 'Hạn giảm giá'
 }
-
-
 
 export const loaiMap = {
   'Điện thoại di động': '1',
@@ -83,7 +79,7 @@ export const allowedProductFields = [
 // Trả về danh sách field hiển thị tùy theo loại sản phẩm
 export function getVisibleFields(loai) {
   const commonFields = [
-    'tensanpham', 'thuonghieu', 'loai', 'dongia',
+    'tensanpham', 'dongia',
     'mausac', 'soluong', 'anhgoc', 'anhphu', 'hangiamgia'
   ];
 
@@ -182,7 +178,7 @@ export const defaultProduct = {
   screen: '',
   mausac: '',
   soluong: 0,
-  anhphu: '',
+  anhphu: [],
   id_gg: 0,
   hangiamgia: "",
 }

@@ -1,5 +1,5 @@
 <script setup>
-import { loaiMap, brandList } from './List'
+import { loaiMap, brandList } from './JS/List'
 import { computed } from 'vue'
 import useGiamGiaList from '../CRUD/QLSanPham/GiamGia'
 const { giamGiaList, loading: loadingDiscounts, error } = useGiamGiaList()
