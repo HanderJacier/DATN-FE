@@ -1,7 +1,7 @@
 import { ref, computed, nextTick } from 'vue'
-import useSanPhamAdmin from '../../CRUD/QLSanPham/Select'
-import useSanPhamCreate from '../../CRUD/QLSanPham/Create'
-import useSanPhamUpdate from '../../CRUD/QLSanPham/Update'
+import useSanPhamAdmin from '../CRUD/QLSanPham/Select'
+import useSanPhamCreate from '../CRUD/QLSanPham/Create'
+import useSanPhamUpdate from '../CRUD/QLSanPham/Update'
 
 import {
   brandList,
@@ -204,8 +204,6 @@ export function useProductTable() {
     }
   }
 
-
-
   async function onImageChange(event) {
     const file = event.target.files[0]
     if (file) {
@@ -217,36 +215,30 @@ export function useProductTable() {
 
   async function onMultipleImagesChange(event) {
     const files = Array.from(event.target.files || [])
-    const uploadedUrls = []
-
-    for (const file of files) {
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('upload_preset', 'DATN_PICTURES')
-
-      const response = await fetch('https://api.cloudinary.com/v1_1/dkztehmmk/image/upload', {
-        method: 'POST',
-        body: formData
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        uploadedUrls.push(data.secure_url)
-      }
-    }
-
-    productForm.value.anhphu = uploadedUrls
+    productForm.value.anhphu = files // Lưu file, upload khi lưu
   }
 
   async function createNewProduct() {
     if (!validateProductForm()) return
 
     try {
-      // Tải ảnh nếu có
+      // Upload ảnh chính nếu có
       if (productForm.value._imageFile) {
         const imageUrl = await uploadImageToCloud(productForm.value._imageFile)
         productForm.value.anhgoc = imageUrl
         delete productForm.value._imageFile
+      }
+
+      // Upload từng ảnh phụ nếu có
+      if (Array.isArray(productForm.value.anhphu) && productForm.value.anhphu.length > 0) {
+        const urls = []
+        for (const file of productForm.value.anhphu) {
+          if (file instanceof File) {
+            const url = await uploadImageToCloud(file)
+            urls.push(url)
+          }
+        }
+        productForm.value.anhphu = urls
       }
     } catch (error) {
       showNotification('Tải ảnh thất bại', 'error')
@@ -259,14 +251,15 @@ export function useProductTable() {
         cleanForm[key] = productForm.value[key] ?? ''
       }
 
+      // Thêm id_gg vào payload (nếu chưa có trong allowedProductFields)
+      cleanForm.id_gg = productForm.value.id_gg ?? null
+
+      // Lưu mảng link ảnh phụ
       if (Array.isArray(productForm.value.anhphu)) {
         cleanForm.anhphu = JSON.stringify(productForm.value.anhphu)
       }
 
       const result = await createProduct(cleanForm)
-
-      // 👉 Dynamic API: nếu không có lỗi hoặc result rỗng => coi là thành công
-      const isEmptyResult = result === undefined || result === null || result === '' || (Array.isArray(result) && result.length === 0)
 
       const isError =
         result && typeof result === 'object' &&
@@ -278,9 +271,7 @@ export function useProductTable() {
         return
       }
 
-      // Xóa dòng này nếu không muốn gọi load lại danh sách:
       await fetchProducts()
-
       showNotification('Thêm sản phẩm thành công!', 'success')
       handleReset()
     } catch (error) {
@@ -294,7 +285,7 @@ export function useProductTable() {
       if (!productForm.value) return
       loading.value = true
 
-      // 👉 Upload ảnh nếu có
+      // Upload ảnh chính nếu có
       if (productForm.value._imageFile) {
         try {
           const imageUrl = await uploadImageToCloud(productForm.value._imageFile)
@@ -307,6 +298,20 @@ export function useProductTable() {
         }
       }
 
+      // Upload từng ảnh phụ nếu có file mới
+      if (Array.isArray(productForm.value.anhphu) && productForm.value.anhphu.length > 0) {
+        const urls = []
+        for (const file of productForm.value.anhphu) {
+          if (file instanceof File) {
+            const url = await uploadImageToCloud(file)
+            urls.push(url)
+          } else if (typeof file === 'string') {
+            urls.push(file) // Giữ lại link cũ nếu đã là link
+          }
+        }
+        productForm.value.anhphu = urls
+      }
+
       const cleanPayload = {
         id_sp: editingProductId.value,
       }
@@ -315,14 +320,10 @@ export function useProductTable() {
         cleanPayload[key] = productForm.value[key] ?? ''
       }
 
-      // Format ảnh phụ (nếu có)
+      cleanPayload.id_gg = productForm.value.id_gg ?? null
       cleanPayload.anhphu = JSON.stringify(productForm.value.anhphu || [])
 
-      console.log('✅ Payload update:', cleanPayload)
-
       const result = await updateProduct(cleanPayload)
-
-      const isEmptyResult = result === undefined || result === null || result === '' || (Array.isArray(result) && result.length === 0)
 
       const isError =
         result && typeof result === 'object' &&
@@ -336,10 +337,7 @@ export function useProductTable() {
 
       showNotification('Cập nhật sản phẩm thành công!', 'success')
       handleReset()
-
-      // Nếu cần load lại danh sách:
       await fetchProducts()
-
     } catch (err) {
       console.error("Lỗi cập nhật sản phẩm:", err)
       showNotification("Đã xảy ra lỗi khi cập nhật sản phẩm", 'error')

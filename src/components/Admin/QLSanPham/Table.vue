@@ -18,6 +18,8 @@
       @resetForm="handleReset"
       @deleteProduct="deleteProduct"
       @imageChange="onImageChange"
+      @multipleImagesChange="onMultipleImagesChange"
+
     />
 
     <!-- Tìm kiếm -->
@@ -119,6 +121,7 @@ const {
   deleteProduct,
   handleReset,
   onImageChange,
+  multipleImagesChange,
   createNewProduct,
   updateExistingProduct,
   notification,

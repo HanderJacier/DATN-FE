@@ -1,6 +1,6 @@
 <script setup>
-import { loaiMap, brandList } from './JS/List'
-import { computed } from 'vue'
+import { loaiMap, brandList } from './List'
+import { computed, ref, watch } from 'vue'
 import useGiamGiaList from '../CRUD/QLSanPham/GiamGia'
 const { giamGiaList, loading: loadingDiscounts, error } = useGiamGiaList()
 
@@ -14,6 +14,20 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['imageChange', 'create', 'update', 'resetForm', 'deleteProduct'])
+
+const previewAnhPhu = ref([])
+
+// Khi chọn ảnh phụ, tạo preview
+function onAnhPhuChange(event) {
+  const files = Array.from(event.target.files || [])
+  previewAnhPhu.value = files.map(file => URL.createObjectURL(file))
+  emit('multipleImagesChange', event) // Đúng sự kiện cho ảnh phụ
+}
+
+// Khi reset form thì reset luôn preview ảnh phụ
+watch(() => props.productForm.anhphu, (val) => {
+  if (!val || val.length === 0) previewAnhPhu.value = []
+})
 
 function onImageChange(event) {
   emit('imageChange', event)
@@ -37,7 +51,6 @@ function validateForm() {
 
   return true
 }
-
 
 function handleCreate() {
   if (!validateForm()) return
@@ -91,43 +104,58 @@ const loaiOptions = computed(() =>
       </select>
     </div>
 
-
     <!-- Other Inputs -->
     <div class="row g-3">
       <div class="col-md-4" v-for="key in visibleFields" :key="key">
         <label class="form-label">{{ formFields[key] }}</label>
-        <input v-if="!['anhgoc', 'anhphu'].includes(key)"
+        <!-- Ảnh gốc -->
+        <input v-if="key === 'anhgoc'"
+          type="file" class="form-control" @change="onImageChange" />
+        <!-- Ảnh phụ -->
+        <div v-else-if="key === 'anhphu'">
+          <input type="file" class="form-control" multiple @change="onAnhPhuChange" />
+          <div class="mt-2 d-flex flex-wrap gap-2">
+            <img v-for="(src, idx) in previewAnhPhu" :key="idx" :src="src" width="60" height="60" class="rounded border" />
+          </div>
+        </div>
+        <!-- Các input khác -->
+        <input v-else
           :type="['dongia', 'soluong'].includes(key) ? 'number' : 'text'" class="form-control"
           v-model="productForm[key]" />
-
-        <input v-else type="file" class="form-control" @change="(e) => onImageChange(e, key)" />
-
-        <input v-else type="file" class="form-control" @change="onImageChange" />
       </div>
 
-      <!-- Preview -->
-      <div v-if="productForm.diachianh" class="col-md-4">
-        <label class="form-label d-block">Xem trước ảnh</label>
-        <img :src="productForm.diachianh" width="100" height="100" class="rounded" />
-      </div>
+      <!-- Preview ảnh chính -->
+<div class="col-md-4" v-if="productForm.diachianh || productForm.anhgoc">
+  <label class="form-label d-block">Xem trước ảnh chính</label>
+  <!-- Nếu vừa chọn file mới (blob), ưu tiên hiện -->
+  <img
+    v-if="productForm.diachianh && productForm.diachianh.startsWith('blob:')"
+    :src="productForm.diachianh"
+    width="100"
+    height="100"
+    class="rounded"
+  />
+  <!-- Nếu đã upload lên cloud hoặc load lại (link cloud) -->
+  <img
+    v-else-if="productForm.anhgoc"
+    :src="productForm.anhgoc"
+    width="100"
+    height="100"
+    class="rounded"
+  />
+</div>
     </div>
 
     <!-- Buttons -->
     <div class="mt-4 d-flex justify-content-end gap-2">
       <button type="button" class="btn btn-warning" @click="$emit('resetForm')">Làm Mới</button>
-
-      <!-- Nút Thêm -->
       <button type="button" class="btn btn-primary fw-bold me-2" @click="handleCreate">
         Thêm
       </button>
-
-      <!-- Nút Cập nhật -->
       <button type="button" class="btn btn-warning fw-bold" @click="handleUpdate">
         Cập nhật
       </button>
-
       <button type="button" class="btn btn-danger" @click="$emit('deleteProduct')">Xóa</button>
     </div>
-
   </form>
 </template>
