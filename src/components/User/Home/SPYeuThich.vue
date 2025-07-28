@@ -35,7 +35,7 @@ const now = new Date();
 
 <template>
   <section class="mb-5">
-    <h4 class="fw-semibold border-bottom pb-2 mb-3 fw-bold">SẢN PHẨM GIẢM GIÁ</h4>
+    <h4 class="fw-semibold border-bottom pb-2 mb-3 fw-bold">SẢN PHẨM ĐƯỢC YÊU THÍCH NHẤT</h4>
 
     <Swiper :slides-per-view="1" :space-between="10"
       :breakpoints="{ 576: { slidesPerView: 2 }, 768: { slidesPerView: 3 }, 992: { slidesPerView: 4 } }" navigation
