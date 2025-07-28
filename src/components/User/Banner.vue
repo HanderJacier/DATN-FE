@@ -76,28 +76,8 @@
         </div>
       </div>
     </div>
-
-    <!-- Quick Categories -->
-    <div class="container mb-5">
-      <div class="row">
-        <div class="col-12">
-          <h3 class="text-center mb-4 fw-bold">Danh mục nổi bật</h3>
-          <div class="row g-3">
-            <div class="col-6 col-md-3" v-for="(category, index) in quickCategories" :key="index">
-              <router-link :to="category.link" class="category-card text-decoration-none">
-                <div class="category-icon">
-                  <i :class="category.icon"></i>
-                </div>
-                <h6 class="category-name">{{ category.name }}</h6>
-              </router-link>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
-
 <script setup>
 import { ref } from 'vue'
 
@@ -148,50 +128,6 @@ const promoBanners = ref([
     description: 'Hoàn thiện trải nghiệm số của bạn',
     cta: 'Khám phá →',
     link: { path: '/timkiem', query: { loai: 'phukien' } } // ✅ Thống nhất dạng router-link object
-  }
-])
-
-
-const quickCategories = ref([
-  {
-    name: 'Laptop',
-    icon: 'fas fa-laptop',
-    link: '/timkiem?q=laptop'
-  },
-  {
-    name: 'Điện thoại',
-    icon: 'fas fa-mobile-alt',
-    link: '/timkiem?q=điện thoại'
-  },
-  {
-    name: 'Tablet',
-    icon: 'fas fa-tablet-alt',
-    link: '/timkiem?q=tablet'
-  },
-  {
-    name: 'Phụ kiện',
-    icon: 'fas fa-headphones',
-    link: '/timkiem?q=phụ kiện'
-  },
-  {
-    name: 'TV',
-    icon: 'fas fa-tv',
-    link: '/timkiem?q=tivi'
-  },
-  {
-    name: 'Đồng hồ',
-    icon: 'fas fa-clock',
-    link: '/timkiem?q=đồng hồ'
-  },
-  {
-    name: 'Camera',
-    icon: 'fas fa-camera',
-    link: '/timkiem?q=camera'
-  },
-  {
-    name: 'Gaming',
-    icon: 'fas fa-gamepad',
-    link: '/timkiem?q=gaming'
   }
 ])
 </script>
