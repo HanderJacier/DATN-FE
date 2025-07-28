@@ -108,7 +108,7 @@ const mainBanners = ref([
     title: 'Laptop Gaming Cao Cấp',
     subtitle: 'Trải nghiệm gaming đỉnh cao với dòng laptop gaming mới nhất',
     primaryText: 'Tìm hiểu thêm',
-    primaryLink: '/timkiem?q=laptop',
+    primaryLink: { path: '/timkiem', query: { loai: '3' } },
     secondaryText: 'So sánh',
     secondaryLink: '/timkiem?q=gaming'
   }

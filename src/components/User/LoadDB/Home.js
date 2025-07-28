@@ -3,12 +3,17 @@ import { usePostData } from '../../component_callApi/callAPI'
 
 export default function useHomeLogic() {
   const { data: sanPhamMoi, callAPI: fetchSanPhamMoi } = usePostData()
+  const { data: sanPhamMoiNhat, callAPI: fetchSanPhamMoiNhat } = usePostData()
   const { data: sanPhamYeuThich, callAPI: fetchSanPhamYeuThich } = usePostData()
   const { data: sanPhamXepHang, callAPI: fetchSanPhamXepHang } = usePostData()
 
   onMounted(async () => {
     try {
       await fetchSanPhamMoi('WBH_US_SEL_XEMSP', {
+        params: {}
+      })
+
+      await fetchSanPhamMoiNhat('WBH_US_SEL_NGAYTAOSP', {
         params: {}
       })
 
@@ -26,6 +31,7 @@ export default function useHomeLogic() {
 
   return {
     sanPhamMoi,
+    sanPhamMoiNhat,
     sanPhamYeuThich,
     sanPhamXepHang
   }

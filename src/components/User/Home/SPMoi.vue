@@ -10,7 +10,7 @@ import { ref } from 'vue'
 import useHomeLogic from '@/components/User/LoadDB/Home.js'
 
 // ✅ Gọi hàm composable
-const { sanPhamMoi, sanPhamYeuThich, sanPhamXepHang } = useHomeLogic()
+const { sanPhamMoi, sanPhamYeuThich, sanPhamXepHang, sanPhamMoiNhat } = useHomeLogic()
 const discountMap = {
   1: 0,
   2: 5,
@@ -40,7 +40,7 @@ const now = new Date();
     <Swiper :slides-per-view="1" :space-between="10"
       :breakpoints="{ 576: { slidesPerView: 2 }, 768: { slidesPerView: 3 }, 992: { slidesPerView: 4 } }" navigation
       :modules="[Navigation]">
-      <SwiperSlide v-for="sp in sanPhamMoi" :key="sp.id_sp">
+      <SwiperSlide v-for="sp in sanPhamMoiNhat" :key="sp.id_sp">
         <RouterLink :to="`/sanpham/${sp.id_sp}`" class="text-decoration-none text-dark">
           <div class="card product-card mx-2">
             <img :src="sp.anhgoc" class="card-img-top product-img" :alt="sp.tensanpham" />
