@@ -16,17 +16,7 @@
         :class="linkClass('/dangxuly')"
       >Đang xử lý</router-link>
 
-      <router-link
-        to="/danggiao"
-        class="px-3 py-2 text-decoration-none"
-        :class="linkClass('/danggiao')"
-      >Đang giao</router-link>
-
-      <router-link
-        to="/dagiao"
-        class="px-3 py-2 text-decoration-none"
-        :class="linkClass('/dagiao')"
-      >Đã giao</router-link>
+     
 
       <router-link
         to="/dahuy"
@@ -34,11 +24,6 @@
         :class="linkClass('/dahuy')"
       >Đã hủy</router-link>
 
-      <router-link
-        to="/trahang"
-        class="px-3 py-2 text-decoration-none"
-        :class="linkClass('/trahang')"
-      >Trả hàng</router-link>
     </div>
   </div>
 </template>

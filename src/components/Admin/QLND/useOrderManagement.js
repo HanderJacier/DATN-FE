@@ -1,4 +1,3 @@
-// src/components/Admin/LoadDB/useOrderManagement.js
 import { ref } from "vue"
 import { usePostData } from "../../component_callApi/callAPI"
 
@@ -24,15 +23,33 @@ export default function useOrderManagement() {
         params: {
           p_pageNo: pageNo,
           p_pageSize: pageSize,
-          p_trangthai: status,
+          p_trangthai: status || null, // Đảm bảo null thay vì empty string
         },
       })
 
+      // Debug log để kiểm tra response
+      console.log("fetchAllOrders response:", ordersData.value)
+
       if (ordersData.value) {
-        orders.value = Array.isArray(ordersData.value) ? ordersData.value : []
+        // Kiểm tra nếu response là array trực tiếp hoặc nested trong object
+        if (Array.isArray(ordersData.value)) {
+          orders.value = ordersData.value
+        } else if (ordersData.value.data && Array.isArray(ordersData.value.data)) {
+          orders.value = ordersData.value.data
+        } else if (ordersData.value.result && Array.isArray(ordersData.value.result)) {
+          orders.value = ordersData.value.result
+        } else {
+          console.warn("Unexpected response format:", ordersData.value)
+          orders.value = []
+        }
+      } else {
+        orders.value = []
       }
+
+      console.log("Orders after processing:", orders.value)
     } catch (err) {
       console.error("Lỗi khi lấy danh sách hóa đơn:", err)
+      orders.value = []
     }
   }
 
@@ -43,16 +60,18 @@ export default function useOrderManagement() {
         params: { p_id_hd: orderId },
       })
 
+      console.log("fetchOrderDetail response:", detailData.value)
+
       if (detailData.value && Array.isArray(detailData.value)) {
         const results = detailData.value
         if (results.length > 0) {
-          orderDetail.value = results[0] // Thông tin hóa đơn
+          orderDetail.value = Array.isArray(results[0]) ? results[0][0] : results[0]
         }
         if (results.length > 1) {
-          orderProducts.value = results[1] // Chi tiết sản phẩm
+          orderProducts.value = Array.isArray(results[1]) ? results[1] : []
         }
         if (results.length > 2) {
-          paymentInfo.value = results[2] // Thông tin thanh toán
+          paymentInfo.value = Array.isArray(results[2]) ? results[2][0] : results[2]
         }
       }
     } catch (err) {
@@ -73,11 +92,24 @@ export default function useOrderManagement() {
         },
       })
 
+      console.log("searchOrders response:", searchData.value)
+
       if (searchData.value) {
-        orders.value = Array.isArray(searchData.value) ? searchData.value : []
+        if (Array.isArray(searchData.value)) {
+          orders.value = searchData.value
+        } else if (searchData.value.data && Array.isArray(searchData.value.data)) {
+          orders.value = searchData.value.data
+        } else if (searchData.value.result && Array.isArray(searchData.value.result)) {
+          orders.value = searchData.value.result
+        } else {
+          orders.value = []
+        }
+      } else {
+        orders.value = []
       }
     } catch (err) {
       console.error("Lỗi khi tìm kiếm hóa đơn:", err)
+      orders.value = []
     }
   }
 
@@ -91,9 +123,16 @@ export default function useOrderManagement() {
         },
       })
 
-      if (updateData.value && Array.isArray(updateData.value) && updateData.value.length > 0) {
-        return updateData.value[0].affected_rows > 0
+      console.log("updateOrderStatus response:", updateData.value)
+
+      if (updateData.value) {
+        if (Array.isArray(updateData.value) && updateData.value.length > 0) {
+          return updateData.value[0].affected_rows > 0
+        } else if (updateData.value.affected_rows !== undefined) {
+          return updateData.value.affected_rows > 0
+        }
       }
+      return false
     } catch (err) {
       console.error("Lỗi khi cập nhật trạng thái hóa đơn:", err)
       return false
@@ -107,14 +146,16 @@ export default function useOrderManagement() {
         params: {},
       })
 
+      console.log("fetchOrderStats response:", statsData.value)
+
       if (statsData.value && Array.isArray(statsData.value)) {
         // Result set đầu tiên: thống kê tổng quan
         if (statsData.value.length > 0) {
-          orderStats.value = statsData.value[0]
+          orderStats.value = Array.isArray(statsData.value[0]) ? statsData.value[0][0] : statsData.value[0]
         }
         // Result set thứ hai: thống kê theo tháng
         if (statsData.value.length > 1) {
-          revenueReport.value = statsData.value[1]
+          revenueReport.value = Array.isArray(statsData.value[1]) ? statsData.value[1] : []
         }
       }
     } catch (err) {

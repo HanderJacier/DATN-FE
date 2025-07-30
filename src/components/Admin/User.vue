@@ -4,25 +4,39 @@
       <h5 class="form-title mb-3 bg-warning text-dark fw-bold px-3 py-2 rounded-2 d-inline-block">
         QUẢN LÝ NGƯỜI DÙNG
       </h5>
+
       <!-- Form tìm kiếm và nút thêm mới -->
       <div class="row g-2 mb-3 align-items-center">
         <div class="col-md-6">
-          <input v-model="searchQuery" placeholder="Tìm kiếm người dùng..." class="form-control" @keyup.enter="refreshUsers" />
+          <input 
+            v-model="searchQuery" 
+            placeholder="Tìm kiếm người dùng..." 
+            class="form-control" 
+            @keyup.enter="refreshUsers" 
+          />
         </div>
         <div class="col-md-6 text-end">
           <button class="btn btn-success fw-bold me-2" @click="openAddModal">
             <i class="bi bi-plus-circle me-2"></i>Thêm mới người dùng
           </button>
-          <button class="btn btn-warning fw-bold" @click="refreshUsers">
+          <button class="btn btn-warning fw-bold" @click="refreshUsers" :disabled="usersLoading">
             <i class="bi bi-arrow-clockwise me-2"></i>Làm mới
           </button>
         </div>
       </div>
+
       <!-- Loading -->
       <div v-if="usersLoading" class="text-center py-4">
         <div class="spinner-border text-primary" role="status"></div>
         <p class="mt-2">Đang tải danh sách người dùng...</p>
       </div>
+
+      <!-- Error message -->
+      <div v-else-if="usersError" class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle"></i>
+        Có lỗi xảy ra khi tải dữ liệu: {{ usersError }}
+      </div>
+
       <!-- Bảng người dùng -->
       <div v-else class="table-responsive">
         <table class="table table-bordered text-center align-middle" style="width: 100%;">
@@ -47,35 +61,36 @@
               <td>{{ user.email }}</td>
               <td>{{ user.sodienthoai }}</td>
               <td>
-                <span :class="user.vaitro ? 'badge bg-danger' : 'badge bg-primary'">
-                  {{ user.vaitro ? 'Quản trị' : 'Người dùng' }}
-                </span>
+                <select 
+                  :value="user.vaitro" 
+                  @change="updateRole(user.id_tk, $event.target.value)"
+                  class="form-select form-select-sm"
+                  :disabled="actionLoading"
+                >
+                  <option :value="0">Người dùng</option>
+                  <option :value="1">Quản trị</option>
+                </select>
               </td>
               <td>
-                <span :class="user.trangthai ? 'text-success' : 'text-danger'">
-                  {{ user.trangthai ? '✓ Hoạt động' : '✗ Bị khóa' }}
-                </span>
+                <div class="form-check form-switch d-flex justify-content-center">
+                  <input 
+                    class="form-check-input" 
+                    type="checkbox" 
+                    :checked="user.trangthai"
+                    @change="updateStatus(user.id_tk, $event.target.checked)"
+                    :disabled="actionLoading"
+                  >
+                </div>
               </td>
               <td>{{ formatDate(user.ngaytao) }}</td>
               <td>
-                <div class="btn-group" role="group">
-                  <!-- Sửa -->
-                  <button 
-                    class="btn btn-sm btn-outline-info"
-                    @click="openEditModal(user.id_tk)"
-                    :disabled="actionLoading"
-                  >
-                    Sửa
-                  </button>
-                  <!-- Xóa -->
-                  <button 
-                    class="btn btn-sm btn-outline-danger"
-                    @click="confirmDeleteUser(user)"
-                    :disabled="actionLoading"
-                  >
-                    Xóa
-                  </button>
-                </div>
+                <button
+                  class="btn btn-sm btn-outline-info"
+                  @click="openEditModal(user.id_tk)"
+                  :disabled="actionLoading"
+                >
+                  <i class="bi bi-pencil"></i> Sửa
+                </button>
               </td>
             </tr>
             <tr v-if="filteredUsers.length === 0">
@@ -84,25 +99,28 @@
           </tbody>
         </table>
       </div>
+
       <!-- Thông báo -->
       <div v-if="actionResult" class="alert mt-3" :class="actionResult.success ? 'alert-success' : 'alert-danger'">
+        <i :class="actionResult.success ? 'bi bi-check-circle' : 'bi bi-exclamation-triangle'"></i>
         {{ actionResult.message }}
       </div>
-      <div v-if="usersError" class="alert alert-danger mt-3">
-        Lỗi tải dữ liệu người dùng: {{ usersError.message }}
-      </div>
+
       <div v-if="actionError" class="alert alert-danger mt-3">
+        <i class="bi bi-exclamation-triangle"></i>
         Lỗi thực hiện thao tác: {{ actionError.message }}
       </div>
     </div>
 
     <!-- Modal Thêm/Sửa người dùng -->
     <div v-if="showUserModal" class="modal fade show d-block" tabindex="-1">
-      <!-- Đã loại bỏ <div class="modal-backdrop fade show"></div> -->
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">{{ modalTitle }}</h5>
+            <h5 class="modal-title">
+              <i :class="isEditMode ? 'bi bi-pencil' : 'bi bi-plus-circle'"></i>
+              {{ modalTitle }}
+            </h5>
             <button type="button" class="btn-close" @click="closeUserModal"></button>
           </div>
           <div class="modal-body">
@@ -111,78 +129,143 @@
               <p class="mt-2">Đang tải thông tin người dùng...</p>
             </div>
             <form v-else @submit.prevent="saveUser">
-              <div class="mb-3">
-                <label for="tendangnhap" class="form-label">Tên đăng nhập</label>
-                <input type="text" class="form-control" id="tendangnhap" v-model="currentUser.tendangnhap" required :disabled="isEditMode" />
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="tendangnhap" class="form-label">
+                      Tên đăng nhập <span class="text-danger">*</span>
+                    </label>
+                    <input 
+                      type="text" 
+                      class="form-control" 
+                      id="tendangnhap" 
+                      v-model="currentUser.tendangnhap" 
+                      required 
+                      :disabled="isEditMode"
+                      :class="{ 'is-invalid': formErrors.tendangnhap }"
+                    />
+                    <div v-if="formErrors.tendangnhap" class="invalid-feedback">
+                      {{ formErrors.tendangnhap }}
+                    </div>
+                    <div v-if="!isEditMode" class="form-text">
+                      Tên đăng nhập phải có ít nhất 3 ký tự
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6" v-if="!isEditMode">
+                  <div class="mb-3">
+                    <label for="matkhau" class="form-label">
+                      Mật khẩu <span class="text-danger">*</span>
+                    </label>
+                    <input 
+                      type="password" 
+                      class="form-control" 
+                      id="matkhau" 
+                      v-model="currentUser.matkhau" 
+                      required 
+                      :class="{ 'is-invalid': formErrors.matkhau }"
+                    />
+                    <div v-if="formErrors.matkhau" class="invalid-feedback">
+                      {{ formErrors.matkhau }}
+                    </div>
+                    <div class="form-text">
+                      Mật khẩu phải có ít nhất 6 ký tự
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div class="mb-3" v-if="!isEditMode">
-                <label for="matkhau" class="form-label">Mật khẩu</label>
-                <input type="password" class="form-control" id="matkhau" v-model="currentUser.matkhau" required />
+
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="hoveten" class="form-label">
+                      Họ và tên <span class="text-danger">*</span>
+                    </label>
+                    <input 
+                      type="text" 
+                      class="form-control" 
+                      id="hoveten" 
+                      v-model="currentUser.hoveten" 
+                      required 
+                      :class="{ 'is-invalid': formErrors.hoveten }"
+                    />
+                    <div v-if="formErrors.hoveten" class="invalid-feedback">
+                      {{ formErrors.hoveten }}
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="email" class="form-label">
+                      Email <span class="text-danger">*</span>
+                    </label>
+                    <input 
+                      type="email" 
+                      class="form-control" 
+                      id="email" 
+                      v-model="currentUser.email" 
+                      required 
+                      :class="{ 'is-invalid': formErrors.email }"
+                    />
+                    <div v-if="formErrors.email" class="invalid-feedback">
+                      {{ formErrors.email }}
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div class="mb-3">
-                <label for="hoveten" class="form-label">Họ và tên</label>
-                <input type="text" class="form-control" id="hoveten" v-model="currentUser.hoveten" required />
+
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="sodienthoai" class="form-label">
+                      Số điện thoại <span class="text-danger">*</span>
+                    </label>
+                    <input 
+                      type="text" 
+                      class="form-control" 
+                      id="sodienthoai" 
+                      v-model="currentUser.sodienthoai" 
+                      required
+                      :class="{ 'is-invalid': formErrors.sodienthoai }"
+                    />
+                    <div v-if="formErrors.sodienthoai" class="invalid-feedback">
+                      {{ formErrors.sodienthoai }}
+                    </div>
+                    <div class="form-text">
+                      Số điện thoại phải có 10-11 chữ số
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="mb-3">
+                    <label for="vaitro" class="form-label">Vai trò</label>
+                    <select class="form-select" id="vaitro" v-model="currentUser.vaitro">
+                      <option :value="0">Người dùng</option>
+                      <option :value="1">Quản trị viên</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="mb-3">
+                    <label for="trangthai" class="form-label">Trạng thái</label>
+                    <select class="form-select" id="trangthai" v-model="currentUser.trangthai">
+                      <option :value="1">Hoạt động</option>
+                      <option :value="0">Bị khóa</option>
+                    </select>
+                  </div>
+                </div>
               </div>
-              <div class="mb-3">
-                <label for="email" class="form-label">Email</label>
-                <input type="email" class="form-control" id="email" v-model="currentUser.email" required />
-              </div>
-              <div class="mb-3">
-                <label for="sodienthoai" class="form-label">Số điện thoại</label>
-                <input type="text" class="form-control" id="sodienthoai" v-model="currentUser.sodienthoai" />
-              </div>
-              <div class="mb-3">
-                <label for="vaitro" class="form-label">Vai trò</label>
-                <select class="form-select" id="vaitro" v-model="currentUser.vaitro">
-                  <option :value="0">Người dùng</option>
-                  <option :value="1">Quản trị viên</option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label for="trangthai" class="form-label">Trạng thái</label>
-                <select class="form-select" id="trangthai" v-model="currentUser.trangthai">
-                  <option :value="1">Hoạt động</option>
-                  <option :value="0">Bị khóa</option>
-                </select>
-              </div>
+
               <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" @click="closeUserModal">Hủy</button>
+                <button type="button" class="btn btn-secondary" @click="closeUserModal">
+                  <i class="bi bi-x-circle"></i> Hủy
+                </button>
                 <button type="submit" class="btn btn-primary" :disabled="actionLoading">
+                  <i class="bi bi-check-circle"></i>
                   {{ actionLoading ? 'Đang xử lý...' : 'Lưu' }}
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal xác nhận xóa -->
-    <div v-if="showDeleteConfirmModal" class="modal fade show d-block" tabindex="-1">
-      <!-- Đã loại bỏ <div class="modal-backdrop fade show"></div> -->
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title text-danger">Xác nhận xóa</h5>
-            <button type="button" class="btn-close" @click="closeDeleteConfirmModal"></button>
-          </div>
-          <div class="modal-body">
-            <p>Bạn có chắc chắn muốn xóa người dùng <strong>{{ userToDelete?.hoveten }} (ID: {{ userToDelete?.id_tk }})</strong>?</p>
-            <p class="text-danger">
-              <i class="bi bi-exclamation-triangle me-1"></i>
-              Hành động này không thể hoàn tác và sẽ xóa tất cả dữ liệu liên quan!
-            </p>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="closeDeleteConfirmModal">Hủy</button>
-            <button 
-              type="button" 
-              class="btn btn-danger" 
-              @click="deleteUserConfirmed"
-              :disabled="actionLoading"
-            >
-              {{ actionLoading ? 'Đang xóa...' : 'Xóa' }}
-            </button>
           </div>
         </div>
       </div>
@@ -192,47 +275,47 @@
 
 <script>
 import { ref, computed, onMounted, watch } from 'vue'
-import useUserManagement from '../Admin/QLND/useUserManagement.js'
+import useUserManagement from './QLND/useUserManagement.js'
 
 export default {
   name: 'UserManagement',
   setup() {
     const {
       users,
-      userDetail, // Now available from composable
+      userDetail,
       usersLoading,
       usersError,
-      detailLoading, // Now available from composable
-      detailError, // Now available from composable
+      detailLoading,
+      detailError,
       actionLoading,
       actionError,
       actionResult: useUserManagementActionResult,
       fetchAllUsers,
-      fetchUserDetail, // Now available from composable
+      fetchUserDetail,
       createUser,
       updateUser,
-      deleteUser
+      updateUserStatus,
+      updateUserRole,
+      validateUserData
     } = useUserManagement()
 
     const searchQuery = ref('')
-    const actionResult = ref(null) // Local state for displaying action feedback
-
+    const actionResult = ref(null)
     const showUserModal = ref(false)
     const modalTitle = ref('')
     const isEditMode = ref(false)
+    const formErrors = ref({})
+    
     const currentUser = ref({
       id_tk: null,
       tendangnhap: '',
-      matkhau: '', // Only for add mode
+      matkhau: '',
       hoveten: '',
       email: '',
       sodienthoai: '',
-      vaitro: 0, // Default to user
-      trangthai: 1, // Default to active
+      vaitro: 0,
+      trangthai: 1,
     })
-
-    const showDeleteConfirmModal = ref(false)
-    const userToDelete = ref(null)
 
     const filteredUsers = computed(() => {
       if (!searchQuery.value) return users.value
@@ -248,20 +331,53 @@ export default {
     // Watch for changes in userDetail from composable to populate form
     watch(userDetail, (newVal) => {
       if (newVal && isEditMode.value) {
-        currentUser.value = { ...newVal, matkhau: '' }; // Copy data, clear password for security
-        console.log("[User.vue] User detail loaded into form:", currentUser.value);
+        currentUser.value = { 
+          ...newVal, 
+          matkhau: '',
+          vaitro: Number(newVal.vaitro),
+          trangthai: Number(newVal.trangthai)
+        }
+        console.log("[UserManagement.vue] User detail loaded into form:", currentUser.value)
       }
-    });
+    })
+
+    // Watch for action result from composable
+    watch(useUserManagementActionResult, (newVal) => {
+      if (newVal) {
+        actionResult.value = newVal
+        setTimeout(() => {
+          actionResult.value = null
+        }, 5000)
+      }
+    })
 
     const refreshUsers = async () => {
-      console.log("[User.vue] Refreshing user list...")
+      console.log("[UserManagement.vue] Refreshing user list...")
       await fetchAllUsers()
-      actionResult.value = null // Clear previous action message
+      actionResult.value = null
+    }
+
+    const validateForm = () => {
+      const errors = validateUserData(currentUser.value)
+      formErrors.value = {}
+      
+      if (errors.length > 0) {
+        errors.forEach(error => {
+          if (error.includes('đăng nhập')) formErrors.value.tendangnhap = error
+          if (error.includes('mật khẩu')) formErrors.value.matkhau = error
+          if (error.includes('tên')) formErrors.value.hoveten = error
+          if (error.includes('Email')) formErrors.value.email = error
+          if (error.includes('điện thoại')) formErrors.value.sodienthoai = error
+        })
+        return false
+      }
+      return true
     }
 
     const openAddModal = () => {
       isEditMode.value = false
       modalTitle.value = 'Thêm mới người dùng'
+      formErrors.value = {}
       currentUser.value = {
         id_tk: null,
         tendangnhap: '',
@@ -273,28 +389,42 @@ export default {
         trangthai: 1,
       }
       showUserModal.value = true
-      console.log("[User.vue] Opening Add User modal.")
+      console.log("[UserManagement.vue] Opening Add User modal.")
     }
 
     const openEditModal = async (userId) => {
       isEditMode.value = true
       modalTitle.value = 'Sửa thông tin người dùng'
+      formErrors.value = {}
       showUserModal.value = true
-      console.log(`[User.vue] Opening Edit User modal for ID: ${userId}`)
-      await fetchUserDetail(userId) // This will update userDetail ref, which is watched
+      console.log(`[UserManagement.vue] Opening Edit User modal for ID: ${userId}`)
+      await fetchUserDetail(userId)
     }
 
     const closeUserModal = () => {
       showUserModal.value = false
-      currentUser.value = { // Reset form
-        id_tk: null, tendangnhap: '', matkhau: '', hoveten: '', email: '', sodienthoai: '', vaitro: 0, trangthai: 1,
+      formErrors.value = {}
+      currentUser.value = {
+        id_tk: null,
+        tendangnhap: '',
+        matkhau: '',
+        hoveten: '',
+        email: '',
+        sodienthoai: '',
+        vaitro: 0,
+        trangthai: 1,
       }
-      console.log("[User.vue] Closing User modal.")
+      console.log("[UserManagement.vue] Closing User modal.")
     }
 
     const saveUser = async () => {
-      console.log("[User.vue] Attempting to save user:", currentUser.value)
-      let success = false;
+      console.log("[UserManagement.vue] Attempting to save user:", currentUser.value)
+      
+      if (!validateForm()) {
+        return
+      }
+
+      let success = false
       if (isEditMode.value) {
         success = await updateUser(currentUser.value.id_tk, currentUser.value)
       } else {
@@ -302,66 +432,38 @@ export default {
       }
 
       if (success) {
-        actionResult.value = {
-          success: true,
-          message: `${isEditMode.value ? 'Cập nhật' : 'Thêm mới'} người dùng thành công`
-        }
-        console.log(`[User.vue] User ${isEditMode.value ? 'updated' : 'created'} successfully.`)
+        console.log(`[UserManagement.vue] User ${isEditMode.value ? 'updated' : 'created'} successfully.`)
         closeUserModal()
-        await refreshUsers() // Refresh list after successful operation
+        await refreshUsers()
       } else {
-        actionResult.value = {
-          success: false,
-          message: useUserManagementActionResult.value?.message || `${isEditMode.value ? 'Cập nhật' : 'Thêm mới'} người dùng thất bại`
-        }
-        console.error(`[User.vue] User ${isEditMode.value ? 'update' : 'creation'} failed. Result:`, useUserManagementActionResult.value)
+        console.error(`[UserManagement.vue] User ${isEditMode.value ? 'update' : 'creation'} failed.`)
       }
+    }
+
+    const updateStatus = async (userId, status) => {
+      console.log(`[UserManagement.vue] Updating status for user ${userId} to ${status}`)
+      const success = await updateUserStatus(userId, status ? 1 : 0)
       
-      setTimeout(() => {
-        actionResult.value = null
-      }, 3000)
-    }
-
-    const confirmDeleteUser = (user) => {
-      userToDelete.value = user
-      showDeleteConfirmModal.value = true
-      console.log(`[User.vue] Confirming deletion for user ID: ${user.id_tk}`)
-    }
-
-    const closeDeleteConfirmModal = () => {
-      showDeleteConfirmModal.value = false
-      userToDelete.value = null
-      console.log("[User.vue] Closing delete confirmation modal.")
-    }
-
-    const deleteUserConfirmed = async () => {
-      console.log(`[User.vue] Attempting to delete user ID: ${userToDelete.value.id_tk}`)
-      const successDelete = await deleteUser(userToDelete.value.id_tk)
-      
-      if (successDelete) {
-        // Xóa khỏi danh sách local
-        const index = users.value.findIndex(u => u.id_tk === userToDelete.value.id_tk)
-        if (index !== -1) {
-          users.value.splice(index, 1)
+      if (success) {
+        // Update local data
+        const user = users.value.find(u => u.id_tk === userId)
+        if (user) {
+          user.trangthai = status ? 1 : 0
         }
-        
-        actionResult.value = {
-          success: true,
-          message: 'Xóa tài khoản thành công'
-        }
-        console.log("[User.vue] User deletion successful.")
-        closeDeleteConfirmModal()
-      } else {
-        actionResult.value = {
-          success: false,
-          message: useUserManagementActionResult.value?.message || 'Xóa tài khoản thất bại'
-        }
-        console.error("[User.vue] User deletion failed. Result:", useUserManagementActionResult.value)
       }
+    }
+
+    const updateRole = async (userId, role) => {
+      console.log(`[UserManagement.vue] Updating role for user ${userId} to ${role}`)
+      const success = await updateUserRole(userId, Number(role))
       
-      setTimeout(() => {
-        actionResult.value = null
-      }, 3000)
+      if (success) {
+        // Update local data
+        const user = users.value.find(u => u.id_tk === userId)
+        if (user) {
+          user.vaitro = Number(role)
+        }
+      }
     }
 
     const formatDate = (dateString) => {
@@ -388,16 +490,14 @@ export default {
       modalTitle,
       isEditMode,
       currentUser,
-      showDeleteConfirmModal,
-      userToDelete,
+      formErrors,
       refreshUsers,
       openAddModal,
       openEditModal,
       closeUserModal,
       saveUser,
-      confirmDeleteUser,
-      closeDeleteConfirmModal,
-      deleteUserConfirmed,
+      updateStatus,
+      updateRole,
       formatDate
     }
   }
@@ -408,11 +508,49 @@ export default {
 .form-title {
   font-size: 18px;
 }
-.btn-group .btn {
-  margin-right: 2px;
-}
-.btn-group .btn:last-child {
-  margin-right: 0;
+
+.form-check-input:checked {
+  background-color: #198754;
+  border-color: #198754;
 }
 
+.form-check-input:not(:checked) {
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+
+.modal {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.is-invalid {
+  border-color: #dc3545;
+}
+
+.invalid-feedback {
+  display: block;
+}
+
+.form-text {
+  font-size: 0.875em;
+  color: #6c757d;
+}
+
+.alert {
+  border-radius: 0.375rem;
+}
+
+.alert i {
+  margin-right: 0.5rem;
+}
 </style>
