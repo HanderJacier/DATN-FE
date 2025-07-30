@@ -1,159 +1,164 @@
-// src/components/User/LoadDB/usePayment.js
 import { ref } from "vue"
 import { usePostData } from "../../component_callApi/callAPI"
 
 export default function usePayment() {
-  const paymentResult = ref(null)
-  const momoPayment = ref(null)
-  const orderCreated = ref(null)
+  const processing = ref(false)
+  const { callAPI } = usePostData()
+  const processPayment = async (paymentData) => {
+    processing.value = true
 
-  const { data: orderData, callAPI: createOrderAPI, loading: orderLoading, error: orderError } = usePostData()
-  const { data: detailData, callAPI: createDetailAPI, loading: detailLoading, error: detailError } = usePostData()
-  const { data: paymentData, callAPI: createPaymentAPI, loading: paymentLoading, error: paymentError } = usePostData()
-  const { data: momoData, callAPI: createMomoAPI, loading: momoLoading, error: momoError } = usePostData()
-
-  // Tạo hóa đơn
-  const createOrder = async (userId, totalAmount, note = null) => {
     try {
-      await createOrderAPI("WBH_US_CRT_HOA_DON", {
-        params: {
-          p_taikhoan: userId,
-          p_giahoadon: totalAmount,
-          p_noidung: note,
-        },
-      })
+      console.log("Processing payment:", paymentData)
 
-      if (orderData.value && Array.isArray(orderData.value) && orderData.value.length > 0) {
-        orderCreated.value = orderData.value[0]
-        return orderCreated.value.id_hd
-      }
-    } catch (err) {
-      console.error("Lỗi khi tạo hóa đơn:", err)
-      throw err
-    }
-  }
-
-  // Thêm chi tiết hóa đơn
-  const addOrderDetail = async (orderId, productId, price, quantity) => {
-    try {
-      await createDetailAPI("WBH_US_CRT_HOA_DON_CHI_TIET", {
-        params: {
-          p_hoadon: orderId,
-          p_sanpham: productId,
-          p_dongia: price,
-          p_soluong: quantity,
-        },
-      })
-
-      return detailData.value
-    } catch (err) {
-      console.error("Lỗi khi thêm chi tiết hóa đơn:", err)
-      throw err
-    }
-  }
-
-  // Tạo thanh toán
-  const createPayment = async (orderId, method, amount, transactionId = null, userId) => {
-    try {
-      await createPaymentAPI("WBH_US_CRT_THANH_TOAN", {
-        params: {
-          p_hoadon: orderId,
-          p_phuongthuc: method,
-          p_sotien: amount,
-          p_magiaodich: transactionId,
-          p_taikhoan: userId,
-        },
-      })
-
-      if (paymentData.value && Array.isArray(paymentData.value) && paymentData.value.length > 0) {
-        paymentResult.value = paymentData.value[0]
-        return paymentResult.value
-      }
-    } catch (err) {
-      console.error("Lỗi khi tạo thanh toán:", err)
-      throw err
-    }
-  }
-
-  // Tạo thanh toán MoMo
-  const createMoMoPayment = async (orderId, amount, orderInfo, userId) => {
-    try {
-      await createMomoAPI("WBH_US_CRT_MOMO_PAYMENT", {
-        params: {
-          p_orderId: orderId,
-          p_amount: amount,
-          p_orderInfo: orderInfo,
-          p_taikhoan: userId,
-        },
-      })
-
-      if (momoData.value && Array.isArray(momoData.value) && momoData.value.length > 0) {
-        momoPayment.value = momoData.value[0]
-        return momoPayment.value
-      }
-    } catch (err) {
-      console.error("Lỗi khi tạo thanh toán MoMo:", err)
-      throw err
-    }
-  }
-
-  // Xử lý đơn hàng hoàn chỉnh
-  const processOrder = async (orderData) => {
-    try {
-      const { userId, products, totalAmount, paymentMethod, note, orderInfo } = orderData
-
-      // 1. Tạo hóa đơn
-      const orderId = await createOrder(userId, totalAmount, note)
-
-      // 2. Thêm chi tiết sản phẩm
-      for (const product of products) {
-        await addOrderDetail(orderId, product.id, product.price, product.quantity)
+      // Prepare data for order creation
+      const orderRequest = {
+        p_hoveten: paymentData.customerInfo.name,
+        p_sodienthoai: paymentData.customerInfo.phone,
+        p_email: paymentData.customerInfo.email || null,
+        p_diachi: paymentData.customerInfo.address,
+        p_noidung:
+          paymentData.note || `Đơn hàng từ website - Thanh toán: ${getPaymentMethodText(paymentData.paymentMethod)}`,
+        p_trangthai: getOrderStatus(paymentData.paymentMethod),
+        p_sanphams: JSON.stringify(
+          paymentData.items.map((item) => ({
+            sanpham: item.id,
+            dongia: item.price,
+            soluong: item.quantity,
+          })),
+        ),
       }
 
-      // 3. Xử lý thanh toán
-      if (paymentMethod === "MOMO") {
-        const momoResult = await createMoMoPayment(orderId.toString(), totalAmount, orderInfo, userId)
-        return {
-          success: true,
-          orderId: orderId,
-          paymentMethod: "MOMO",
-          payUrl: momoResult.payUrl,
-          qrCodeUrl: momoResult.qrCodeUrl,
+      console.log("Order request:", orderRequest)
+
+      // Create order
+      const orderResult = await callAPI("WBH_US_CRT_DAT_HANG", orderRequest)
+      console.log("Order creation result:", orderResult)
+
+      if (orderResult.success && orderResult.data && orderResult.data.length > 0) {
+        const orderData = orderResult.data[0]
+
+        if (orderData.rtn_value === 0) {
+          const orderId = orderData.id_hd
+
+          // Update payment information
+          const paymentUpdateResult = await updatePaymentInfo(orderId, paymentData)
+
+          if (paymentUpdateResult.success) {
+            return {
+              success: true,
+              orderId: orderId,
+              message: "Đặt hàng và thanh toán thành công",
+            }
+          } else {
+            return {
+              success: false,
+              message: paymentUpdateResult.message || "Lỗi cập nhật thông tin thanh toán",
+            }
+          }
+        } else {
+          return {
+            success: false,
+            message: orderData.message || "Lỗi tạo đơn hàng",
+          }
         }
       } else {
-        // COD hoặc phương thức khác
-        await createPayment(orderId, paymentMethod, totalAmount, null, userId)
         return {
-          success: true,
-          orderId: orderId,
-          paymentMethod: paymentMethod,
+          success: false,
+          message: orderResult.message || "Lỗi kết nối server",
         }
       }
-    } catch (err) {
-      console.error("Lỗi khi xử lý đơn hàng:", err)
+    } catch (error) {
+      console.error("Payment processing error:", error)
       return {
         success: false,
-        message: err.message || "Lỗi xử lý đơn hàng",
+        message: "Có lỗi xảy ra khi xử lý thanh toán",
       }
+    } finally {
+      processing.value = false
+    }
+  }
+
+  const updatePaymentInfo = async (orderId, paymentData) => {
+    try {
+      const paymentRequest = {
+        p_id_hd: orderId,
+        p_phuongthuc: paymentData.paymentMethod,
+        p_sotien: paymentData.finalAmount,
+        p_magiaodich: generateTransactionId(paymentData.paymentMethod, orderId),
+        p_trangthai_thanhtoan: getPaymentStatus(paymentData.paymentMethod),
+        p_noidung_ck: paymentData.transferContent || null,
+      }
+
+      console.log("Payment update request:", paymentRequest)
+
+      const result = await callAPI("WBH_US_UPD_PAYMENT_INFO", paymentRequest)
+      console.log("Payment update result:", result)
+
+      return result
+    } catch (error) {
+      console.error("Error updating payment info:", error)
+      return {
+        success: false,
+        message: "Lỗi cập nhật thông tin thanh toán",
+      }
+    }
+  }
+
+  const getPaymentMethodText = (method) => {
+    switch (method) {
+      case "COD":
+        return "Thanh toán khi nhận hàng (COD)"
+      case "BANK":
+        return "Chuyển khoản ngân hàng"
+      case "QR":
+        return "Thanh toán QR Code"
+      default:
+        return "Không xác định"
+    }
+  }
+
+  const getOrderStatus = (paymentMethod) => {
+    switch (paymentMethod) {
+      case "COD":
+        return "Chờ xác nhận"
+      case "BANK":
+        return "Chờ thanh toán"
+      case "QR":
+        return "Chờ thanh toán"
+      default:
+        return "Chờ xác nhận"
+    }
+  }
+
+  const getPaymentStatus = (paymentMethod) => {
+    switch (paymentMethod) {
+      case "COD":
+        return "Chưa thanh toán"
+      case "BANK":
+        return "Chờ xác nhận"
+      case "QR":
+        return "Chờ xác nhận"
+      default:
+        return "Chưa thanh toán"
+    }
+  }
+
+  const generateTransactionId = (paymentMethod, orderId) => {
+    const timestamp = Date.now().toString().slice(-6)
+    switch (paymentMethod) {
+      case "COD":
+        return `COD_${orderId}_${timestamp}`
+      case "BANK":
+        return `BANK_${orderId}_${timestamp}`
+      case "QR":
+        return `QR_${orderId}_${timestamp}`
+      default:
+        return `ORDER_${orderId}_${timestamp}`
     }
   }
 
   return {
-    paymentResult,
-    momoPayment,
-    orderCreated,
-    orderLoading,
-    orderError,
-    detailLoading,
-    detailError,
-    paymentLoading,
-    paymentError,
-    momoLoading,
-    momoError,
-    createOrder,
-    addOrderDetail,
-    createPayment,
-    createMoMoPayment,
-    processOrder,
+    processing,
+    processPayment,
   }
 }

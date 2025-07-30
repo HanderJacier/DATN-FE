@@ -18,15 +18,7 @@
           <li class="nav-item">
             <a class="nav-link" :class="{ active: currentTab === 'pending' }" @click="changeTab('pending')">Chờ xử lý</a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link" :class="{ active: currentTab === 'processing' }" @click="changeTab('processing')">Đang xử lý</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" :class="{ active: currentTab === 'shipping' }" @click="changeTab('shipping')">Đang giao</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" :class="{ active: currentTab === 'delivered' }" @click="changeTab('delivered')">Đã giao</a>
-          </li>
+          
           <li class="nav-item">
             <a class="nav-link" :class="{ active: currentTab === 'cancelled' }" @click="changeTab('cancelled')">Đã hủy</a>
           </li>
@@ -115,7 +107,7 @@
 <script>
 import { ref, computed, onMounted } from 'vue'
 import Slidebar from '@/components/User/Title/Slidebar.vue'
-import useOrderHistory from '@/components/User/LoadDB/useOrderHistory.js'
+import useOrderHistory from '../LoadDB/useOrderHistory.js'
 
 export default {
   components: { Slidebar },
@@ -151,9 +143,7 @@ export default {
       return orders.value.filter(order => {
         if (currentTab.value === 'all') return true
         if (currentTab.value === 'pending' && order.trangthai === 'Chờ xử lý') return true
-        if (currentTab.value === 'processing' && order.trangthai === 'Đang xử lý') return true
-        if (currentTab.value === 'shipping' && order.trangthai === 'Đang giao hàng') return true
-        if (currentTab.value === 'delivered' && order.trangthai === 'Đã giao hàng') return true
+        
         if (currentTab.value === 'cancelled' && order.trangthai === 'Đã hủy') return true
         return false
       }).sort((a, b) => new Date(b.ngaytao) - new Date(a.ngaytao)) // Sắp xếp mới nhất lên đầu
