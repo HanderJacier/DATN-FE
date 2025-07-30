@@ -258,7 +258,7 @@ import useHomeLogic from '@/components/User/LoadDB/ChiTietSP.js'
 
 import ThichSanPham from './ChiTietSP/ThichSanPham.vue'
 import ProductReviews from './ChiTietSP/BinhLuan.vue'
-import OtherProducts from './ChiTietSP/SanPhamKhac.vue'
+import OtherProducts from './Home/SPYeuThich.vue'
 
 const route = useRoute()
 const router = useRouter()

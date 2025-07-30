@@ -91,7 +91,7 @@ const route = useRoute()
 const sanPhamId = parseInt(route.params.id)
 
 const danhSachDanhGia = ref([])
-const selectedStar = ref(0) // ⭐ Mức sao để lọc
+const selectedStar = ref(0)
 const diemSo = ref(0)
 const noiDung = ref('')
 
@@ -103,10 +103,10 @@ const userData = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionS
 if (userData && userData.id_tk) {
   taiKhoanId = userData.id_tk
 } else {
-  alert('Không xác định được người dùng, vui lòng đăng nhập lại!')
+
 }
 
-// ⭐ Lọc và phân trang danh sách đánh giá
+//\Lọc và phân trang danh sách đánh giá
 const danhGiaLoc = computed(() => {
   const daLoc = selectedStar.value === 0
     ? danhSachDanhGia.value
@@ -128,7 +128,7 @@ watch(selectedStar, () => {
   trangHienTai.value = 1
 })
 
-// 🛠️ Fetch đánh giá từ backend
+//Fetch đánh giá từ backend
 const fetchDanhGia = async () => {
   try {
     const res = await axios.get(`http://localhost:8080/api/danhgia/${sanPhamId}`)
@@ -164,10 +164,10 @@ const guiDanhGia = async () => {
     await fetchDanhGia()
     diemSo.value = 0
     noiDung.value = ''
-    alert('Đánh giá đã được gửi!')
+    alert('Đánh giá của bạn đã được gửi đã được gửi!')
   } catch (error) {
     console.error(error)
-    alert('Gửi đánh giá thất bại!')
+    alert('Gửi đánh giá thất bại, vui lòng kiểm tra đăng nhập!')
   }
 }
 
