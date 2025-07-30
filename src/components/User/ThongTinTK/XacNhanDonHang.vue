@@ -1,287 +1,165 @@
 <template>
-    <div class="container py-4">
-        <!-- Loading -->
-        <div v-if="orderLoading" class="text-center py-5">
-            <div class="spinner-border text-primary" role="status"></div>
-            <p class="mt-2">Đang xử lý đơn hàng...</p>
-        </div>
-
-        <!-- Nội dung chính -->
-        <div v-else>
-            <!-- Địa chỉ nhận hàng -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-body d-flex justify-content-between align-items-start">
-                    <div>
-                        <h6 class="text-danger fw-bold mb-2">
-                            <i class="bi bi-geo-alt-fill me-2"></i>Địa Chỉ Nhận Hàng
-                        </h6>
-                        <p class="mb-1">
-                            <strong>{{ userInfo?.hovaten || 'Chưa cập nhật' }}</strong> 
-                            <span class="text-muted">{{ userInfo?.sodienthoai || '' }}</span>
-                        </p>
-                        <p class="mb-0 text-muted">
-                            {{ shippingAddress || 'Vui lòng cập nhật địa chỉ giao hàng' }}
-                        </p>
+    <div class="container my-4 mt-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header bg-warning text-dark">
+                        <h4 class="mb-0">
+                            <i class="bi bi-clipboard-check"></i>
+                            Xác nhận đơn hàng
+                        </h4>
                     </div>
-                    <div class="text-end">
-                        <span class="badge bg-light text-danger border border-danger me-2">Mặc Định</span>
-                        <button class="btn btn-link text-primary p-0" @click="showAddressModal = true">
-                            Thay Đổi
-                        </button>
-                    </div>
-                </div>
-            </div>
+                    <div class="card-body">
+                        <!-- Loading -->
+                        <div v-if="processing" class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <p class="mt-2">Đang xử lý đơn hàng...</p>
+                        </div>
 
-            <!-- Sản phẩm -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-body">
-                    <h6 class="fw-bold mb-4">
-                        <i class="bi bi-box-seam-fill text-primary me-2"></i>Sản phẩm đã chọn
-                    </h6>
-
-                    <div v-for="(item, index) in selectedItems" :key="index" class="d-flex align-items-center justify-content-between flex-wrap mb-3 pb-3" :class="{ 'border-bottom': index < selectedItems.length - 1 }">
-                        <div class="d-flex align-items-center flex-grow-1">
-                            <img 
-                                :src="item.image || '/placeholder.svg?height=80&width=80'" 
-                                :alt="item.name"
-                                class="me-3 rounded" 
-                                style="width: 80px; height: 80px; object-fit: cover;"
-                            >
-                            <div>
-                                <div class="fw-semibold mb-1">{{ item.name }}</div>
-                                <div class="text-muted small mb-1" v-if="item.variant">
-                                    Phân loại: <span class="fw-medium">{{ item.variant }}</span>
+                        <!-- Main content -->
+                        <div v-else>
+                            <!-- Thông tin khách hàng -->
+                            <div class="mb-4">
+                                <h5 class="fw-bold mb-3">
+                                    <i class="bi bi-person"></i>
+                                    Thông tin khách hàng
+                                </h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Họ và tên *</label>
+                                        <input type="text" class="form-control" v-model="customerInfo.name" 
+                                               :class="{ 'is-invalid': errors.name }" required>
+                                        <div v-if="errors.name" class="invalid-feedback">{{ errors.name }}</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Số điện thoại *</label>
+                                        <input type="tel" class="form-control" v-model="customerInfo.phone" 
+                                               :class="{ 'is-invalid': errors.phone }" required>
+                                        <div v-if="errors.phone" class="invalid-feedback">{{ errors.phone }}</div>
+                                    </div>
                                 </div>
-                                <div class="text-muted small">
-                                    Số lượng: <span class="fw-medium">{{ item.quantity }}</span>
+                                <div class="row mt-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Email</label>
+                                        <input type="email" class="form-control" v-model="customerInfo.email"
+                                               :class="{ 'is-invalid': errors.email }">
+                                        <div v-if="errors.email" class="invalid-feedback">{{ errors.email }}</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Địa chỉ giao hàng *</label>
+                                        <input type="text" class="form-control" v-model="customerInfo.address" 
+                                               :class="{ 'is-invalid': errors.address }" required>
+                                        <div v-if="errors.address" class="invalid-feedback">{{ errors.address }}</div>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <label class="form-label">Ghi chú đơn hàng</label>
+                                    <textarea class="form-control" rows="2" v-model="customerInfo.note" 
+                                             placeholder="Ghi chú thêm cho đơn hàng (không bắt buộc)"></textarea>
                                 </div>
                             </div>
-                        </div>
-                        <div class="text-end">
-                            <div class="text-danger fw-bold fs-6">
-                                {{ formatCurrency(item.price * item.quantity) }}
+
+                            <!-- Danh sách sản phẩm đã chọn -->
+                            <div class="mb-4">
+                                <h5 class="fw-bold mb-3">
+                                    <i class="bi bi-bag-check"></i>
+                                    Sản phẩm đã chọn ({{ selectedItems.length }} sản phẩm)
+                                </h5>
+                                <div v-if="selectedItems.length === 0" class="alert alert-warning">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    Không có sản phẩm nào được chọn. 
+                                    <router-link to="/gio-hang" class="btn btn-sm btn-primary ms-2">
+                                        Quay lại giỏ hàng
+                                    </router-link>
+                                </div>
+                                <div v-else class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Sản phẩm</th>
+                                                <th>Đơn giá</th>
+                                                <th>Số lượng</th>
+                                                <th>Thành tiền</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="item in selectedItems" :key="`${item.id}-${item.variant}`">
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <img :src="item.image" style="width: 50px; height: 50px; object-fit: cover;" 
+                                                             class="me-2 rounded" :alt="item.name" @error="handleImageError">
+                                                        <div>
+                                                            <div class="fw-semibold">{{ item.name }}</div>
+                                                            <small class="text-muted">{{ item.variant }}</small>
+                                                            <div class="text-muted small">{{ item.brand }}</div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="text-danger fw-bold">{{ formatPrice(item.price) }} đ</div>
+                                                    <div v-if="item.originalPrice > item.price" 
+                                                         class="text-muted text-decoration-line-through small">
+                                                        {{ formatPrice(item.originalPrice) }} đ
+                                                    </div>
+                                                </td>
+                                                <td class="text-center">{{ item.quantity }}</td>
+                                                <td class="fw-bold text-danger">{{ formatPrice(item.price * item.quantity) }} đ</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
-                            <div v-if="item.originalPrice && item.originalPrice > item.price" class="text-decoration-line-through text-muted small">
-                                {{ formatCurrency(item.originalPrice * item.quantity) }}
+
+                            <!-- Tổng tiền -->
+                            <div class="border-top pt-3 mb-4">
+                                <div class="row">
+                                    <div class="col-md-6 offset-md-6">
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Tạm tính:</span>
+                                            <span>{{ formatPrice(subtotal) }} đ</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Phí vận chuyển:</span>
+                                            <span class="text-success">Miễn phí</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Khuyến mãi:</span>
+                                            <span class="text-success">-{{ formatPrice(totalDiscount) }} đ</span>
+                                        </div>
+                                        <hr>
+                                        <div class="d-flex justify-content-between fw-bold fs-5">
+                                            <span>Tổng cộng:</span>
+                                            <span class="text-danger">{{ formatPrice(totalPrice) }} đ</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
 
-                    <div class="mt-3">
-                        <label class="form-label fw-semibold">Lời nhắn cho người bán</label>
-                        <input 
-                            type="text" 
-                            class="form-control shadow-sm" 
-                            v-model="orderNote"
-                            placeholder="Nhập ghi chú cho đơn hàng (tùy chọn)"
-                            maxlength="200"
-                        >
-                        <div class="form-text">{{ orderNote.length }}/200 ký tự</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Vận chuyển -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="fw-semibold">
-                            <i class="bi bi-truck text-primary me-2"></i>
-                            Phương thức vận chuyển:
-                            <span class="text-primary">{{ shippingMethod.name }}</span>
-                        </div>
-                        <small class="text-muted">{{ shippingMethod.description }}</small>
-                    </div>
-                    <div class="text-end">
-                        <button class="btn btn-link text-primary p-0 me-2" @click="showShippingModal = true">
-                            Thay Đổi
-                        </button>
-                        <div class="text-danger fw-semibold">{{ formatCurrency(shippingMethod.fee) }}</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Phương thức thanh toán -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="fw-bold mb-0">
-                            <i class="bi bi-wallet2 me-2 text-primary"></i>Phương thức thanh toán
-                        </h6>
-                        <div class="text-end">
-                            <span class="text-muted me-2">{{ paymentMethod.name }}</span>
-                            <button class="btn btn-link text-primary p-0" @click="showPaymentModal = true">
-                                Thay đổi
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="border-top pt-3">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-secondary">Tổng tiền hàng</span>
-                            <span>{{ formatCurrency(subtotal) }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-secondary">Giảm giá</span>
-                            <span class="text-success">-{{ formatCurrency(totalDiscount) }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-secondary">Phí vận chuyển</span>
-                            <span>{{ formatCurrency(shippingMethod.fee) }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between fw-bold fs-5 border-top pt-3 mt-2">
-                            <span>Tổng thanh toán</span>
-                            <span class="text-danger">{{ formatCurrency(finalTotal) }}</span>
-                        </div>
-                    </div>
-
-                    <p class="text-muted small mt-3">
-                        Bằng việc nhấn <strong>"Đặt hàng"</strong>, bạn đã đồng ý với
-                        <a href="#" class="text-decoration-none text-primary">Điều khoản sử dụng</a>.
-                    </p>
-
-                    <div class="text-end">
-                        <button 
-                            class="btn btn-danger px-4 py-2 shadow-sm fw-semibold"
-                            @click="confirmOrder"
-                            :disabled="!canPlaceOrder || orderProcessing"
-                        >
-                            <i class="bi bi-cart-check-fill me-1"></i>
-                            {{ orderProcessing ? 'Đang xử lý...' : 'Đặt hàng' }}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal địa chỉ -->
-        <div v-if="showAddressModal" class="modal fade show d-block" tabindex="-1">
-            <div class="modal-backdrop fade show"></div>
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Cập nhật địa chỉ giao hàng</h5>
-                        <button type="button" class="btn-close" @click="showAddressModal = false"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label">Địa chỉ chi tiết</label>
-                            <textarea 
-                                class="form-control" 
-                                rows="3" 
-                                v-model="tempAddress"
-                                placeholder="Nhập địa chỉ giao hàng chi tiết"
-                            ></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" @click="showAddressModal = false">Hủy</button>
-                        <button type="button" class="btn btn-primary" @click="updateAddress">Cập nhật</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal vận chuyển -->
-        <div v-if="showShippingModal" class="modal fade show d-block" tabindex="-1">
-            <div class="modal-backdrop fade show"></div>
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Chọn phương thức vận chuyển</h5>
-                        <button type="button" class="btn-close" @click="showShippingModal = false"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div v-for="method in shippingMethods" :key="method.id" class="form-check mb-3">
-                            <input 
-                                class="form-check-input" 
-                                type="radio" 
-                                :id="'shipping-' + method.id"
-                                :value="method"
-                                v-model="tempShippingMethod"
-                            >
-                            <label class="form-check-label d-flex justify-content-between w-100" :for="'shipping-' + method.id">
-                                <div>
-                                    <div class="fw-semibold">{{ method.name }}</div>
-                                    <small class="text-muted">{{ method.description }}</small>
-                                </div>
-                                <div class="text-danger fw-semibold">{{ formatCurrency(method.fee) }}</div>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" @click="showShippingModal = false">Hủy</button>
-                        <button type="button" class="btn btn-primary" @click="updateShipping">Cập nhật</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal thanh toán -->
-        <div v-if="showPaymentModal" class="modal fade show d-block" tabindex="-1">
-            <div class="modal-backdrop fade show"></div>
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Chọn phương thức thanh toán</h5>
-                        <button type="button" class="btn-close" @click="showPaymentModal = false"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div v-for="method in paymentMethods" :key="method.id" class="form-check mb-3">
-                            <input 
-                                class="form-check-input" 
-                                type="radio" 
-                                :id="'payment-' + method.id"
-                                :value="method"
-                                v-model="tempPaymentMethod"
-                            >
-                            <label class="form-check-label d-flex align-items-center" :for="'payment-' + method.id">
-                                <i :class="method.icon" class="me-2 fs-4"></i>
-                                <div>
-                                    <div class="fw-semibold">{{ method.name }}</div>
-                                    <small class="text-muted">{{ method.description }}</small>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" @click="showPaymentModal = false">Hủy</button>
-                        <button type="button" class="btn btn-primary" @click="updatePayment">Cập nhật</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal thành công -->
-        <div v-if="showSuccessModal" class="modal fade show d-block" tabindex="-1">
-            <div class="modal-backdrop fade show"></div>
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content text-center">
-                    <div class="modal-body p-5">
-                        <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
-                        <h3 class="mt-3 text-success">Đặt hàng thành công!</h3>
-                        <p class="text-muted">Mã đơn hàng: <strong>HD{{ String(orderId).padStart(3, '0') }}</strong></p>
-                        <p class="text-muted">Cảm ơn bạn đã mua sắm tại cửa hàng chúng tôi!</p>
-                        
-                        <!-- Hiển thị thông tin thanh toán MoMo nếu có -->
-                        <div v-if="paymentResult && paymentResult.payUrl" class="mt-4">
-                            <h5>Thanh toán MoMo</h5>
-                            <div class="row justify-content-center">
-                                <div class="col-md-6">
-                                    <img :src="paymentResult.qrCodeUrl" alt="QR Code" class="img-fluid mb-3">
-                                    <p class="small text-muted">Quét mã QR để thanh toán</p>
-                                    <a :href="paymentResult.payUrl" target="_blank" class="btn btn-primary">
-                                        Thanh toán ngay
-                                    </a>
-                                </div>
+                            <!-- Action buttons -->
+                            <div class="d-flex justify-content-between">
+                                <router-link to="/gio-hang" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-left"></i>
+                                    Quay lại giỏ hàng
+                                </router-link>
+                                <button type="button" class="btn btn-success btn-lg" 
+                                        @click="proceedToPayment" 
+                                        :disabled="processing || selectedItems.length === 0">
+                                    <i class="bi bi-credit-card"></i>
+                                    {{ processing ? 'Đang xử lý...' : 'Xác nhận đơn hàng' }}
+                                </button>
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer justify-content-center">
-                        <button class="btn btn-primary" @click="goToOrderHistory">Xem đơn hàng</button>
-                        <button class="btn btn-secondary" @click="continueShopping">Tiếp tục mua sắm</button>
-                    </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Error Messages -->
+        <div v-if="errorMessage" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050;">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle"></i>
+                {{ errorMessage }}
+                <button type="button" class="btn-close" @click="errorMessage = ''"></button>
             </div>
         </div>
     </div>
@@ -290,228 +168,136 @@
 <script>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import usePayment from '../LoadDB/usePayment.js'
-import useUserProfile from '../LoadDB/useUserProfile.js'
 
 export default {
-    name: 'XacNhanDonHang',
+    name: 'OrderConfirmation',
     setup() {
         const router = useRouter()
-        
-        const {
-            orderLoading,
-            paymentLoading,
-            processOrder
-        } = usePayment()
 
-        const {
-            userInfo,
-            fetchUserProfile
-        } = useUserProfile()
-
-        // Reactive data
         const selectedItems = ref([])
-        const orderNote = ref('')
-        const shippingAddress = ref('')
-        const tempAddress = ref('')
-        const orderProcessing = ref(false)
-        const showAddressModal = ref(false)
-        const showShippingModal = ref(false)
-        const showPaymentModal = ref(false)
-        const showSuccessModal = ref(false)
-        const orderId = ref(null)
-        const paymentResult = ref(null)
+        const processing = ref(false)
+        const errorMessage = ref('')
+        
+        const customerInfo = ref({
+            name: '',
+            phone: '',
+            email: '',
+            address: '',
+            note: ''
+        })
 
-        // Shipping methods
-        const shippingMethods = ref([
-            {
-                id: 1,
-                name: 'Giao hàng tiêu chuẩn',
-                description: 'Giao hàng trong 3-5 ngày làm việc',
-                fee: 30000
-            },
-            {
-                id: 2,
-                name: 'Giao hàng nhanh',
-                description: 'Giao hàng trong 1-2 ngày làm việc',
-                fee: 50000
-            },
-            {
-                id: 3,
-                name: 'Giao hàng hỏa tốc',
-                description: 'Giao hàng trong ngày (khu vực nội thành)',
-                fee: 80000
-            }
-        ])
-
-        const shippingMethod = ref(shippingMethods.value[0])
-        const tempShippingMethod = ref(shippingMethods.value[0])
-
-        // Payment methods
-        const paymentMethods = ref([
-            {
-                id: 1,
-                name: 'Thanh toán khi nhận hàng (COD)',
-                description: 'Thanh toán bằng tiền mặt khi nhận hàng',
-                icon: 'bi bi-cash-coin text-success'
-            },
-            {
-                id: 2,
-                name: 'Thanh toán MoMo',
-                description: 'Thanh toán qua ví điện tử MoMo',
-                icon: 'bi bi-phone text-danger'
-            },
-            {
-                id: 3,
-                name: 'Chuyển khoản ngân hàng',
-                description: 'Chuyển khoản qua ngân hàng',
-                icon: 'bi bi-bank text-primary'
-            }
-        ])
-
-        const paymentMethod = ref(paymentMethods.value[0])
-        const tempPaymentMethod = ref(paymentMethods.value[0])
+        const errors = ref({})
 
         // Computed properties
-        const subtotal = computed(() => 
-            selectedItems.value.reduce((total, item) => 
-                total + (item.originalPrice || item.price) * item.quantity, 0
-            )
-        )
+        const subtotal = computed(() => {
+            return selectedItems.value.reduce((total, item) => total + item.originalPrice * item.quantity, 0)
+        })
 
-        const totalDiscount = computed(() => 
-            selectedItems.value.reduce((total, item) => 
-                total + ((item.originalPrice || item.price) - item.price) * item.quantity, 0
-            )
-        )
+        const totalPrice = computed(() => {
+            return selectedItems.value.reduce((total, item) => total + item.price * item.quantity, 0)
+        })
 
-        const finalTotal = computed(() => 
-            selectedItems.value.reduce((total, item) => 
-                total + item.price * item.quantity, 0
-            ) + shippingMethod.value.fee
-        )
-
-        const canPlaceOrder = computed(() => 
-            selectedItems.value.length > 0 && 
-            shippingAddress.value.trim() !== '' &&
-            userInfo.value
-        )
+        const totalDiscount = computed(() => {
+            return subtotal.value - totalPrice.value
+        })
 
         // Methods
+        const formatPrice = (val) => {
+            return val.toLocaleString('vi-VN')
+        }
+
+        const handleImageError = (event) => {
+            event.target.src = '/placeholder.svg?height=50&width=50'
+        }
+
+        const validateForm = () => {
+            errors.value = {}
+            let isValid = true
+
+            if (!customerInfo.value.name.trim()) {
+                errors.value.name = 'Vui lòng nhập họ và tên'
+                isValid = false
+            }
+
+            if (!customerInfo.value.phone.trim()) {
+                errors.value.phone = 'Vui lòng nhập số điện thoại'
+                isValid = false
+            } else if (!/^[0-9]{10,11}$/.test(customerInfo.value.phone.trim())) {
+                errors.value.phone = 'Số điện thoại không hợp lệ (10-11 số)'
+                isValid = false
+            }
+
+            if (customerInfo.value.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerInfo.value.email)) {
+                errors.value.email = 'Email không hợp lệ'
+                isValid = false
+            }
+
+            if (!customerInfo.value.address.trim()) {
+                errors.value.address = 'Vui lòng nhập địa chỉ giao hàng'
+                isValid = false
+            }
+
+            return isValid
+        }
+
+        const proceedToPayment = () => {
+            if (!validateForm()) {
+                errorMessage.value = 'Vui lòng điền đầy đủ thông tin bắt buộc'
+                return
+            }
+
+            if (selectedItems.value.length === 0) {
+                errorMessage.value = 'Không có sản phẩm nào để đặt hàng'
+                return
+            }
+
+            // Save order data to localStorage for payment page
+            const orderData = {
+                customerInfo: customerInfo.value,
+                items: selectedItems.value,
+                totalAmount: totalPrice.value,
+                paymentMethod: 'COD', // Default to COD
+                note: customerInfo.value.note || 'Đơn hàng từ website'
+            }
+
+            localStorage.setItem('orderData', JSON.stringify(orderData))
+
+            // Navigate to payment page
+            router.push('/thanhtoan')
+        }
+
         const loadSelectedItems = () => {
             try {
-                const saved = localStorage.getItem('selectedCart')
+                const saved = localStorage.getItem('selectedCartItems')
                 if (saved) {
                     selectedItems.value = JSON.parse(saved)
+                    console.log('Loaded selected items:', selectedItems.value)
                 } else {
-                    // Nếu không có sản phẩm được chọn, chuyển về giỏ hàng
+                    // If no selected items, redirect back to cart
+                    console.warn('No selected items found, redirecting to cart')
                     router.push('/giohang')
                 }
-            } catch (e) {
-                console.error('Lỗi khi tải sản phẩm đã chọn:', e)
+            } catch (error) {
+                console.error('Error loading selected items:', error)
                 router.push('/giohang')
             }
         }
 
-        const loadUserInfo = async () => {
-            const user = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user'))
-            if (user && user.id_tk) {
-                await fetchUserProfile(user.id_tk)
-                // Set default address if available
-                if (userInfo.value && !shippingAddress.value) {
-                    shippingAddress.value = 'Địa chỉ mặc định - Vui lòng cập nhật địa chỉ giao hàng chi tiết'
-                }
-            }
-        }
-
-        const formatCurrency = (value) => {
-            return new Intl.NumberFormat('vi-VN', {
-                style: 'currency',
-                currency: 'VND',
-            }).format(value || 0)
-        }
-
-        const updateAddress = () => {
-            if (tempAddress.value.trim()) {
-                shippingAddress.value = tempAddress.value.trim()
-                showAddressModal.value = false
-            }
-        }
-
-        const updateShipping = () => {
-            shippingMethod.value = tempShippingMethod.value
-            showShippingModal.value = false
-        }
-
-        const updatePayment = () => {
-            paymentMethod.value = tempPaymentMethod.value
-            showPaymentModal.value = false
-        }
-
-        const confirmOrder = async () => {
-            if (!canPlaceOrder.value) {
-                alert('Vui lòng kiểm tra lại thông tin đơn hàng')
-                return
-            }
-
-            orderProcessing.value = true
-
+        const loadUserInfo = () => {
             try {
-                const user = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user'))
-                
-                const orderData = {
-                    userId: user.id_tk,
-                    products: selectedItems.value.map(item => ({
-                        id: item.id,
-                        price: item.price,
-                        quantity: item.quantity
-                    })),
-                    totalAmount: finalTotal.value,
-                    paymentMethod: paymentMethod.value.id === 2 ? 'MOMO' : 'COD',
-                    note: orderNote.value.trim(),
-                    orderInfo: `Thanh toán đơn hàng - ${selectedItems.value.length} sản phẩm`
-                }
-
-                const result = await processOrder(orderData)
-
-                if (result.success) {
-                    orderId.value = result.orderId
-                    paymentResult.value = result.payUrl ? result : null
-                    
-                    // Xóa sản phẩm đã đặt khỏi giỏ hàng
-                    const cart = JSON.parse(localStorage.getItem('cart') || '[]')
-                    const remainingCart = cart.filter(cartItem => 
-                        !selectedItems.value.some(selectedItem => selectedItem.id === cartItem.id)
-                    )
-                    localStorage.setItem('cart', JSON.stringify(remainingCart))
-                    localStorage.removeItem('selectedCart')
-                    
-                    // Dispatch event để cập nhật header
-                    window.dispatchEvent(new Event('storage'))
-                    
-                    showSuccessModal.value = true
-                } else {
-                    alert(result.message || 'Đặt hàng thất bại, vui lòng thử lại')
+                const userData = localStorage.getItem('user') || sessionStorage.getItem('user')
+                if (userData) {
+                    const user = JSON.parse(userData)
+                    customerInfo.value.name = user.hoveten || ''
+                    customerInfo.value.phone = user.sodienthoai || ''
+                    customerInfo.value.email = user.email || ''
+                    console.log('Loaded user info:', customerInfo.value)
                 }
             } catch (error) {
-                console.error('Lỗi khi đặt hàng:', error)
-                alert('Có lỗi xảy ra khi đặt hàng, vui lòng thử lại')
-            } finally {
-                orderProcessing.value = false
+                console.error('Error loading user info:', error)
             }
         }
 
-        const goToOrderHistory = () => {
-            showSuccessModal.value = false
-            router.push('/thongtintk/hoadon')
-        }
-
-        const continueShopping = () => {
-            showSuccessModal.value = false
-            router.push('/')
-        }
-
-        // Lifecycle
         onMounted(() => {
             loadSelectedItems()
             loadUserInfo()
@@ -519,56 +305,36 @@ export default {
 
         return {
             selectedItems,
-            orderNote,
-            shippingAddress,
-            tempAddress,
-            orderLoading,
-            orderProcessing,
-            showAddressModal,
-            showShippingModal,
-            showPaymentModal,
-            showSuccessModal,
-            orderId,
-            paymentResult,
-            userInfo,
-            shippingMethods,
-            shippingMethod,
-            tempShippingMethod,
-            paymentMethods,
-            paymentMethod,
-            tempPaymentMethod,
+            customerInfo,
+            errors,
+            errorMessage,
+            processing,
             subtotal,
+            totalPrice,
             totalDiscount,
-            finalTotal,
-            canPlaceOrder,
-            formatCurrency,
-            updateAddress,
-            updateShipping,
-            updatePayment,
-            confirmOrder,
-            goToOrderHistory,
-            continueShopping
+            formatPrice,
+            handleImageError,
+            proceedToPayment
         }
     }
 }
 </script>
 
 <style scoped>
-.modal {
-    background-color: rgba(0, 0, 0, 0.5);
-}
-
 .card {
-    transition: box-shadow 0.2s;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.card:hover {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+.is-invalid {
+    border-color: #dc3545;
 }
 
-.form-check-input:checked {
-    background-color: #007bff;
-    border-color: #007bff;
+.invalid-feedback {
+    display: block;
+    color: #dc3545;
+    font-size: 0.875em;
+    margin-top: 0.25rem;
 }
 
 .btn:disabled {
@@ -577,14 +343,17 @@ export default {
 }
 
 @media (max-width: 768px) {
-    .d-flex.justify-content-between {
-        flex-direction: column;
-        align-items: flex-start !important;
+    .container {
+        padding: 0 10px;
     }
     
-    .text-end {
-        text-align: left !important;
-        margin-top: 0.5rem;
+    .table-responsive {
+        font-size: 0.9em;
+    }
+    
+    .btn-lg {
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
     }
 }
 </style>

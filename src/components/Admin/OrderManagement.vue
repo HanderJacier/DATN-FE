@@ -9,31 +9,42 @@
       <div class="row g-3 mb-4">
         <div class="col-md-4">
           <input 
-            v-model="searchKeyword" 
-            type="text" 
-            placeholder="Tìm theo tên, SĐT, mã giao dịch..." 
+            v-model="searchKeyword"
+            type="text"
+            placeholder="Tìm theo tên, SĐT, mã giao dịch..."
             class="form-control"
+            @keyup.enter="searchOrdersHandler"
           />
         </div>
         <div class="col-md-3">
-          <select v-model="statusFilter" class="form-select">
+          <select v-model="statusFilter" class="form-select" @change="onFilterChange">
             <option value="">Tất cả trạng thái</option>
             <option value="Chờ thanh toán">Chờ thanh toán</option>
             <option value="Đã thanh toán">Đã thanh toán</option>
+            <option value="Đang xử lý">Đang xử lý</option>
+            <option value="Đang giao hàng">Đang giao hàng</option>
+            <option value="Đã giao hàng">Đã giao hàng</option>
             <option value="Đã hủy">Đã hủy</option>
           </select>
         </div>
         <div class="col-md-2">
-          <input v-model="fromDate" type="date" class="form-control" />
+          <input v-model="fromDate" type="date" class="form-control" @change="onFilterChange" />
         </div>
         <div class="col-md-2">
-          <input v-model="toDate" type="date" class="form-control" />
+          <input v-model="toDate" type="date" class="form-control" @change="onFilterChange" />
         </div>
         <div class="col-md-1">
-          <button class="btn btn-primary w-100" @click="searchOrders">
+          <button class="btn btn-primary w-100" @click="searchOrdersHandler" :disabled="ordersLoading">
             <i class="bi bi-search"></i>
           </button>
         </div>
+      </div>
+
+      <!-- Nút refresh -->
+      <div class="mb-3">
+        <button class="btn btn-outline-primary" @click="refreshData" :disabled="ordersLoading">
+          <i class="bi bi-arrow-clockwise"></i> Làm mới
+        </button>
       </div>
 
       <!-- Thống kê nhanh -->
@@ -41,7 +52,7 @@
         <div class="col-md-3">
           <div class="card bg-primary text-white">
             <div class="card-body text-center">
-              <h5>{{ orderStats.tong_hoa_don }}</h5>
+              <h5>{{ orderStats.tong_hoa_don || 0 }}</h5>
               <p class="mb-0">Tổng hóa đơn</p>
             </div>
           </div>
@@ -49,7 +60,7 @@
         <div class="col-md-3">
           <div class="card bg-success text-white">
             <div class="card-body text-center">
-              <h5>{{ orderStats.da_thanh_toan }}</h5>
+              <h5>{{ orderStats.da_thanh_toan || 0 }}</h5>
               <p class="mb-0">Đã thanh toán</p>
             </div>
           </div>
@@ -57,7 +68,7 @@
         <div class="col-md-3">
           <div class="card bg-warning text-white">
             <div class="card-body text-center">
-              <h5>{{ orderStats.cho_thanh_toan }}</h5>
+              <h5>{{ orderStats.cho_thanh_toan || 0 }}</h5>
               <p class="mb-0">Chờ thanh toán</p>
             </div>
           </div>
@@ -65,7 +76,7 @@
         <div class="col-md-3">
           <div class="card bg-info text-white">
             <div class="card-body text-center">
-              <h5>{{ formatCurrency(orderStats.tong_doanh_thu) }}</h5>
+              <h5>{{ formatCurrency(orderStats.tong_doanh_thu || 0) }}</h5>
               <p class="mb-0">Tổng doanh thu</p>
             </div>
           </div>
@@ -76,6 +87,12 @@
       <div v-if="ordersLoading" class="text-center py-4">
         <div class="spinner-border text-primary" role="status"></div>
         <p class="mt-2">Đang tải danh sách hóa đơn...</p>
+      </div>
+
+      <!-- Error message -->
+      <div v-else-if="ordersError" class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle"></i>
+        Có lỗi xảy ra khi tải dữ liệu: {{ ordersError }}
       </div>
 
       <!-- Bảng hóa đơn -->
@@ -102,8 +119,8 @@
               <td>{{ formatDate(order.ngaytao) }}</td>
               <td>{{ formatCurrency(order.giahoadon) }}</td>
               <td>
-                <select 
-                  :value="order.trangthai" 
+                <select
+                  :value="order.trangthai"
                   @change="updateStatus(order.id_hd, $event.target.value)"
                   class="form-select form-select-sm"
                   :disabled="updateLoading"
@@ -119,7 +136,7 @@
               <td>{{ order.phuongthuc || 'COD' }}</td>
               <td>{{ order.magiaodich || '-' }}</td>
               <td>
-                <button 
+                <button
                   class="btn btn-sm btn-primary"
                   @click="viewOrderDetail(order.id_hd)"
                 >
@@ -143,9 +160,9 @@
             <button class="page-link" @click="changePage(currentPage - 1)">Trước</button>
           </li>
           <li 
-            v-for="page in totalPages" 
-            :key="page" 
-            class="page-item" 
+            v-for="page in totalPages"
+            :key="page"
+            class="page-item"
             :class="{ active: currentPage === page }"
           >
             <button class="page-link" @click="changePage(page)">{{ page }}</button>
@@ -164,7 +181,6 @@
 
     <!-- Modal chi tiết hóa đơn -->
     <div v-if="showDetailModal" class="modal fade show d-block" tabindex="-1">
-     
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
@@ -181,7 +197,7 @@
               <div class="row mb-4">
                 <div class="col-md-6">
                   <h6 class="fw-bold">Thông tin khách hàng</h6>
-                  <p><strong>Họ tên:</strong> {{ orderDetail.hovaten }}</p>
+                  <p><strong>Họ tên:</strong> {{ orderDetail.hoveten }}</p>
                   <p><strong>SĐT:</strong> {{ orderDetail.sodienthoai }}</p>
                   <p><strong>Email:</strong> {{ orderDetail.email }}</p>
                 </div>
@@ -242,7 +258,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import useOrderManagement from './QLND/useOrderManagement.js'
 
 export default {
@@ -255,6 +271,7 @@ export default {
       paymentInfo,
       orderStats,
       ordersLoading,
+      ordersError,
       detailLoading,
       updateLoading,
       fetchAllOrders,
@@ -280,14 +297,28 @@ export default {
       return Math.ceil(totalOrders.value / pageSize.value)
     })
 
+    // Load dữ liệu ban đầu
     const loadOrders = async (page = 1) => {
       currentPage.value = page
-      await fetchAllOrders(page, pageSize.value, statusFilter.value)
-      totalOrders.value = orders.value.length // Giả sử có tổng số
+      console.log('Loading orders with params:', {
+        page,
+        pageSize: pageSize.value,
+        status: statusFilter.value
+      })
+      
+      await fetchAllOrders(page, pageSize.value, statusFilter.value || null)
+      totalOrders.value = orders.value.length // Cần cập nhật logic này nếu có total count từ API
     }
 
+    // Tìm kiếm hóa đơn
     const searchOrdersHandler = async () => {
       currentPage.value = 1
+      console.log('Searching orders with params:', {
+        keyword: searchKeyword.value,
+        fromDate: fromDate.value,
+        toDate: toDate.value
+      })
+      
       await searchOrders(
         searchKeyword.value || null,
         fromDate.value || null,
@@ -297,9 +328,36 @@ export default {
       )
     }
 
+    // Xử lý thay đổi filter
+    const onFilterChange = async () => {
+      if (searchKeyword.value || fromDate.value || toDate.value) {
+        await searchOrdersHandler()
+      } else {
+        await loadOrders(1)
+      }
+    }
+
+    // Làm mới dữ liệu
+    const refreshData = async () => {
+      // Reset filters
+      searchKeyword.value = ''
+      statusFilter.value = ''
+      fromDate.value = ''
+      toDate.value = ''
+      currentPage.value = 1
+      
+      // Load lại dữ liệu
+      await loadOrders(1)
+      await fetchOrderStats()
+    }
+
     const changePage = (page) => {
       if (page >= 1 && page <= totalPages.value) {
-        loadOrders(page)
+        if (searchKeyword.value || fromDate.value || toDate.value) {
+          searchOrdersHandler()
+        } else {
+          loadOrders(page)
+        }
       }
     }
 
@@ -315,6 +373,9 @@ export default {
         
         actionMessage.value = 'Cập nhật trạng thái thành công'
         actionSuccess.value = true
+        
+        // Refresh stats
+        await fetchOrderStats()
       } else {
         actionMessage.value = 'Cập nhật trạng thái thất bại'
         actionSuccess.value = false
@@ -345,12 +406,25 @@ export default {
       return new Intl.NumberFormat('vi-VN', {
         style: 'currency',
         currency: 'VND',
-      }).format(value)
+      }).format(value || 0)
     }
 
+    // Watch orders để debug
+    watch(orders, (newOrders) => {
+      console.log('Orders updated:', newOrders)
+    }, { deep: true })
+
     onMounted(async () => {
-      await loadOrders()
-      await fetchOrderStats()
+      console.log('Component mounted, loading initial data...')
+      try {
+        await Promise.all([
+          loadOrders(1),
+          fetchOrderStats()
+        ])
+        console.log('Initial data loaded successfully')
+      } catch (error) {
+        console.error('Error loading initial data:', error)
+      }
     })
 
     return {
@@ -360,6 +434,7 @@ export default {
       paymentInfo,
       orderStats,
       ordersLoading,
+      ordersError,
       detailLoading,
       updateLoading,
       searchKeyword,
@@ -374,6 +449,8 @@ export default {
       actionSuccess,
       loadOrders,
       searchOrders: searchOrdersHandler,
+      onFilterChange,
+      refreshData,
       changePage,
       updateStatus,
       viewOrderDetail,
@@ -400,5 +477,15 @@ export default {
 
 .card:hover {
   transform: translateY(-2px);
+}
+
+.table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 </style>

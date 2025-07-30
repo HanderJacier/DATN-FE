@@ -141,7 +141,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import useHomeLogic from '@/components/User/LoadDB/ChiTietSP.js'
+import useHomeLogic from './LoadDB/ChiTietSP.js'
 
 import ThichSanPham from './ChiTietSP/ThichSanPham.vue'
 import ProductReviews from './ChiTietSP/BinhLuan.vue'
@@ -200,7 +200,7 @@ const addToCart = () => {
 
 const buyNow = () => {
   addToCart()
-  router.push('/giohang')
+  router.push('/giohang').then(() => window.location.reload())
 }
 
 onMounted(async () => {
