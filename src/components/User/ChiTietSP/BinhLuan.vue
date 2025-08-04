@@ -94,6 +94,7 @@ const danhSachDanhGia = ref([])
 const selectedStar = ref(0)
 const diemSo = ref(0)
 const noiDung = ref('')
+const isSubmitting = ref(false) // ✅ Trạng thái đang gửi đánh giá
 
 const trangHienTai = ref(1)
 const soDanhGiaMoiTrang = 3
@@ -165,6 +166,10 @@ const guiDanhGia = async () => {
     return
   }
 
+  if (isSubmitting.value) return // ✅ Chặn gửi liên tục
+
+  isSubmitting.value = true
+
   const payload = {
     params: {
       p_taikhoan: taiKhoanId,
@@ -176,24 +181,26 @@ const guiDanhGia = async () => {
 
   try {
     await axios.post('http://localhost:8080/api/datn/WBH_US_CRT_DANH_GIA', payload)
-    await fetchDanhGia() // gọi lại để load danh sách đánh giá mới nhất
+    await fetchDanhGia()
     diemSo.value = 0
     noiDung.value = ''
     alert('Đánh giá của bạn đã được gửi thành công!')
   } catch (error) {
     console.error(error)
     alert('Gửi đánh giá thất bại, vui lòng kiểm tra đăng nhập!')
+  } finally {
+    isSubmitting.value = false
   }
 }
 
-
-// Định dạng ngày
+// Hiển thị thời gian
 const thoiGian = (isoDate) => {
   return dayjs(isoDate).format('HH:mm DD/MM/YYYY')
 }
 
 onMounted(fetchDanhGia)
 </script>
+
 
 <style scoped>
 i {
