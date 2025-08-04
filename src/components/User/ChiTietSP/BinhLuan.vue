@@ -131,19 +131,32 @@ watch(selectedStar, () => {
 //Fetch đánh giá từ backend
 const fetchDanhGia = async () => {
   try {
-    const res = await axios.get(`http://localhost:8080/api/danhgia/${sanPhamId}`)
-    danhSachDanhGia.value = res.data.map(item => ({
-      id: item.id_dg,
-      tenNguoiDung: item.tenNguoiDung || 'Người dùng',
-      ngay: item.thoigian || new Date().toISOString(),
-      diemSo: item.diemso,
-      noiDung: item.noidung
-    }))
+    const res = await axios.post('http://localhost:8080/api/datn/WBH_US_SEL_DANH_GIA_THEO_SP', {
+      params: {
+        p_sanpham: sanPhamId,
+        p_pageNo: 1,
+        p_pageSize: 5
+      }
+    })
+
+    // Trích dữ liệu từ res.data (mỗi item có thuộc tính fields)
+    danhSachDanhGia.value = res.data.map(item => {
+      const f = item.fields
+      return {
+        id: f.id_dg,
+        tenNguoiDung: f.hoveten || 'Người dùng',
+        ngay: f.ngaytao || new Date().toISOString(),
+        diemSo: f.diemso,
+        noiDung: f.noidung
+      }
+    })
   } catch (err) {
     console.error(err)
     danhSachDanhGia.value = []
   }
 }
+
+
 
 // Gửi đánh giá mới
 const guiDanhGia = async () => {
@@ -153,23 +166,26 @@ const guiDanhGia = async () => {
   }
 
   const payload = {
-    taikhoan: taiKhoanId,
-    sanpham: sanPhamId,
-    noidung: noiDung.value,
-    diemso: diemSo.value
+    params: {
+      p_taikhoan: taiKhoanId,
+      p_sanpham: sanPhamId,
+      p_noidung: noiDung.value,
+      p_diemso: diemSo.value
+    }
   }
 
   try {
-    await axios.post('http://localhost:8080/api/danhgia/create', payload)
-    await fetchDanhGia()
+    await axios.post('http://localhost:8080/api/datn/WBH_US_CRT_DANH_GIA', payload)
+    await fetchDanhGia() // gọi lại để load danh sách đánh giá mới nhất
     diemSo.value = 0
     noiDung.value = ''
-    alert('Đánh giá của bạn đã được gửi đã được gửi!')
+    alert('Đánh giá của bạn đã được gửi thành công!')
   } catch (error) {
     console.error(error)
     alert('Gửi đánh giá thất bại, vui lòng kiểm tra đăng nhập!')
   }
 }
+
 
 // Định dạng ngày
 const thoiGian = (isoDate) => {
