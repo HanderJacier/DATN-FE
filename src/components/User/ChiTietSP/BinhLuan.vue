@@ -13,7 +13,6 @@
       </button>
     </div>
 
-
     <!-- Danh sách đánh giá -->
     <div v-if="danhGiaLoc.length > 0">
       <div v-for="(review, index) in danhGiaLoc" :key="index" class="border p-3 rounded mb-3">
@@ -94,20 +93,19 @@ const danhSachDanhGia = ref([])
 const selectedStar = ref(0)
 const diemSo = ref(0)
 const noiDung = ref('')
-const isSubmitting = ref(false) // ✅ Trạng thái đang gửi đánh giá
 
 const trangHienTai = ref(1)
-const soDanhGiaMoiTrang = 3
+const soDanhGiaMoiTrang = 4
 
 let taiKhoanId = null
 const userData = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user'))
 if (userData && userData.id_tk) {
   taiKhoanId = userData.id_tk
 } else {
-
+  console.warn("Không tìm thấy thông tin tài khoản trong localStorage/sessionStorage.")
 }
 
-//\Lọc và phân trang danh sách đánh giá
+// Lọc và phân trang
 const danhGiaLoc = computed(() => {
   const daLoc = selectedStar.value === 0
     ? danhSachDanhGia.value
@@ -124,23 +122,20 @@ const soTrang = computed(() => {
   return Math.ceil(tong / soDanhGiaMoiTrang)
 })
 
-// Reset trang khi thay đổi bộ lọc sao
 watch(selectedStar, () => {
   trangHienTai.value = 1
 })
 
-//Fetch đánh giá từ backend
 const fetchDanhGia = async () => {
   try {
     const res = await axios.post('http://localhost:8080/api/datn/WBH_US_SEL_DANH_GIA_THEO_SP', {
       params: {
         p_sanpham: sanPhamId,
         p_pageNo: 1,
-        p_pageSize: 5
+        p_pageSize: 100
       }
     })
 
-    // Trích dữ liệu từ res.data (mỗi item có thuộc tính fields)
     danhSachDanhGia.value = res.data.map(item => {
       const f = item.fields
       return {
@@ -157,18 +152,16 @@ const fetchDanhGia = async () => {
   }
 }
 
-
-
-// Gửi đánh giá mới
 const guiDanhGia = async () => {
+  if (!taiKhoanId) {
+    alert('Vui lòng đăng nhập để gửi đánh giá!')
+    return
+  }
+
   if (diemSo.value === 0 || noiDung.value.trim() === '') {
     alert('Vui lòng chọn chất lượng và nhập nội dung đánh giá!')
     return
   }
-
-  if (isSubmitting.value) return // ✅ Chặn gửi liên tục
-
-  isSubmitting.value = true
 
   const payload = {
     params: {
@@ -188,12 +181,9 @@ const guiDanhGia = async () => {
   } catch (error) {
     console.error(error)
     alert('Gửi đánh giá thất bại, vui lòng kiểm tra đăng nhập!')
-  } finally {
-    isSubmitting.value = false
   }
 }
 
-// Hiển thị thời gian
 const thoiGian = (isoDate) => {
   return dayjs(isoDate).format('HH:mm DD/MM/YYYY')
 }
@@ -201,15 +191,11 @@ const thoiGian = (isoDate) => {
 onMounted(fetchDanhGia)
 </script>
 
-
 <style scoped>
 i {
   cursor: pointer;
 }
 
-
-
-/* Phân trang */
 .page-link {
   width: 36px;
   height: 36px;
