@@ -147,10 +147,28 @@
           <!-- Thông tin sản phẩm -->
           <div class="col-md-6">
             <h5 class="fw-bold">{{ product.tensanpham }}</h5>
-            <div class="d-flex align-items-center mb-3">
-              <div class="me-2 text-warning">★★★★★</div>
-              <small class="me-3 text-muted">Đã bán {{ product.soluong || 0 }}</small>
-              <small class="me-3 text-muted">Đánh giá</small>
+            <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+
+              <div class="d-flex align-items-center text-secondary small">
+                <i class="fas fa-shopping-cart me-1 text-primary"></i>
+                <span>Đã bán:</span>
+                <strong class="ms-1">{{ product.soluong || 0 }}</strong>
+              </div>
+
+              <div class="d-flex align-items-center text-secondary small">
+                <i class="fas fa-star me-1 text-warning"></i>
+                <span>Đánh giá:</span>
+                <template v-if="ratingStats.tong_danh_gia > 0">
+                  <span class="ms-1">
+                    <strong>{{ ratingStats.diem_trung_binh.toFixed(1) }}</strong>
+                    <span class="text-warning">★</span>
+                    <small class="ms-1 text-muted">({{ ratingStats.tong_danh_gia }} lượt)</small>
+                  </span>
+                </template>
+                <template v-else>
+                  <span class="ms-1 text-muted">(Chưa có)</span>
+                </template>
+              </div>
             </div>
 
             <!-- Giá sản phẩm -->
@@ -254,6 +272,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import axios from 'axios'
 import useHomeLogic from './LoadDB/ChiTietSP.js'
 
 import ThichSanPham from './ChiTietSP/ThichSanPham.vue'
@@ -269,6 +288,10 @@ const showMore = ref(false)
 const showStickyHeader = ref(false)
 
 const specs = ref({ cpu: {}, gpu: {}, other: {} })
+const ratingStats = ref({
+  tong_danh_gia: 0,
+  diem_trung_binh: 0,
+})
 
 const isGiamGiaValid = computed(() => {
   const now = new Date()
@@ -336,11 +359,28 @@ const handleScroll = () => {
   showStickyHeader.value = window.scrollY > 400
 }
 
+const fetchRatingStats = async (productId) => {
+  try {
+    const response = await axios.post(
+      'http://localhost:8080/api/datn/WBH_US_SEL_THONG_KE_DANH_GIA',
+      {
+        params: { p_sanpham: productId },
+      }
+    );
+    if (Array.isArray(response.data) && response.data.length > 0) {
+      ratingStats.value = response.data[0].fields;
+    }
+  } catch (error) {
+    console.error('Lỗi khi lấy thống kê đánh giá:', error);
+  }
+};
+
 onMounted(async () => {
   const id = route.params.id
   if (id) {
     await fetchChiTietSanPham(id)
     if (product.value) {
+      await fetchRatingStats(product.value.id)
       const data = product.value
       specs.value = {
         cpu: {
@@ -374,6 +414,7 @@ onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
 })
 </script>
+
 
 <style scoped>
 .fixed-product-img {
