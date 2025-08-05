@@ -13,28 +13,39 @@
       </button>
     </div>
 
+
+
     <!-- Danh sách đánh giá -->
     <div v-if="danhGiaLoc.length > 0">
-      <div v-for="(review, index) in danhGiaLoc" :key="index" class="border p-3 rounded mb-3">
-        <div class="d-flex align-items-center mb-2">
-          <div class="rounded-circle text-white bg-primary d-flex justify-content-center align-items-center me-2"
-            style="width: 40px; height: 40px;">
-            {{ review.tenNguoiDung?.charAt(0) || "U" }}
-          </div>
-          <div>
-            <strong>{{ review.tenNguoiDung || 'Người dùng' }}</strong>
-            <div class="text-muted" style="font-size: 13px;">
-              {{ thoiGian(review.ngay) }}
+      <div v-for="(review, index) in danhGiaLoc" :key="index" class="card shadow-sm mb-3 border-0">
+        <div class="card-body">
+          <div class="d-flex align-items-start">
+            <div
+              class="rounded-circle text-white bg-primary flex-shrink-0 d-flex justify-content-center align-items-center me-3"
+              style="width: 48px; height: 48px; font-weight: 500; font-size: 18px;">
+              {{ review.tenNguoiDung?.charAt(0) || "U" }}
+            </div>
+            <div class="flex-grow-1">
+              <div class="d-flex align-items-center justify-content-between mb-1">
+                <h6 class="mb-0 fw-semibold text-dark">
+                  {{ review.tenNguoiDung || "Người dùng" }}
+                </h6>
+                <div class="text-warning">
+                  <i v-for="n in 5" :key="n" :class="n <= review.diemSo ? 'fas fa-star' : 'far fa-star'"></i>
+                </div>
+              </div>
+              <small class="text-muted">{{ thoiGian(review.ngay) }}</small>
+              <p class="mt-2 mb-0 text-body">
+                {{ review.noiDung }}
+              </p>
             </div>
           </div>
-          <div class="ms-auto text-warning">
-            <i v-for="n in 5" :key="n" :class="n <= review.diemSo ? 'fas fa-star' : 'far fa-star'"></i>
-          </div>
         </div>
-        <p class="mb-1">{{ review.noiDung }}</p>
       </div>
     </div>
-    <div v-else class="text-muted">Không tìm thấy đánh giá phù hợp.</div>
+    <div v-else class="text-muted text-center py-4">
+      Không tìm thấy đánh giá phù hợp.
+    </div>
 
     <!-- Phân trang -->
     <nav v-if="soTrang > 1" class="d-flex justify-content-center mt-3">
@@ -57,7 +68,7 @@
     </nav>
 
     <!-- Gửi đánh giá -->
-    <h5 class="mb-3 fw-bold">Gửi đánh giá của bạn</h5>
+    <h4 class="mb-3">Gửi đánh giá của bạn</h4>
 
     <div class="mb-3">
       <label class="form-label fw-semibold text-secondary">Điểm đánh giá:</label>
@@ -197,7 +208,7 @@ const guiDanhGia = async () => {
 }
 
 const thoiGian = (isoDate) => {
-  return dayjs(isoDate).format('HH:mm DD/MM/YYYY')
+  return dayjs(isoDate).format('DD/MM/YYYY')
 }
 
 onMounted(fetchDanhGia)
