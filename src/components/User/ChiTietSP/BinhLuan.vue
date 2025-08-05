@@ -57,21 +57,33 @@
     </nav>
 
     <!-- Gửi đánh giá -->
-    <h5 class="mt-4 mb-3">Gửi đánh giá của bạn</h5>
+    <h5 class="mb-3 fw-bold">Gửi đánh giá của bạn</h5>
 
     <div class="mb-3">
-      <label class="form-label">Điểm đánh giá:</label>
-      <span v-for="index in 5" :key="index" class="text-warning me-1" role="button" @click="diemSo = index"
-        style="font-size: 22px;">
-        <i :class="index <= diemSo ? 'fas fa-star' : 'far fa-star'"></i>
-      </span>
+      <label class="form-label fw-semibold text-secondary">Điểm đánh giá:</label>
+      <div class="d-flex gap-1">
+        <span v-for="index in 5" :key="index"
+          class="text-warning star-rating d-inline-flex align-items-center justify-content-center rounded-circle"
+          :class="index <= diemSo ? 'bg-warning bg-opacity-25' : ''" role="button" @click="diemSo = index"
+          style="width: 38px; height: 38px; font-size: 20px; transition: transform 0.2s;">
+          <i :class="index <= diemSo ? 'fas fa-star' : 'far fa-star'"></i>
+        </span>
+      </div>
     </div>
 
     <div class="mb-3">
-      <textarea class="form-control" v-model="noiDung" rows="4" placeholder="Nội dung đánh giá..."></textarea>
+      <label class="form-label fw-semibold text-secondary">Nội dung đánh giá:</label>
+      <textarea class="form-control rounded-4 shadow-sm" v-model="noiDung" rows="4"
+        placeholder="Nhập nội dung đánh giá..." style="transition: box-shadow 0.2s;"
+        @focus="$event.target.classList.add('shadow-lg')"
+        @blur="$event.target.classList.remove('shadow-lg')"></textarea>
     </div>
 
-    <button type="button" class="btn btn-primary" @click="guiDanhGia">Gửi đánh giá</button>
+    <button type="button" class="btn btn-primary w-100 py-2 rounded-pill shadow" @click="guiDanhGia"
+      style="transition: all 0.2s;" @mouseover="$event.target.classList.add('scale-up')"
+      @mouseout="$event.target.classList.remove('scale-up')">
+      <i class="fas fa-paper-plane me-2"></i> Gửi đánh giá
+    </button>
   </div>
 </template>
 
@@ -215,5 +227,14 @@ i {
 .page-item.disabled .page-link {
   pointer-events: none;
   opacity: 0.6;
+}
+
+/* ô nhập nhận xét */
+.star-rating:hover {
+  transform: scale(1.2);
+}
+
+.scale-up {
+  transform: scale(1.02);
 }
 </style>
