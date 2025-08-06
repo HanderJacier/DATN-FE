@@ -256,7 +256,7 @@
             </div>
           </div>
         </div>
-        <OtherProducts />
+        <SanPhamMoi />
       </div>
       <ProductReviews />
     </div>
@@ -277,7 +277,7 @@ import useHomeLogic from './LoadDB/ChiTietSP.js'
 
 import ThichSanPham from './ChiTietSP/ThichSanPham.vue'
 import ProductReviews from './ChiTietSP/BinhLuan.vue'
-import OtherProducts from './Home/SPYeuThich.vue'
+import SanPhamMoi from './Home/SPMoi.vue'
 
 const route = useRoute()
 const router = useRouter()
