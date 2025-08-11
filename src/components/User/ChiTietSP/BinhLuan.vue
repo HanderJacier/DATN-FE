@@ -209,6 +209,11 @@ const guiDanhGia = async () => {
     return
   }
 
+  if (diemSo.value === 0 && noiDung.value.trim() === '') {
+    hienThiThongBao('Vui lòng chọn điểm đánh giá và nhập nội dung đánh giá!', 'danger')
+    return
+  }
+
   if (noiDung.value.trim() === '') {
     hienThiThongBao('Vui lòng nhập nội dung đánh giá!', 'danger')
     return
@@ -218,8 +223,6 @@ const guiDanhGia = async () => {
     hienThiThongBao('Vui lòng chọn điểm đánh giá!', 'danger')
     return
   }
-
-
 
   const payload = {
     params: {
