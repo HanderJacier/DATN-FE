@@ -1,5 +1,14 @@
 <template>
   <div class="container my-4">
+    <!-- Thanh thông báo -->
+    <div v-if="thongBao.show"
+      :class="['alert', thongBao.type === 'success' ? 'alert-success' : 'alert-danger', 'alert-dismissible', 'fade', 'show']"
+      role="alert"
+      style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1050; min-width: 300px;">
+      {{ thongBao.message }}
+      <button type="button" class="btn-close" aria-label="Close" @click="thongBao.show = false"></button>
+    </div>
+
     <h4 class="mb-3">Đánh giá sản phẩm</h4>
 
     <!-- Bộ lọc sao -->
@@ -12,8 +21,6 @@
         <template v-else>{{ s }} <i class="fa-regular fa-star"></i></template>
       </button>
     </div>
-
-
 
     <!-- Danh sách đánh giá -->
     <div v-if="danhGiaLoc.length > 0">
@@ -128,6 +135,23 @@ if (userData && userData.id_tk) {
   console.warn("Không tìm thấy thông tin tài khoản trong localStorage/sessionStorage.")
 }
 
+// Thông báo (alert thay thế)
+const thongBao = ref({
+  show: false,
+  message: '',
+  type: 'success' // 'success' hoặc 'danger'
+})
+
+function hienThiThongBao(message, type = 'success') {
+  thongBao.value.message = message
+  thongBao.value.type = type
+  thongBao.value.show = true
+  // Ẩn sau 3s
+  setTimeout(() => {
+    thongBao.value.show = false
+  }, 3000)
+}
+
 // Lọc và phân trang
 const danhGiaLoc = computed(() => {
   const daLoc = selectedStar.value === 0
@@ -159,16 +183,20 @@ const fetchDanhGia = async () => {
       }
     })
 
-    danhSachDanhGia.value = res.data.map(item => {
-      const f = item.fields
-      return {
-        id: f.id_dg,
-        tenNguoiDung: f.hoveten || 'Người dùng',
-        ngay: f.ngaytao || new Date().toISOString(),
-        diemSo: f.diemso,
-        noiDung: f.noidung
-      }
-    })
+    danhSachDanhGia.value = res.data
+      .map(item => {
+        const f = item.fields
+        return {
+          id: f.id_dg,
+          tenNguoiDung: f.hoveten || 'Người dùng',
+          ngay: f.ngaytao || new Date().toISOString(),
+          diemSo: f.diemso,
+          noiDung: f.noidung
+        }
+      })
+      // Loại bỏ đánh giá gốc, giả lập:
+      .filter(dg => dg.tenNguoiDung !== 'Người dùng' && dg.noiDung.trim() !== '' && dg.diemSo > 0)
+
   } catch (err) {
     console.error(err)
     danhSachDanhGia.value = []
@@ -177,12 +205,22 @@ const fetchDanhGia = async () => {
 
 const guiDanhGia = async () => {
   if (!taiKhoanId) {
-    alert('Vui lòng đăng nhập để gửi đánh giá!')
+    hienThiThongBao('Vui lòng đăng nhập để gửi đánh giá!', 'danger')
     return
   }
 
-  if (diemSo.value === 0 || noiDung.value.trim() === '') {
-    alert('Vui lòng chọn chất lượng và nhập nội dung đánh giá!')
+  if (diemSo.value === 0 && noiDung.value.trim() === '') {
+    hienThiThongBao('Vui lòng chọn điểm đánh giá và nhập nội dung đánh giá!', 'danger')
+    return
+  }
+
+  if (noiDung.value.trim() === '') {
+    hienThiThongBao('Vui lòng nhập nội dung đánh giá!', 'danger')
+    return
+  }
+
+  if (diemSo.value === 0) {
+    hienThiThongBao('Vui lòng chọn điểm đánh giá!', 'danger')
     return
   }
 
@@ -200,10 +238,10 @@ const guiDanhGia = async () => {
     await fetchDanhGia()
     diemSo.value = 0
     noiDung.value = ''
-    alert('Đánh giá của bạn đã được gửi thành công!')
+    hienThiThongBao('Đánh giá của bạn đã được gửi thành công!', 'success')
   } catch (error) {
     console.error(error)
-    alert('Gửi đánh giá thất bại, vui lòng kiểm tra đăng nhập!')
+    hienThiThongBao('Gửi đánh giá thất bại, vui lòng kiểm tra đăng nhập!', 'danger')
   }
 }
 
