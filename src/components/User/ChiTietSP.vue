@@ -16,11 +16,11 @@
       <div class="d-flex align-items-center gap-3">
         <div class="text-end">
           <div class="text-danger fw-bold">
-            {{ giaHienTai.toLocaleString() }}₫
+            {{ giaHienTai.toLocaleString() }}đ
           </div>
           <template v-if="isGiamGiaValid">
             <div class="small text-muted">
-              <span class="text-decoration-line-through me-2">{{ product.dongia.toLocaleString() }}₫</span>
+              <span class="text-decoration-line-through me-2">{{ product.dongia.toLocaleString() }}đ</span>
               <span class="text-danger">-{{ tinhPhanTramGiamGia(product.dongia, product.giamgia) }}%</span>
             </div>
           </template>
@@ -174,11 +174,11 @@
             <!-- Giá sản phẩm -->
             <div class="border rounded-4 px-3 py-2 d-inline-block"
               style="background: #f8fbff; border-color: #e0e8f0; min-width: 300px;">
-              <small class="text-muted">Giá sản phẩm</small>
+              <small class="text-muted"><strong>Giá sản phẩm</strong></small>
               <div class="fw-bold fs-5">
-                {{ giaHienTai.toLocaleString() }}₫
+                {{ giaHienTai.toLocaleString() }}đ
                 <span v-if="isGiamGiaValid" class="text-muted text-decoration-line-through fs-6 ms-2">
-                  {{ product.dongia.toLocaleString() }}₫
+                  {{ product.dongia.toLocaleString() }}đ
                 </span>
               </div>
             </div>
@@ -213,6 +213,19 @@
                 </div>
               </template>
 
+              <!--Ưu dãi cho sinh viên-->
+              <div class="p-2 mt-1"
+                style="font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif; font-size: 0.95rem; background-color: #f5fafd; border: 1px solid #dceefc; border-radius: 16px;">
+                <ul class="list-unstyled mb-0">
+                  <li class="mb-2">
+                    <i class="bi bi-check2-circle text-success me-2"></i>
+                    Ưu đãi cho Học sinh - sinh viên, Giảng viên - giáo viên chỉ còn
+                    <strong>44.390.000đ</strong>. <br>
+                    Khi mua tại cửa hàng →
+                  </li>
+                </ul>
+              </div>
+
               <!--Hình ảnh vu vơ-->
               <div class="mt-1" style="  border-radius: 16px;">
                 <img src="/src/components/User/ChiTietSP/simDinhQuaChat.png" alt="" width="550px"
@@ -220,39 +233,28 @@
               </div>
 
               <!--Khuyế mãi-->
-              <div class="p-4 mt-1"
-                style="font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif; font-size: 0.95rem; background-color: #f5fafd; border: 1px solid #dceefc; border-radius: 16px;">
+              <div class="p-4 mt-1 mx-auto"
+                style="max-width: 550px; font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif; font-size: 0.95rem; background-color: #f5fafd; border: 1px solid #dceefc; border-radius: 16px;">
                 <h6 class="fw-bold mb-3">
                   <i class="bi bi-gift-fill text-danger me-2"></i>Khuyến mãi hấp dẫn
                 </h6>
                 <ul class="list-unstyled mb-0">
-                  <li class="mb-2">
-                    <i class="bi bi-check2-circle text-success me-2"></i>
-                    Trả góp 0% đến 12 tháng.
-                  </li>
-                  <li class="mb-2">
-                    <i class="bi bi-check2-circle text-success me-2"></i>
-                    Mua bất kỳ điện thoại nào sẽ nhận được một món quà bí ẩn (tai nghe, ốp lưng, sạc nhanh… trị giá đến
-                    300.000đ).
-                  </li>
-                  <li class="mb-2">
-                    <i class="bi bi-check2-circle text-success me-2"></i>
-                    Tặng Combo bảo vệ toàn diện Kính Cường Lực + Ốp lưng
-                  </li>
-                  <li class="mb-2">
-                    <i class="bi bi-check2-circle text-success me-2"></i>
-                    Tặng phiếu mua hàng 50,000đ khi mua sim TechMartVN kèm máy.
-                  </li>
-                  <li class="mb-2">
-                    <i class="bi bi-check2-circle text-success me-2"></i>
-                    Tặng thêm 1 tháng bảo hành.
-                  </li>
-                  <li class="mb-2">
-                    <i class="bi bi-check2-circle text-success me-2"></i>
-                    Liên hệ TechmartVN để được tư vấn giá tốt nhất cho khách hàng doanh nghiệp khi mua số lượng nhiều.
-                  </li>
+                  <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Trả góp 0% đến 12 tháng.</li>
+                  <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Mua bất kỳ điện thoại nào sẽ
+                    nhận
+                    được một món quà bí ẩn (tai nghe, ốp lưng, sạc nhanh… trị giá đến 300.000đ).</li>
+                  <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Tặng Combo bảo vệ toàn diện Kính
+                    Cường Lực + Ốp lưng</li>
+                  <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Tặng phiếu mua hàng 50,000đ khi
+                    mua
+                    sim TechMartVN kèm máy.</li>
+                  <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Tặng thêm 1 tháng bảo hành.</li>
+                  <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Liên hệ TechmartVN để được tư
+                    vấn
+                    giá tốt nhất cho khách hàng doanh nghiệp khi mua số lượng nhiều.</li>
                 </ul>
               </div>
+
             </div>
           </div>
         </div>
