@@ -13,21 +13,49 @@ const props = defineProps({
   notificationType: String
 })
 
-const emit = defineEmits(['imageChange', 'create', 'update', 'resetForm', 'deleteProduct'])
+const emit = defineEmits(['imageChange', 'multipleImagesChange', 'create', 'update', 'resetForm', 'deleteProduct'])
 
-const previewAnhPhu = ref([])
+const previewAnhPhu = ref('') // thay vì []
 
 // Khi chọn ảnh phụ, tạo preview
 function onAnhPhuChange(event) {
-  const files = Array.from(event.target.files || [])
-  previewAnhPhu.value = files.map(file => URL.createObjectURL(file))
-  emit('multipleImagesChange', event) // Đúng sự kiện cho ảnh phụ
+  const file = (event.target.files || [])[0]
+  if (file) {
+    previewAnhPhu.value = URL.createObjectURL(file)
+  } else {
+    previewAnhPhu.value = ''
+  }
+  emit('multipleImagesChange', event) // vẫn giữ để parent upload & set vào form
 }
+
 
 // Khi reset form thì reset luôn preview ảnh phụ
 watch(() => props.productForm.anhphu, (val) => {
-  if (!val || val.length === 0) previewAnhPhu.value = []
+  // nếu parent set blob/URL mới thì đồng bộ preview; nếu clear thì xóa preview
+  if (!val || (typeof val === 'string' && val.length === 0)) {
+    previewAnhPhu.value = ''
+  } else if (typeof val === 'string' && !val.startsWith('blob:')) {
+    // nếu là URL thật từ cloud, có thể hiển thị luôn (tùy bạn)
+    previewAnhPhu.value = ''
+  }
 })
+
+const anhPhuUrl = computed(() => {
+  if (previewAnhPhu.value) return previewAnhPhu.value
+  const v = props.productForm?.anhphu
+  if (!v) return ''
+  if (typeof v === 'string') {
+    // DB có thể lưu dạng JSON array '["url"]'
+    try {
+      const p = JSON.parse(v)
+      if (Array.isArray(p)) return p[0] || ''
+    } catch { }
+    return v.startsWith('blob:') ? '' : v
+  }
+  if (Array.isArray(v)) return v[0] || ''
+  return ''
+})
+
 
 function onImageChange(event) {
   emit('imageChange', event)
@@ -111,6 +139,7 @@ const loaiOptions = computed(() =>
     <div class="row g-3">
       <div class="col-md-4" v-for="key in visibleFields" :key="key">
         <label class="form-label">{{ formFields[key] }}</label>
+
         <!-- Ảnh gốc -->
         <div v-if="key === 'anhgoc'">
           <input type="file" class="form-control" @change="onImageChange" />
@@ -124,14 +153,24 @@ const loaiOptions = computed(() =>
             </span>
           </div>
         </div>
+
         <!-- Ảnh phụ -->
         <div v-else-if="key === 'anhphu'">
-          <input type="file" class="form-control" multiple @change="onAnhPhuChange" />
-          <div class="mt-2 d-flex flex-wrap gap-2">
-            <img v-for="(src, idx) in previewAnhPhu" :key="idx" :src="src" width="60" height="60"
-              class="rounded border" />
+          <input type="file" class="form-control" @change="onAnhPhuChange" />
+
+          <!-- Hiện tên file hoặc link nếu đang sửa và có ảnh -->
+          <div v-if="isEditing && (anhPhuUrl || productForm.anhphu)" class="mt-1 small text-secondary">
+            <!-- Nếu là URL thật từ DB/Cloud -->
+            <span v-if="anhPhuUrl && !anhPhuUrl.startsWith('blob:')">
+              <a :href="anhPhuUrl" target="_blank">{{ anhPhuUrl.split('/').pop() }}</a>
+            </span>
+            <!-- Nếu chưa có URL (chỉ có blob preview) -->
+            <span v-else-if="previewAnhPhu">
+              {{ (productForm.anhphu && productForm.anhphu.split('/').pop()) || 'Đang xem trước ảnh phụ' }}
+            </span>
           </div>
         </div>
+
         <!-- Các input khác -->
         <input v-else :type="['dongia', 'soluong'].includes(key) ? 'number' : 'text'" class="form-control"
           v-model="productForm[key]" />
@@ -142,10 +181,18 @@ const loaiOptions = computed(() =>
         <label class="form-label d-block">Xem trước ảnh chính</label>
         <!-- Nếu vừa chọn file mới (blob), ưu tiên hiện -->
         <img v-if="productForm.diachianh && productForm.diachianh.startsWith('blob:')" :src="productForm.diachianh"
-          width="100" height="100" class="rounded" />
+          width="100" height="100" class="rounded" style="object-fit: cover;" />
         <!-- Nếu đã upload lên cloud hoặc load lại (link cloud) -->
-        <img v-else-if="productForm.anhgoc" :src="productForm.anhgoc" width="100" height="100" class="rounded" />
+        <img v-else-if="productForm.anhgoc" :src="productForm.anhgoc" width="100" height="100" class="rounded"
+          style="object-fit: cover;" />
       </div>
+
+      <!-- Preview ảnh phụ (1 ảnh) -->
+      <div class="col-md-4" v-if="anhPhuUrl">
+        <label class="form-label d-block">Xem trước ảnh phụ</label>
+        <img :src="anhPhuUrl" width="100" height="100" class="rounded" style="object-fit: cover;" />
+      </div>
+
     </div>
 
     <!-- Buttons -->
@@ -154,7 +201,7 @@ const loaiOptions = computed(() =>
       <button type="button" class="btn btn-primary fw-bold me-2" @click="handleCreate">
         Thêm
       </button>
-      <button type="button" class="btn btn-s  uccess fw-bold" @click="handleUpdate">
+      <button type="button" class="btn btn-s btn-success fw-bold" @click="handleUpdate">
         Cập nhật
       </button>
       <button type="button" class="btn btn-danger" @click="$emit('deleteProduct')">Xóa</button>
