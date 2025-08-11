@@ -242,7 +242,7 @@ export function useProductTable() {
     editingProductId.value = selected.id_sp || null
 
     // id giảm giá
-    productForm.value.id_gg = selected.giamgia ?? 0
+    productForm.value.id_gg = selected.loaigiam ?? 0
 
     // chuẩn hoá hạn giảm giá -> dd/MM/yyyy (string)
     productForm.value.hangiamgia = normalizeDDMMYYYY(selected.hangiamgia)

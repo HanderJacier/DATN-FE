@@ -15,9 +15,9 @@ const props = defineProps({
 
 const emit = defineEmits(['imageChange', 'multipleImagesChange', 'create', 'update', 'resetForm', 'deleteProduct'])
 
-const previewAnhPhu = ref('') // thay vì []
+const previewAnhPhu = ref('')
 
-// Khi chọn ảnh phụ, tạo preview
+// Khi chọn ảnh phụ, tạo preview (chỉ 1 ảnh)
 function onAnhPhuChange(event) {
   const file = (event.target.files || [])[0]
   if (file) {
@@ -25,17 +25,14 @@ function onAnhPhuChange(event) {
   } else {
     previewAnhPhu.value = ''
   }
-  emit('multipleImagesChange', event) // vẫn giữ để parent upload & set vào form
+  emit('multipleImagesChange', event)
 }
-
 
 // Khi reset form thì reset luôn preview ảnh phụ
 watch(() => props.productForm.anhphu, (val) => {
-  // nếu parent set blob/URL mới thì đồng bộ preview; nếu clear thì xóa preview
   if (!val || (typeof val === 'string' && val.length === 0)) {
     previewAnhPhu.value = ''
   } else if (typeof val === 'string' && !val.startsWith('blob:')) {
-    // nếu là URL thật từ cloud, có thể hiển thị luôn (tùy bạn)
     previewAnhPhu.value = ''
   }
 })
@@ -45,7 +42,6 @@ const anhPhuUrl = computed(() => {
   const v = props.productForm?.anhphu
   if (!v) return ''
   if (typeof v === 'string') {
-    // DB có thể lưu dạng JSON array '["url"]'
     try {
       const p = JSON.parse(v)
       if (Array.isArray(p)) return p[0] || ''
@@ -56,6 +52,30 @@ const anhPhuUrl = computed(() => {
   return ''
 })
 
+// Xử lý chuyển đổi ngày cho input type="date"
+function toDateInputValue(ddmmyyyy) {
+  if (!ddmmyyyy || typeof ddmmyyyy !== 'string') return ''
+  const [d, m, y] = ddmmyyyy.split('/')
+  if (!d || !m || !y) return ''
+  return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`
+}
+function fromDateInputValue(yyyymmdd) {
+  if (!yyyymmdd || typeof yyyymmdd !== 'string') return ''
+  const [y, m, d] = yyyymmdd.split('-')
+  if (!y || !m || !d) return ''
+  return `${d}/${m}/${y}`
+}
+
+const hangiamgiaProxy = computed({
+  get() {
+    // Hiển thị đúng định dạng yyyy-MM-dd cho input date
+    return toDateInputValue(props.productForm.hangiamgia)
+  },
+  set(val) {
+    // Khi chọn date, chuyển về dd/MM/yyyy cho productForm
+    props.productForm.hangiamgia = fromDateInputValue(val)
+  }
+})
 
 function onImageChange(event) {
   emit('imageChange', event)
@@ -102,10 +122,10 @@ const loaiOptions = computed(() =>
       {{ notification }}
     </div>
 
-    <!-- 3 dropdown cùng 1 hàng -->
+    <!-- 3 dropdown + ngày giảm giá cùng 1 hàng -->
     <div class="row">
       <!-- Dropdown chọn loại sản phẩm -->
-      <div class="col-md-4 mb-3">
+      <div class="col-md-3 mb-3">
         <label class="form-label">Chọn loại sản phẩm</label>
         <select class="form-select" v-model="productForm.loai">
           <option disabled value="">-- Chọn loại --</option>
@@ -114,7 +134,7 @@ const loaiOptions = computed(() =>
       </div>
 
       <!-- Dropdown chọn thương hiệu -->
-      <div class="col-md-4 mb-3">
+      <div class="col-md-3 mb-3">
         <label class="form-label">Chọn thương hiệu</label>
         <select class="form-select" v-model="productForm.thuonghieu">
           <option disabled value="">-- Chọn thương hiệu --</option>
@@ -125,13 +145,23 @@ const loaiOptions = computed(() =>
       </div>
 
       <!-- Dropdown chọn giảm giá -->
-      <div class="col-md-4 mb-3">
+      <div class="col-md-3 mb-3">
         <label class="form-label">Chọn giảm giá</label>
         <select class="form-select" v-model="productForm.id_gg" :disabled="loadingDiscounts">
           <option v-for="item in giamGiaList" :key="item.id_gg" :value="item.id_gg">
             Giảm {{ item.loaigiamTen }}%
           </option>
         </select>
+      </div>
+
+      <!-- Input hạn giảm giá -->
+      <div class="col-md-3 mb-3">
+        <label class="form-label">Hạn giảm giá</label>
+        <input
+          type="date"
+          class="form-control"
+          v-model="hangiamgiaProxy"
+        />
       </div>
     </div>
 
@@ -157,14 +187,10 @@ const loaiOptions = computed(() =>
         <!-- Ảnh phụ -->
         <div v-else-if="key === 'anhphu'">
           <input type="file" class="form-control" @change="onAnhPhuChange" />
-
-          <!-- Hiện tên file hoặc link nếu đang sửa và có ảnh -->
           <div v-if="isEditing && (anhPhuUrl || productForm.anhphu)" class="mt-1 small text-secondary">
-            <!-- Nếu là URL thật từ DB/Cloud -->
             <span v-if="anhPhuUrl && !anhPhuUrl.startsWith('blob:')">
               <a :href="anhPhuUrl" target="_blank">{{ anhPhuUrl.split('/').pop() }}</a>
             </span>
-            <!-- Nếu chưa có URL (chỉ có blob preview) -->
             <span v-else-if="previewAnhPhu">
               {{ (productForm.anhphu && productForm.anhphu.split('/').pop()) || 'Đang xem trước ảnh phụ' }}
             </span>
@@ -179,10 +205,8 @@ const loaiOptions = computed(() =>
       <!-- Preview ảnh chính -->
       <div class="col-md-4" v-if="productForm.diachianh || productForm.anhgoc">
         <label class="form-label d-block">Xem trước ảnh chính</label>
-        <!-- Nếu vừa chọn file mới (blob), ưu tiên hiện -->
         <img v-if="productForm.diachianh && productForm.diachianh.startsWith('blob:')" :src="productForm.diachianh"
           width="100" height="100" class="rounded" style="object-fit: cover;" />
-        <!-- Nếu đã upload lên cloud hoặc load lại (link cloud) -->
         <img v-else-if="productForm.anhgoc" :src="productForm.anhgoc" width="100" height="100" class="rounded"
           style="object-fit: cover;" />
       </div>
@@ -192,7 +216,6 @@ const loaiOptions = computed(() =>
         <label class="form-label d-block">Xem trước ảnh phụ</label>
         <img :src="anhPhuUrl" width="100" height="100" class="rounded" style="object-fit: cover;" />
       </div>
-
     </div>
 
     <!-- Buttons -->
