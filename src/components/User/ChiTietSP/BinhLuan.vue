@@ -46,6 +46,12 @@
                 {{ review.noiDung }}
               </p>
             </div>
+            <!-- Nút sửa đánh giá nếu là đánh giá của user -->
+            <div v-if="review.isOwner" class="ms-3">
+              <button class="btn btn-sm btn-outline-primary" @click="batDauSuaDanhGia(review)">
+                <i class="fas fa-edit me-1"></i> Sửa đánh giá
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -75,33 +81,46 @@
     </nav>
 
     <!-- Gửi đánh giá -->
-    <h4 class="mb-3">Gửi đánh giá của bạn</h4>
+    <div v-if="!dangSuaDanhGia && daGuiDanhGia">
+      <button class="btn btn-outline-secondary w-100 py-2 rounded-pill" @click="batDauSuaDanhGia(danhGiaDangGui)">
+        <i class="fas fa-edit me-2"></i> Sửa đánh giá của bạn
+      </button>
+    </div>
 
-    <div class="mb-3">
-      <label class="form-label fw-semibold text-secondary">Điểm đánh giá:</label>
-      <div class="d-flex gap-1">
-        <span v-for="index in 5" :key="index"
-          class="text-warning star-rating d-inline-flex align-items-center justify-content-center rounded-circle"
-          :class="index <= diemSo ? 'bg-warning bg-opacity-25' : ''" role="button" @click="diemSo = index"
-          style="width: 38px; height: 38px; font-size: 20px; transition: transform 0.2s;">
-          <i :class="index <= diemSo ? 'fas fa-star' : 'far fa-star'"></i>
-        </span>
+    <div v-if="!daGuiDanhGia || dangSuaDanhGia" class="mt-4">
+      <h4 class="mb-3">{{ dangSuaDanhGia ? 'Sửa đánh giá của bạn' : 'Gửi đánh giá của bạn' }}</h4>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold text-secondary">Điểm đánh giá:</label>
+        <div class="d-flex gap-1">
+          <span v-for="index in 5" :key="index"
+            class="text-warning star-rating d-inline-flex align-items-center justify-content-center rounded-circle"
+            :class="index <= diemSo ? 'bg-warning bg-opacity-25' : ''" role="button" @click="diemSo = index"
+            style="width: 38px; height: 38px; font-size: 20px; transition: transform 0.2s;">
+            <i :class="index <= diemSo ? 'fas fa-star' : 'far fa-star'"></i>
+          </span>
+        </div>
       </div>
-    </div>
 
-    <div class="mb-3">
-      <label class="form-label fw-semibold text-secondary">Nội dung đánh giá:</label>
-      <textarea class="form-control rounded-4 shadow-sm" v-model="noiDung" rows="4"
-        placeholder="Nhập nội dung đánh giá..." style="transition: box-shadow 0.2s;"
-        @focus="$event.target.classList.add('shadow-lg')"
-        @blur="$event.target.classList.remove('shadow-lg')"></textarea>
-    </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold text-secondary">Nội dung đánh giá:</label>
+        <textarea class="form-control rounded-4 shadow-sm" v-model="noiDung" rows="4"
+          placeholder="Nhập nội dung đánh giá..." style="transition: box-shadow 0.2s;"
+          @focus="$event.target.classList.add('shadow-lg')"
+          @blur="$event.target.classList.remove('shadow-lg')"></textarea>
+      </div>
 
-    <button type="button" class="btn btn-primary w-100 py-2 rounded-pill shadow" @click="guiDanhGia"
-      style="transition: all 0.2s;" @mouseover="$event.target.classList.add('scale-up')"
-      @mouseout="$event.target.classList.remove('scale-up')">
-      <i class="fas fa-paper-plane me-2"></i> Gửi đánh giá
-    </button>
+      <button type="button" class="btn btn-primary w-100 py-2 rounded-pill shadow" @click="guiDanhGia"
+        style="transition: all 0.2s;" @mouseover="$event.target.classList.add('scale-up')"
+        @mouseout="$event.target.classList.remove('scale-up')">
+        <i class="fas fa-paper-plane me-2"></i> {{ dangSuaDanhGia ? 'Cập nhật đánh giá' : 'Gửi đánh giá' }}
+      </button>
+
+      <button v-if="dangSuaDanhGia" type="button" class="btn btn-secondary w-100 py-2 rounded-pill mt-2"
+        @click="huySuaDanhGia">
+        Hủy
+      </button>
+    </div>
   </div>
 </template>
 
@@ -152,27 +171,39 @@ function hienThiThongBao(message, type = 'success') {
   }, 3000)
 }
 
+// Trạng thái quản lý form đánh giá
+const dangSuaDanhGia = ref(false) // true nếu đang sửa
+const daGuiDanhGia = ref(false) // true nếu user đã gửi đánh giá (để ẩn form mặc định)
+const danhGiaDangGui = ref(null) // lưu đánh giá của user hiện tại
+
 // Lọc và phân trang
 const danhGiaLoc = computed(() => {
-  const daLoc = selectedStar.value === 0
+  // Thêm thông tin isOwner để hiển thị nút sửa
+  const ds = selectedStar.value === 0
     ? danhSachDanhGia.value
     : danhSachDanhGia.value.filter(dg => dg.diemSo === selectedStar.value)
 
+  // Gán isOwner cho từng đánh giá
+  ds.forEach(dg => {
+    dg.isOwner = taiKhoanId !== null && dg.id_tk === taiKhoanId
+  })
+
   const batDau = (trangHienTai.value - 1) * soDanhGiaMoiTrang
-  return daLoc.slice(batDau, batDau + soDanhGiaMoiTrang)
+  return ds.slice(batDau, batDau + soDanhGiaMoiTrang)
 })
 
 const soTrang = computed(() => {
-  const tong = selectedStar.value === 0
-    ? danhSachDanhGia.value.length
-    : danhSachDanhGia.value.filter(dg => dg.diemSo === selectedStar.value).length
-  return Math.ceil(tong / soDanhGiaMoiTrang)
+  const ds = selectedStar.value === 0
+    ? danhSachDanhGia.value
+    : danhSachDanhGia.value.filter(dg => dg.diemSo === selectedStar.value)
+  return Math.ceil(ds.length / soDanhGiaMoiTrang)
 })
 
 watch(selectedStar, () => {
   trangHienTai.value = 1
 })
 
+// Cập nhật danh sách đánh giá từ API
 const fetchDanhGia = async () => {
   try {
     const res = await axios.post('http://localhost:8080/api/datn/WBH_US_SEL_DANH_GIA_THEO_SP', {
@@ -183,20 +214,35 @@ const fetchDanhGia = async () => {
       }
     })
 
-    danhSachDanhGia.value = res.data
-      .map(item => {
-        const f = item.fields
-        return {
-          id: f.id_dg,
-          tenNguoiDung: f.hoveten || 'Người dùng',
-          ngay: f.ngaytao || new Date().toISOString(),
-          diemSo: f.diemso,
-          noiDung: f.noidung
-        }
-      })
-      // Loại bỏ đánh giá gốc, giả lập:
-      .filter(dg => dg.tenNguoiDung !== 'Người dùng' && dg.noiDung.trim() !== '' && dg.diemSo > 0)
+    const danhGiaRaw = res.data.map(item => {
+      const f = item.fields
+      return {
+        id: f.id_dg,
+        id_tk: f.id_taikhoan, // giả sử API trả id tài khoản người đánh giá
+        tenNguoiDung: f.hoveten || 'Người dùng',
+        ngay: f.ngaytao || new Date().toISOString(),
+        diemSo: f.diemso,
+        noiDung: f.noidung
+      }
+    }).filter(dg => dg.tenNguoiDung !== 'Người dùng' && dg.noiDung.trim() !== '' && dg.diemSo > 0)
 
+    danhSachDanhGia.value = danhGiaRaw
+
+    // Kiểm tra xem user đã gửi đánh giá chưa
+    const dgCuaUser = danhGiaRaw.find(dg => dg.id_tk === taiKhoanId)
+    if (dgCuaUser) {
+      daGuiDanhGia.value = true
+      danhGiaDangGui.value = dgCuaUser
+      diemSo.value = 0
+      noiDung.value = ''
+      dangSuaDanhGia.value = false
+    } else {
+      daGuiDanhGia.value = false
+      danhGiaDangGui.value = null
+      diemSo.value = 0
+      noiDung.value = ''
+      dangSuaDanhGia.value = false
+    }
   } catch (err) {
     console.error(err)
     danhSachDanhGia.value = []
@@ -236,17 +282,41 @@ const guiDanhGia = async () => {
   try {
     await axios.post('http://localhost:8080/api/datn/WBH_US_CRT_DANH_GIA', payload)
     await fetchDanhGia()
+
+    // Sau khi gửi thành công, ẩn form nếu không phải đang sửa (hoặc reset trạng thái)
+    if (dangSuaDanhGia.value) {
+      dangSuaDanhGia.value = false
+    } else {
+      daGuiDanhGia.value = true
+    }
     diemSo.value = 0
     noiDung.value = ''
-    hienThiThongBao('Đánh giá của bạn đã được gửi thành công!', 'success')
+
+    hienThiThongBao(dangSuaDanhGia.value ? 'Cập nhật đánh giá thành công!' : 'Đánh giá của bạn đã được gửi thành công!', 'success')
   } catch (error) {
     console.error(error)
     hienThiThongBao('Gửi đánh giá thất bại, vui lòng kiểm tra đăng nhập!', 'danger')
   }
 }
 
+// Hàm chuyển đổi ngày tháng
 const thoiGian = (isoDate) => {
   return dayjs(isoDate).format('DD/MM/YYYY')
+}
+
+// Bắt đầu sửa đánh giá
+const batDauSuaDanhGia = (danhGia) => {
+  dangSuaDanhGia.value = true
+  diemSo.value = danhGia.diemSo
+  noiDung.value = danhGia.noiDung
+  danhGiaDangGui.value = danhGia
+}
+
+// Hủy sửa đánh giá
+const huySuaDanhGia = () => {
+  dangSuaDanhGia.value = false
+  diemSo.value = 0
+  noiDung.value = ''
 }
 
 onMounted(fetchDanhGia)
