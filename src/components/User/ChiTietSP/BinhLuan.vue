@@ -13,8 +13,6 @@
       </button>
     </div>
 
-
-
     <!-- Danh sách đánh giá -->
     <div v-if="danhGiaLoc.length > 0">
       <div v-for="(review, index) in danhGiaLoc" :key="index" class="card shadow-sm mb-3 border-0">
@@ -159,16 +157,20 @@ const fetchDanhGia = async () => {
       }
     })
 
-    danhSachDanhGia.value = res.data.map(item => {
-      const f = item.fields
-      return {
-        id: f.id_dg,
-        tenNguoiDung: f.hoveten || 'Người dùng',
-        ngay: f.ngaytao || new Date().toISOString(),
-        diemSo: f.diemso,
-        noiDung: f.noidung
-      }
-    })
+    danhSachDanhGia.value = res.data
+      .map(item => {
+        const f = item.fields
+        return {
+          id: f.id_dg,
+          tenNguoiDung: f.hoveten || 'Người dùng',
+          ngay: f.ngaytao || new Date().toISOString(),
+          diemSo: f.diemso,
+          noiDung: f.noidung
+        }
+      })
+      // Loại bỏ đánh giá gốc, giả lập:
+      .filter(dg => dg.tenNguoiDung !== 'Người dùng' && dg.noiDung.trim() !== '' && dg.diemSo > 0)
+
   } catch (err) {
     console.error(err)
     danhSachDanhGia.value = []
