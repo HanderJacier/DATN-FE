@@ -146,75 +146,77 @@
 
           <!-- Thông tin sản phẩm -->
           <div class="col-md-6">
-            <h5 class="fw-bold">{{ product.tensanpham }}</h5>
-            <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+            <div class="p-3 mt-1">
+              <h5 class="fw-bold">{{ product.tensanpham }}</h5>
+              <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
 
-              <div class="d-flex align-items-center text-secondary small">
-                <i class="fas fa-shopping-cart me-1 text-primary"></i>
-                <span>Đã bán:</span>
-                <strong class="ms-1">{{ product.soluong || 0 }}</strong>
-              </div>
-
-              <div class="d-flex align-items-center text-secondary small">
-                <i class="fas fa-star me-1 text-warning"></i>
-                <span>Đánh giá:</span>
-                <template v-if="ratingStats.tong_danh_gia > 0">
-                  <span class="ms-1">
-                    <strong>{{ ratingStats.diem_trung_binh.toFixed(1) }}</strong>
-                    <span class="text-warning">★</span>
-                    <small class="ms-1 text-muted">({{ ratingStats.tong_danh_gia }} lượt)</small>
-                  </span>
-                </template>
-                <template v-else>
-                  <span class="ms-1 text-muted">(Chưa có)</span>
-                </template>
-              </div>
-            </div>
-
-            <!-- Giá sản phẩm -->
-            <div class="border rounded-4 px-3 py-2 d-inline-block"
-              style="background: #f8fbff; border-color: #e0e8f0; min-width: 300px;">
-              <small class="text-muted"><strong>Giá sản phẩm</strong></small>
-              <div class="fw-bold fs-5">
-                {{ giaHienTai.toLocaleString() }}đ
-                <span v-if="isGiamGiaValid" class="text-muted text-decoration-line-through fs-6 ms-2">
-                  {{ product.dongia.toLocaleString() }}đ
-                </span>
-              </div>
-            </div>
-            <div class="mb-2 mt-3">
-              <label class="fw-semibold me-3">Màu sắc</label>
-              <button class="btn btn-outline-primary active">{{ product.mausac }}</button>
-            </div>
-            <div>
-              <label class="fw-semibold me-3">Phiên bản</label>
-              <button class="btn btn-outline-primary active">
-                {{ product.ram }} {{ product.gpuMemory }}
-              </button>
-            </div>
-            <div class="d-flex justify-content-center mt-5 align-items-center flex-wrap gap-3">
-              <ThichSanPham :productId="product.id" />
-              <template v-if="product.soluong > 0">
-                <div class="d-flex gap-2">
-                  <!-- Nút thêm vào giỏ -->
-                  <button
-                    class="btn btn-outline-primary d-flex align-items-center justify-content-center gap-2 px-3 py-2 rounded-3 shadow-sm fw-semibold"
-                    style="min-width: 180px; height: 44px; white-space: nowrap;" @click="addToCart">
-                    <i class="bi bi-cart-fill fs-5"></i>
-                    <span>Thêm vào giỏ</span>
-                  </button>
-
-                  <!-- Nút mua ngay -->
-                  <button
-                    class="btn btn-primary d-flex align-items-center justify-content-center gap-2 px-3 py-2 rounded-3 shadow-sm fw-semibold"
-                    style="min-width: 180px; height: 44px;" @click="buyNow">
-                    <span>Mua ngay</span>
-                  </button>
+                <div class="d-flex align-items-center text-secondary small">
+                  <i class="fas fa-shopping-cart me-1 text-primary"></i>
+                  <span>Đã bán:</span>
+                  <strong class="ms-1">{{ product.soluong || 0 }}</strong>
                 </div>
-              </template>
+
+                <div class="d-flex align-items-center text-secondary small">
+                  <i class="fas fa-star me-1 text-warning"></i>
+                  <span>Đánh giá:</span>
+                  <template v-if="ratingStats.tong_danh_gia > 0">
+                    <span class="ms-1">
+                      <strong>{{ ratingStats.diem_trung_binh.toFixed(1) }}</strong>
+                      <span class="text-warning">★</span>
+                      <small class="ms-1 text-muted">({{ ratingStats.tong_danh_gia }} lượt)</small>
+                    </span>
+                  </template>
+                  <template v-else>
+                    <span class="ms-1 text-muted">(Chưa có)</span>
+                  </template>
+                </div>
+              </div>
+
+              <!-- Giá sản phẩm -->
+              <div class="border rounded-4 px-3 py-2 d-inline-block"
+                style="background: #f8fbff; border-color: #e0e8f0; min-width: 300px;">
+                <small class="text-muted"><strong>Giá sản phẩm</strong></small>
+                <div class="fw-bold fs-5">
+                  {{ giaHienTai.toLocaleString() }}đ
+                  <span v-if="isGiamGiaValid" class="text-muted text-decoration-line-through fs-6 ms-2">
+                    {{ product.dongia.toLocaleString() }}đ
+                  </span>
+                </div>
+              </div>
+              <div class="mb-2 mt-3">
+                <label class="fw-semibold me-3">Màu sắc</label>
+                <button class="btn btn-outline-primary active">{{ product.mausac }}</button>
+              </div>
+              <div>
+                <label class="fw-semibold me-3">Phiên bản</label>
+                <button class="btn btn-outline-primary active">
+                  {{ product.ram }} {{ product.gpuMemory }}
+                </button>
+              </div>
+              <div class="d-flex justify-content-center mt-5 align-items-center flex-wrap gap-3">
+                <ThichSanPham :productId="product.id" />
+                <template v-if="product.soluong > 0">
+                  <div class="d-flex gap-2">
+                    <!-- Nút thêm vào giỏ -->
+                    <button
+                      class="btn btn-outline-primary d-flex align-items-center justify-content-center gap-2 px-3 py-2 rounded-3 shadow-sm fw-semibold"
+                      style="min-width: 180px; height: 44px; white-space: nowrap;" @click="addToCart">
+                      <i class="bi bi-cart-fill fs-5"></i>
+                      <span>Thêm vào giỏ</span>
+                    </button>
+
+                    <!-- Nút mua ngay -->
+                    <button
+                      class="btn btn-primary d-flex align-items-center justify-content-center gap-2 px-3 py-2 rounded-3 shadow-sm fw-semibold"
+                      style="min-width: 180px; height: 44px;" @click="buyNow">
+                      <span>Mua ngay</span>
+                    </button>
+                  </div>
+                </template>
+              </div>
 
               <!--Ưu dãi cho sinh viên-->
-              <div class="p-2 mt-1"
+              <div class="p-2 mt-3"
                 style="font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif; font-size: 0.95rem; background-color: #f5fafd; border: 1px solid #dceefc; border-radius: 16px;">
                 <ul class="list-unstyled mb-0">
                   <li class="mb-2">
@@ -227,14 +229,14 @@
               </div>
 
               <!--Hình ảnh vu vơ-->
-              <div class="mt-1" style="  border-radius: 16px;">
-                <img src="/src/components/User/ChiTietSP/simDinhQuaChat.png" alt="" width="550px"
+              <div class="mt-2" style="  border-radius: 16px;">
+                <img src="/src/components/User/ChiTietSP/simDinhQuaChat.png" alt="" width="610px"
                   style="border-radius: 12px;">
               </div>
 
               <!--Khuyế mãi-->
-              <div class="p-4 mt-1 mx-auto"
-                style="max-width: 550px; font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif; font-size: 0.95rem; background-color: #f5fafd; border: 1px solid #dceefc; border-radius: 16px;">
+              <div class="p-2 mt-3"
+                style="font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif; font-size: 0.95rem; background-color: #f5fafd; border: 1px solid #dceefc; border-radius: 16px;">
                 <h6 class="fw-bold mb-3">
                   <i class="bi bi-gift-fill text-danger me-2"></i>Khuyến mãi hấp dẫn
                 </h6>
