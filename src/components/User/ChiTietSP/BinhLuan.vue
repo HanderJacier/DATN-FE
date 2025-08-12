@@ -231,7 +231,19 @@ const fetchDanhGia = async () => {
 
 const guiDanhGia = async () => {
   if (!taiKhoanId) return hienThiThongBao('Vui lòng đăng nhập!', 'danger')
-  if (diemSo.value === 0 || noiDung.value.trim() === '') return hienThiThongBao('Vui lòng nhập đầy đủ thông tin!', 'danger')
+
+  if (diemSo.value === 0 && noiDung.value.trim() === '') {
+    return hienThiThongBao('Vui lòng nhập đầy đủ thông tin!', 'danger');
+  }
+
+  if (diemSo.value === 0) {
+    return hienThiThongBao('Vui lòng chọn số sao đánh giá!', 'danger');
+  }
+
+  if (noiDung.value.trim() === '') {
+    return hienThiThongBao('Vui lòng nhập nội dung đánh giá!', 'danger');
+  }
+
 
   try {
     await axios.post('http://localhost:8080/api/datn/WBH_US_CRT_DANH_GIA', {
