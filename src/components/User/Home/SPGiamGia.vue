@@ -3,14 +3,12 @@ import { Swiper, SwiperSlide } from 'swiper/vue'
 import 'swiper/css'
 import 'swiper/css/navigation'
 import { Navigation } from 'swiper/modules'
-import { ref } from 'vue'
-
 
 // ✅ Import composable
 import useHomeLogic from '@/components/User/LoadDB/Home.js'
 
 // ✅ Gọi hàm composable
-const { sanPhamMoi, sanPhamYeuThich, sanPhamXepHang } = useHomeLogic()
+const { sanPhamXepHang } = useHomeLogic()
 const discountMap = {
   1: 0,
   2: 5,
@@ -29,8 +27,13 @@ const discountMap = {
   15: 70
 };
 
-const now = new Date();
-
+function isDiscountValid(hanGiamGia) {
+  if (!hanGiamGia) return false
+  const [d, m, y] = hanGiamGia.split('/')
+  if (!d || !m || !y) return false
+  const han = new Date(`${y}-${m}-${d}T23:59:59`)
+  return han >= new Date()
+}
 </script>
 
 <template>
@@ -50,21 +53,23 @@ const now = new Date();
 
               <!-- Giá sản phẩm -->
               <p class="fw-semibold mb-2" v-if="typeof sp.dongia === 'number'">
-                <template v-if="sp.id_gg && discountMap[sp.id_gg] && new Date(sp.hangiamgia) > now">
-                  <span class="text-dark me-2">
+                <template v-if="sp.loaigiam && discountMap[sp.loaigiam] && isDiscountValid(sp.hangiamgia)">
+                  <span class="text-danger me-2 fw-bold">
                     {{
-                      Math.round(sp.dongia * (1 - discountMap[sp.id_gg] / 100)).toLocaleString()
+                      Math.round(sp.dongia * (1 - discountMap[sp.loaigiam] / 100)).toLocaleString()
                     }}₫
                   </span>
                   <span class="text-muted text-decoration-line-through small">
                     {{ sp.dongia.toLocaleString() }}₫
+                  </span>
+                  <span class="badge bg-primary-subtle text-primary ms-2">
+                    Giảm {{ discountMap[sp.loaigiam] }}%
                   </span>
                 </template>
                 <template v-else>
                   <span class="text-dark">{{ sp.dongia.toLocaleString() }}₫</span>
                 </template>
               </p>
-
 
               <button class="btn btn-outline-dark w-100 mt-2 rounded-pill">Xem chi tiết</button>
             </div>
