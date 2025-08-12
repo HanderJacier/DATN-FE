@@ -323,19 +323,17 @@ const ratingStats = ref({
 })
 
 const isGiamGiaValid = computed(() => {
-  const now = new Date()
-  const hetHan = product.value?.hangiamgia ? new Date(product.value.hangiamgia) : null
-  return product.value?.giamgia > 0 && hetHan && hetHan > now
+  return product.value?.giamgia && product.value.giamgia < product.value.dongia
 })
 
 const giaHienTai = computed(() => {
   return isGiamGiaValid.value ? product.value.giamgia : product.value.dongia
 })
 
-const tinhPhanTramGiamGia = (goc, giam) => {
-  if (!goc || !giam) return 0
-  return Math.round(((goc - giam) / goc) * 100)
+const tinhPhanTramGiamGia = () => {
+  return isGiamGiaValid.value ? product.value.loaigiamTen : 0
 }
+
 
 const changeImage = (index) => {
   currentIndex.value = index
