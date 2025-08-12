@@ -24,7 +24,11 @@
               <span class="text-decoration-line-through me-2">{{ product.dongia.toLocaleString() }}đ</span>
               <span class="text-danger">-{{ tinhPhanTramGiamGia(product.dongia, product.giamgia) }}%</span>
             </div>
+            <div class="small text-secondary">
+              Hết hạn: {{ formatDate(product.hangiamgia) }}
+            </div>
           </template>
+
         </div>
         <button class="btn btn-primary px-5 py-2 fw-bold" @click="buyNow">Mua ngay</button>
       </div>
@@ -168,23 +172,41 @@
               </div>
 
               <!-- Giá sản phẩm -->
-              <div class="price-box border rounded-4 px-4 py-3 d-inline-block">
-                <small class="text-muted fw-semibold mb-1 d-block">Giá sản phẩm</small>
+              <div class="d-flex justify-content">
+                <div class="card border-0 shadow-sm rounded-4" style="max-width: 700px; width: 500px;">
+                  <div class="card-body">
+                    <h6 class="text-uppercase text-secondary fw-semibold mb-3">
+                      Giá bán
+                    </h6>
 
-                <div class="d-flex align-items-baseline">
-                  <span class="fw-bold fs-4 text-danger">
-                    {{ giaHienTai.toLocaleString() }}đ
-                  </span>
-                  <span v-if="isGiamGiaValid" class="original-price ms-3">
-                    {{ product.dongia.toLocaleString() }}đ
-                  </span>
+                    <!--Giá tổng và giá giảm-->
+                    <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
+                      <span class="fw-bold fs-3 text-danger">
+                        {{ giaHienTai.toLocaleString() }}đ
+                      </span>
+
+                      <span v-if="isGiamGiaValid" class="text-muted text-decoration-line-through small">
+                        {{ product.dongia.toLocaleString() }}đ
+                      </span>
+
+                      <span v-if="isGiamGiaValid" class="badge bg-danger text-white px-2 py-1 small rounded-pill">
+                        -{{ Math.round((1 - giaHienTai / product.dongia) * 100) }}%
+                      </span>
+                    </div>
+
+                    <!-- Thời gian khuyến mãi -->
+                    <div v-if="isGiamGiaValid"
+                      class="alert alert-warning py-2 px-3 mb-0 d-flex align-items-center gap-2">
+                      <i class="bi bi-clock-fill"></i>
+                      <small class="mb-0 fw-semibold">
+                        Khuyến mãi đến: {{ formatDate(product.hangiamgia) }}
+                      </small>
+                    </div>
+                  </div>
                 </div>
-
-                <span v-if="isGiamGiaValid" class="badge bg-primary-subtle text-primary mt-2">
-                  Giảm {{ Math.round((1 - giaHienTai / product.dongia) * 100) }}%
-                </span>
               </div>
 
+              <!--Mùa-->
               <div class="product-options mt-4">
                 <!-- Màu sắc -->
                 <div class="option-group mb-3">
@@ -309,6 +331,17 @@ const ratingStats = ref({
   tong_danh_gia: 0,
   diem_trung_binh: 0,
 })
+
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+};
+
 
 const isGiamGiaValid = computed(() => {
   if (!product.value?.giamgia || product.value.giamgia >= product.value.dongia) {
