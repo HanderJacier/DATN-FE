@@ -10,6 +10,7 @@
         <div>
           <div class="fw-semibold small">{{ product.tensanpham }}</div>
           <div class="text-muted small">Phân loại: {{ product.ram }}, {{ product.mausac }}</div>
+          <!-- không dùng cái nào nữa thì xóa đi -->
         </div>
       </div>
 
@@ -110,23 +111,10 @@
               <div class="table-responsive">
                 <table class="table table-sm align-middle text-start mb-0" style="font-size: 0.95rem;">
                   <tbody>
-                    <!-- CPU -->
-                    <tr v-for="(value, label) in specs.cpu" :key="'cpu-' + label" class="border-0 border-bottom">
+                    <tr v-for="(value, label) in specs.other" :key="label" class="border-0 border-bottom">
                       <th class="fw-semibold text-secondary py-2 w-25">{{ label }}</th>
                       <td class="py-2">{{ value }}</td>
                     </tr>
-                    <!-- GPU -->
-                    <tr v-for="(value, label) in specs.gpu" :key="'gpu-' + label" class="border-0 border-bottom">
-                      <th class="fw-semibold text-secondary py-2">{{ label }}</th>
-                      <td class="py-2">{{ value }}</td>
-                    </tr>
-                    <!-- Other -->
-                    <template v-if="showMore">
-                      <tr v-for="(value, label) in specs.other" :key="'other-' + label" class="border-0 border-bottom">
-                        <th class="fw-semibold text-secondary py-2">{{ label }}</th>
-                        <td class="py-2">{{ value }}</td>
-                      </tr>
-                    </template>
                   </tbody>
                 </table>
               </div>
@@ -206,13 +194,13 @@
                   </button>
                 </div>
 
-                <!-- Phiên bản -->
+                <!-- Phiên bản
                 <div class="option-group">
                   <label class="fw-semibold text-secondary me-3">Phiên bản:</label>
                   <button class="option-btn active">
                     {{ product.ram }} {{ product.gpuMemory }}
                   </button>
-                </div>
+                </div> -->
               </div>
 
               <div class="d-flex justify-content-center mt-5 align-items-center flex-wrap gap-3">
@@ -356,7 +344,7 @@ const toggleMore = () => {
 const addToCart = () => {
   const cart = JSON.parse(localStorage.getItem('cart')) || []
   const item = {
-    id: product.value.id,
+    id: product.value.id_sp,
     name: product.value.tensanpham,
     price: giaHienTai.value,
     image: productImages.value[0]?.src || product.value.anhgoc,
@@ -407,29 +395,16 @@ onMounted(async () => {
   if (id) {
     await fetchChiTietSanPham(id)
     if (product.value) {
-      await fetchRatingStats(product.value.id)
+      await fetchRatingStats(product.value.id_sp)
       const data = product.value
       specs.value = {
-        cpu: {
-          'Hãng CPU': data.cpuBrand,
-          'Công nghệ CPU': data.cpuModel,
-          'Loại CPU': data.cpuType,
-          'Tốc độ CPU tối thiểu': data.cpuMinSpeed,
-          'Tốc độ tối đa': data.cpuMaxSpeed,
-          'Số nhân': data.cpuCores,
-          'Số luồng': data.cpuThreads,
-          'Bộ nhớ đệm': data.cpuCache,
-        },
-        gpu: {
-          'Hãng (Card rời)': data.gpuBrand,
-          'Model (Card rời)': data.gpuModel,
-          'Tên đầy đủ': data.gpuFullName,
-          'Bộ nhớ': data.gpuMemory,
-        },
         other: {
-          'RAM': data.ram,
-          'Ổ cứng': data.rom,
-          'Màn hình': data.screen,
+          'Model': data.model,
+          'Trọng lượng': data.trongluong,
+          'Pin': data.pin,
+          'Cổng kết nối': data.congketnoi,
+          'Tính năng': data.tinhnang,
+          'Màu sắc': data.mausac
         }
       }
     }
