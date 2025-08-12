@@ -53,17 +53,15 @@ function isDiscountValid(hanGiamGia) {
 
               <!-- Giá sản phẩm -->
               <p class="fw-semibold mb-2" v-if="typeof sp.dongia === 'number'">
-                <template v-if="sp.loaigiam && discountMap[sp.loaigiam] && isDiscountValid(sp.hangiamgia)">
+                <template v-if="sp.giamgia && sp.giamgia < sp.dongia && isDiscountValid(sp.hangiamgia)">
                   <span class="text-danger me-2 fw-bold">
-                    {{
-                      Math.round(sp.dongia * (1 - discountMap[sp.loaigiam] / 100)).toLocaleString()
-                    }}₫
+                    {{ sp.giamgia.toLocaleString() }}₫
                   </span>
                   <span class="text-muted text-decoration-line-through small">
                     {{ sp.dongia.toLocaleString() }}₫
                   </span>
                   <span class="badge bg-primary-subtle text-primary ms-2">
-                    Giảm {{ discountMap[sp.loaigiam] }}%
+                    Giảm {{ Math.round((1 - sp.giamgia / sp.dongia) * 100) }}%
                   </span>
                 </template>
                 <template v-else>
