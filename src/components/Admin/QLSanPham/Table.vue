@@ -6,22 +6,21 @@
 
     <!-- Form nhập -->
     <Form
-      :productForm="productForm"
-      :formFields="formFields"
-      :isFixedType="isFixedType"
-      :visibleFields="visibleFields"
-      :isEditing="editingProductId !== null"
+      :product-form="productForm"
+      :form-fields="formFields"
+      :is-fixed-type="false"              
+      :visible-fields="visibleFields"
+      :is-editing="editingProductId !== null"
       :notification="notification"
-      :notificationType="notificationType"
+      :notification-type="notificationType"
       @create="createNewProduct"
       @update="updateExistingProduct"
-      @resetForm="handleReset"
-      @deleteProduct="deleteProduct"
-      @imageChange="onImageChange"
-      @multipleImagesChange="onMultipleImagesChange"
-
+      @reset-form="handleReset"
+      @delete-product="deleteProduct"
+      @image-change="onImageChange"
+      @multiple-images-change="onMultipleImagesChange"
     />
-
+ <!-- hoặc bind biến thật nếu có -->
     <!-- Tìm kiếm -->
     <div class="my-4">
       <input
@@ -65,6 +64,7 @@
                 width="40"
                 height="40"
                 class="rounded"
+                alt="Ảnh sản phẩm"
               />
               <span v-else>-</span>
             </td>
@@ -74,7 +74,8 @@
               <button class="btn btn-sm btn-primary me-1" @click="editProduct(index)">
                 Sửa
               </button>
-              <button class="btn btn-sm btn-danger" @click="deleteProduct(index)">
+              <!-- Chọn item rồi xóa theo editingProductId -->
+              <button class="btn btn-sm btn-danger" @click="() => { editProduct(index); deleteProduct() }">
                 Xóa
               </button>
             </td>
@@ -107,7 +108,7 @@ import { useProductTable } from './QLSP'
 const {
   productForm,
   formFields,
-  isFixedType,
+  // isFixedType, // nếu cần thì thêm vào composable và return
   visibleFields,
   editingProductId,
   searchQuery,
@@ -121,11 +122,11 @@ const {
   deleteProduct,
   handleReset,
   onImageChange,
-  multipleImagesChange,
+  onMultipleImagesChange, // ✅ đúng tên hàm
   createNewProduct,
   updateExistingProduct,
   notification,
   notificationType,
-  fetchProducts
+  // fetchProducts // nếu không dùng thì bỏ
 } = useProductTable()
 </script>

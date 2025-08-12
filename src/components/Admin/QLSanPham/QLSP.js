@@ -12,6 +12,46 @@ import {
   defaultProduct
 } from './List'
 
+// ===== Helper ngày dd/MM/yyyy =====
+function parseDDMMYYYY(str) {
+  if (!str || typeof str !== 'string') return null
+  const parts = str.split('/')
+  if (parts.length !== 3) return null
+  const [dStr, mStr, yStr] = parts
+  const d = Number(dStr), m = Number(mStr), y = Number(yStr)
+  if (!d || !m || !y) return null
+  const date = new Date(y, m - 1, d)
+  // Kiểm tra ngược để chắc đúng ngày
+  if (date.getFullYear() !== y || date.getMonth() !== m - 1 || date.getDate() !== d) return null
+  return date
+}
+
+function formatToDDMMYYYY(value) {
+  if (!value) return ''
+  let date = null
+  if (value instanceof Date) {
+    date = value
+  } else if (typeof value === 'string') {
+    // Thử parse dd/MM/yyyy
+    date = parseDDMMYYYY(value)
+    if (!date) {
+      // Thử parse dạng ISO hoặc chuỗi ngày khác
+      const tmp = new Date(value)
+      if (!isNaN(tmp.getTime())) date = tmp
+    }
+  }
+  if (!date || isNaN(date.getTime())) return ''
+  const dd = String(date.getDate()).padStart(2, '0')
+  const mm = String(date.getMonth() + 1).padStart(2, '0')
+  const yyyy = String(date.getFullYear())
+  return `${dd}/${mm}/${yyyy}`
+}
+
+// Chuẩn hoá về string dd/MM/yyyy (nếu không hợp lệ trả về '')
+function normalizeDDMMYYYY(value) {
+  return formatToDDMMYYYY(value)
+}
+
 export function useProductTable() {
   const { products, loading, error, fetchProducts } = useSanPhamAdmin()
   const { createProduct } = useSanPhamCreate()
@@ -52,16 +92,13 @@ export function useProductTable() {
       )
       : []
   })
-  function handleReset() {
-    // Reset về mặc định
-    Object.assign(productForm.value, { ...defaultProduct })
 
-    // Xóa ảnh phụ và ảnh gốc nếu có
-    productForm.value.anhphu = []
+  function handleReset() {
+    Object.assign(productForm.value, { ...defaultProduct })
+    productForm.value.anhphu = ''
     productForm.value.diachianh = ''
     delete productForm.value._imageFile
-
-    // Reset trạng thái editing
+    delete productForm.value._anhphuFile
     editingProductId.value = null
   }
 
@@ -80,9 +117,40 @@ export function useProductTable() {
     }
   }
 
-  function formatDate(date) {
-    return date ? new Date(date).toLocaleDateString('vi-VN') : '-'
+  // Dùng cho table hiển thị ngày
+  function formatDate(value) {
+    if (value == null) return '-'
+    let s = String(value).trim()
+    if (!s) return '-'
+
+    // Nếu đã đúng dd/MM/yyyy thì trả luôn
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) return s
+
+    // Chuẩn hoá chuỗi kiểu "Jul  4 2025  9:19PM" -> "Jul 4 2025 9:19 PM"
+    s = s.replace(/\s+/g, ' ').replace(/([AP]M)$/i, ' $1')
+
+    // Thử parse bằng Date
+    const d = new Date(s)
+    if (!isNaN(d.getTime())) {
+      const dd = String(d.getDate()).padStart(2, '0')
+      const mm = String(d.getMonth() + 1).padStart(2, '0')
+      const yyyy = d.getFullYear()
+      return `${dd}/${mm}/${yyyy}`
+    }
+
+    return '-'
   }
+
+  function normalizeNameVN(s) {
+    return (s ?? '')
+      .toString()
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')                 // tách dấu
+      .replace(/[\u0300-\u036f]/g, '')  // bỏ dấu
+      .replace(/\s+/g, ' ')             // gộp khoảng trắng
+  }
+
 
   function mapLoaiTenToValue(loaiTen) {
     return loaiMap[loaiTen] || ''
@@ -107,13 +175,50 @@ export function useProductTable() {
       showNotification('Giá sản phẩm không được nhỏ hơn 0', 'error')
       return false
     }
-
     if (Number(productForm.value.soluong) < 0) {
       showNotification('Số lượng không được nhỏ hơn 0', 'error')
       return false
     }
 
+    // --- CHECK TRÙNG TÊN ---
+    const newName = normalizeNameVN(productForm.value.tensanpham)
+    const dup = (products.value ?? []).some(p =>
+      normalizeNameVN(p.tensanpham) === newName &&
+      (p.id_sp ?? p.id) !== editingProductId.value   // bỏ qua bản ghi đang sửa
+    )
+    if (dup) {
+      showNotification('Tên sản phẩm đã tồn tại. Vui lòng chọn tên khác.', 'error')
+      return false
+    }
+    // --- END CHECK TRÙNG TÊN ---
+
+    // Nếu có giảm giá (id_gg > 0) thì cần hạn giảm giá (dd/MM/yyyy)
+    if ((productForm.value.id_gg ?? 0) > 0) {
+      const normalized = normalizeDDMMYYYY(productForm.value.hangiamgia)
+      if (!normalized) {
+        showNotification('Vui lòng chọn Hạn giảm giá (dd/MM/yyyy)', 'error')
+        return false
+      }
+    }
+
     return true
+  }
+
+
+  function normalizeAnhPhuToString(val) {
+    if (!val) return ''
+    if (typeof val === 'string') {
+      // nếu backend từng lưu JSON array: '["url1","url2"]'
+      try {
+        const parsed = JSON.parse(val)
+        if (Array.isArray(parsed)) return parsed[0] || ''
+        return val
+      } catch {
+        return val  // là string URL bình thường
+      }
+    }
+    if (Array.isArray(val)) return val[0] || ''
+    return ''
   }
 
   async function editProduct(index) {
@@ -136,18 +241,25 @@ export function useProductTable() {
     productForm.value.diachianh = selected.diachianh || selected.anhgoc || ''
     editingProductId.value = selected.id_sp || null
 
-    // **Gán id giảm giá (id_gg) nếu có trong selected**
-    productForm.value.id_gg = selected.id_gg || null
+    // id giảm giá
+    productForm.value.id_gg = selected.loaigiam ?? 0
+
+    // chuẩn hoá hạn giảm giá -> dd/MM/yyyy (string)
+    productForm.value.hangiamgia = normalizeDDMMYYYY(selected.hangiamgia)
 
     await nextTick()
 
     for (const key in selected) {
       if (selected[key] !== undefined) {
+        if (key === 'hangiamgia') continue
+        if (key === 'anhphu') continue       // <- thêm
         productForm.value[key] = selected[key]
       }
     }
-  }
 
+    productForm.value.anhphu = normalizeAnhPhuToString(selected.diachianh)
+
+  }
 
   async function uploadImageToCloud(file) {
     const formData = new FormData()
@@ -170,7 +282,6 @@ export function useProductTable() {
       if (!productForm.value) return
       loading.value = true
 
-      // 👉 Dùng payload y hệt update nhưng chỉ set soluong = 0
       const cleanPayload = {
         id_sp: editingProductId.value,
       }
@@ -182,11 +293,14 @@ export function useProductTable() {
       cleanPayload.soluong = 0
       cleanPayload.anhphu = JSON.stringify(productForm.value.anhphu || [])
 
+      // đảm bảo chuỗi dd/MM/yyyy
+      cleanPayload.hangiamgia = normalizeDDMMYYYY(productForm.value.hangiamgia)
+
       const result = await updateProduct(cleanPayload)
 
       const isError =
         result && typeof result === 'object' &&
-        ('success' in result && result.success === false || 'message' in result)
+        (('success' in result && result.success === false) || 'message' in result)
 
       if (isError) {
         showNotification(result.message || 'Xóa sản phẩm thất bại!', 'error')
@@ -215,31 +329,38 @@ export function useProductTable() {
 
   async function onMultipleImagesChange(event) {
     const files = Array.from(event.target.files || [])
-    productForm.value.anhphu = files // Lưu file, upload khi lưu
+    const file = files[0]
+    if (file) {
+      // Lưu file để upload khi lưu form
+      productForm.value._anhphuFile = file
+      // (tuỳ thích) hiển thị preview tạm
+      productForm.value.anhphu = URL.createObjectURL(file)
+    } else {
+      productForm.value._anhphuFile = undefined
+      productForm.value.anhphu = ''
+    }
   }
+
 
   async function createNewProduct() {
     if (!validateProductForm()) return
 
     try {
-      // Upload ảnh chính nếu có
       if (productForm.value._imageFile) {
         const imageUrl = await uploadImageToCloud(productForm.value._imageFile)
         productForm.value.anhgoc = imageUrl
         delete productForm.value._imageFile
       }
 
-      // Upload từng ảnh phụ nếu có
-      if (Array.isArray(productForm.value.anhphu) && productForm.value.anhphu.length > 0) {
-        const urls = []
-        for (const file of productForm.value.anhphu) {
-          if (file instanceof File) {
-            const url = await uploadImageToCloud(file)
-            urls.push(url)
-          }
-        }
-        productForm.value.anhphu = urls
+      // --- Trong createNewProduct ---
+      // --- Ảnh phụ: upload 1 file -> ra 1 URL string
+      if (productForm.value._anhphuFile) {
+        const url = await uploadImageToCloud(productForm.value._anhphuFile)
+        productForm.value.anhphu = url
+        delete productForm.value._anhphuFile
       }
+      // Nếu đã là string URL sẵn thì giữ nguyên
+
     } catch (error) {
       showNotification('Tải ảnh thất bại', 'error')
       return
@@ -251,19 +372,16 @@ export function useProductTable() {
         cleanForm[key] = productForm.value[key] ?? ''
       }
 
-      // Thêm id_gg vào payload (nếu chưa có trong allowedProductFields)
-      cleanForm.id_gg = productForm.value.id_gg ?? null
+      cleanForm.id_gg = productForm.value.id_gg ?? 0
+      cleanForm.hangiamgia = normalizeDDMMYYYY(productForm.value.hangiamgia)
+      cleanForm.anhphu = productForm.value.anhphu || ''  // BỎ JSON.stringify
 
-      // Lưu mảng link ảnh phụ
-      if (Array.isArray(productForm.value.anhphu)) {
-        cleanForm.anhphu = JSON.stringify(productForm.value.anhphu)
-      }
 
       const result = await createProduct(cleanForm)
 
       const isError =
         result && typeof result === 'object' &&
-        ('success' in result && result.success === false || 'message' in result)
+        (('success' in result && result.success === false) || 'message' in result)
 
       if (isError) {
         const errorMsg = result.message || 'Thêm sản phẩm thất bại!'
@@ -285,7 +403,6 @@ export function useProductTable() {
       if (!productForm.value) return
       loading.value = true
 
-      // Upload ảnh chính nếu có
       if (productForm.value._imageFile) {
         try {
           const imageUrl = await uploadImageToCloud(productForm.value._imageFile)
@@ -298,19 +415,13 @@ export function useProductTable() {
         }
       }
 
-      // Upload từng ảnh phụ nếu có file mới
-      if (Array.isArray(productForm.value.anhphu) && productForm.value.anhphu.length > 0) {
-        const urls = []
-        for (const file of productForm.value.anhphu) {
-          if (file instanceof File) {
-            const url = await uploadImageToCloud(file)
-            urls.push(url)
-          } else if (typeof file === 'string') {
-            urls.push(file) // Giữ lại link cũ nếu đã là link
-          }
-        }
-        productForm.value.anhphu = urls
+      if (productForm.value._anhphuFile) {
+        const url = await uploadImageToCloud(productForm.value._anhphuFile)
+        productForm.value.anhphu = url
+        delete productForm.value._anhphuFile
       }
+      // Không còn xử lý mảng; giữ string nếu đã có
+
 
       const cleanPayload = {
         id_sp: editingProductId.value,
@@ -320,14 +431,15 @@ export function useProductTable() {
         cleanPayload[key] = productForm.value[key] ?? ''
       }
 
-      cleanPayload.id_gg = productForm.value.id_gg ?? null
-      cleanPayload.anhphu = JSON.stringify(productForm.value.anhphu || [])
+      cleanPayload.id_gg = productForm.value.id_gg ?? 0
+      cleanPayload.anhphu = productForm.value.anhphu || ''  // BỎ JSON.stringify
+      cleanPayload.hangiamgia = normalizeDDMMYYYY(productForm.value.hangiamgia)
 
       const result = await updateProduct(cleanPayload)
 
       const isError =
         result && typeof result === 'object' &&
-        ('success' in result && result.success === false || 'message' in result)
+        (('success' in result && result.success === false) || 'message' in result)
 
       if (isError) {
         const errorMsg = result.message || 'Cập nhật sản phẩm thất bại!'
@@ -345,7 +457,6 @@ export function useProductTable() {
       loading.value = false
     }
   }
-
 
   return {
     products,
@@ -376,4 +487,3 @@ export function useProductTable() {
     getBrandNameById,
   }
 }
-

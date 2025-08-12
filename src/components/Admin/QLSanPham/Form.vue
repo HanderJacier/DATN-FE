@@ -13,20 +13,68 @@ const props = defineProps({
   notificationType: String
 })
 
-const emit = defineEmits(['imageChange', 'create', 'update', 'resetForm', 'deleteProduct'])
+const emit = defineEmits(['imageChange', 'multipleImagesChange', 'create', 'update', 'resetForm', 'deleteProduct'])
 
-const previewAnhPhu = ref([])
+const previewAnhPhu = ref('')
 
-// Khi chọn ảnh phụ, tạo preview
+// Khi chọn ảnh phụ, tạo preview (chỉ 1 ảnh)
 function onAnhPhuChange(event) {
-  const files = Array.from(event.target.files || [])
-  previewAnhPhu.value = files.map(file => URL.createObjectURL(file))
-  emit('multipleImagesChange', event) // Đúng sự kiện cho ảnh phụ
+  const file = (event.target.files || [])[0]
+  if (file) {
+    previewAnhPhu.value = URL.createObjectURL(file)
+  } else {
+    previewAnhPhu.value = ''
+  }
+  emit('multipleImagesChange', event)
 }
 
 // Khi reset form thì reset luôn preview ảnh phụ
 watch(() => props.productForm.anhphu, (val) => {
-  if (!val || val.length === 0) previewAnhPhu.value = []
+  if (!val || (typeof val === 'string' && val.length === 0)) {
+    previewAnhPhu.value = ''
+  } else if (typeof val === 'string' && !val.startsWith('blob:')) {
+    previewAnhPhu.value = ''
+  }
+})
+
+const anhPhuUrl = computed(() => {
+  if (previewAnhPhu.value) return previewAnhPhu.value
+  const v = props.productForm?.anhphu
+  if (!v) return ''
+  if (typeof v === 'string') {
+    try {
+      const p = JSON.parse(v)
+      if (Array.isArray(p)) return p[0] || ''
+    } catch { }
+    return v.startsWith('blob:') ? '' : v
+  }
+  if (Array.isArray(v)) return v[0] || ''
+  return ''
+})
+
+// Xử lý chuyển đổi ngày cho input type="date"
+function toDateInputValue(ddmmyyyy) {
+  if (!ddmmyyyy || typeof ddmmyyyy !== 'string') return ''
+  const [d, m, y] = ddmmyyyy.split('/')
+  if (!d || !m || !y) return ''
+  return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`
+}
+function fromDateInputValue(yyyymmdd) {
+  if (!yyyymmdd || typeof yyyymmdd !== 'string') return ''
+  const [y, m, d] = yyyymmdd.split('-')
+  if (!y || !m || !d) return ''
+  return `${d}/${m}/${y}`
+}
+
+const hangiamgiaProxy = computed({
+  get() {
+    // Hiển thị đúng định dạng yyyy-MM-dd cho input date
+    return toDateInputValue(props.productForm.hangiamgia)
+  },
+  set(val) {
+    // Khi chọn date, chuyển về dd/MM/yyyy cho productForm
+    props.productForm.hangiamgia = fromDateInputValue(val)
+  }
 })
 
 function onImageChange(event) {
@@ -74,10 +122,10 @@ const loaiOptions = computed(() =>
       {{ notification }}
     </div>
 
-    <!-- 3 dropdown cùng 1 hàng -->
+    <!-- 3 dropdown + ngày giảm giá cùng 1 hàng -->
     <div class="row">
       <!-- Dropdown chọn loại sản phẩm -->
-      <div class="col-md-4 mb-3">
+      <div class="col-md-3 mb-3">
         <label class="form-label">Chọn loại sản phẩm</label>
         <select class="form-select" v-model="productForm.loai">
           <option disabled value="">-- Chọn loại --</option>
@@ -86,7 +134,7 @@ const loaiOptions = computed(() =>
       </div>
 
       <!-- Dropdown chọn thương hiệu -->
-      <div class="col-md-4 mb-3">
+      <div class="col-md-3 mb-3">
         <label class="form-label">Chọn thương hiệu</label>
         <select class="form-select" v-model="productForm.thuonghieu">
           <option disabled value="">-- Chọn thương hiệu --</option>
@@ -97,7 +145,7 @@ const loaiOptions = computed(() =>
       </div>
 
       <!-- Dropdown chọn giảm giá -->
-      <div class="col-md-4 mb-3">
+      <div class="col-md-3 mb-3">
         <label class="form-label">Chọn giảm giá</label>
         <select class="form-select" v-model="productForm.id_gg" :disabled="loadingDiscounts">
           <option v-for="item in giamGiaList" :key="item.id_gg" :value="item.id_gg">
@@ -105,12 +153,23 @@ const loaiOptions = computed(() =>
           </option>
         </select>
       </div>
+
+      <!-- Input hạn giảm giá -->
+      <div class="col-md-3 mb-3">
+        <label class="form-label">Hạn giảm giá</label>
+        <input
+          type="date"
+          class="form-control"
+          v-model="hangiamgiaProxy"
+        />
+      </div>
     </div>
 
     <!-- Other Inputs -->
     <div class="row g-3">
       <div class="col-md-4" v-for="key in visibleFields" :key="key">
         <label class="form-label">{{ formFields[key] }}</label>
+
         <!-- Ảnh gốc -->
         <div v-if="key === 'anhgoc'">
           <input type="file" class="form-control" @change="onImageChange" />
@@ -124,14 +183,20 @@ const loaiOptions = computed(() =>
             </span>
           </div>
         </div>
+
         <!-- Ảnh phụ -->
         <div v-else-if="key === 'anhphu'">
-          <input type="file" class="form-control" multiple @change="onAnhPhuChange" />
-          <div class="mt-2 d-flex flex-wrap gap-2">
-            <img v-for="(src, idx) in previewAnhPhu" :key="idx" :src="src" width="60" height="60"
-              class="rounded border" />
+          <input type="file" class="form-control" @change="onAnhPhuChange" />
+          <div v-if="isEditing && (anhPhuUrl || productForm.anhphu)" class="mt-1 small text-secondary">
+            <span v-if="anhPhuUrl && !anhPhuUrl.startsWith('blob:')">
+              <a :href="anhPhuUrl" target="_blank">{{ anhPhuUrl.split('/').pop() }}</a>
+            </span>
+            <span v-else-if="previewAnhPhu">
+              {{ (productForm.anhphu && productForm.anhphu.split('/').pop()) || 'Đang xem trước ảnh phụ' }}
+            </span>
           </div>
         </div>
+
         <!-- Các input khác -->
         <input v-else :type="['dongia', 'soluong'].includes(key) ? 'number' : 'text'" class="form-control"
           v-model="productForm[key]" />
@@ -140,11 +205,16 @@ const loaiOptions = computed(() =>
       <!-- Preview ảnh chính -->
       <div class="col-md-4" v-if="productForm.diachianh || productForm.anhgoc">
         <label class="form-label d-block">Xem trước ảnh chính</label>
-        <!-- Nếu vừa chọn file mới (blob), ưu tiên hiện -->
         <img v-if="productForm.diachianh && productForm.diachianh.startsWith('blob:')" :src="productForm.diachianh"
-          width="100" height="100" class="rounded" />
-        <!-- Nếu đã upload lên cloud hoặc load lại (link cloud) -->
-        <img v-else-if="productForm.anhgoc" :src="productForm.anhgoc" width="100" height="100" class="rounded" />
+          width="100" height="100" class="rounded" style="object-fit: cover;" />
+        <img v-else-if="productForm.anhgoc" :src="productForm.anhgoc" width="100" height="100" class="rounded"
+          style="object-fit: cover;" />
+      </div>
+
+      <!-- Preview ảnh phụ (1 ảnh) -->
+      <div class="col-md-4" v-if="anhPhuUrl">
+        <label class="form-label d-block">Xem trước ảnh phụ</label>
+        <img :src="anhPhuUrl" width="100" height="100" class="rounded" style="object-fit: cover;" />
       </div>
     </div>
 
@@ -154,7 +224,7 @@ const loaiOptions = computed(() =>
       <button type="button" class="btn btn-primary fw-bold me-2" @click="handleCreate">
         Thêm
       </button>
-      <button type="button" class="btn btn-s  uccess fw-bold" @click="handleUpdate">
+      <button type="button" class="btn btn-s btn-success fw-bold" @click="handleUpdate">
         Cập nhật
       </button>
       <button type="button" class="btn btn-danger" @click="$emit('deleteProduct')">Xóa</button>
