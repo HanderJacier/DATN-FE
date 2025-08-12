@@ -161,49 +161,56 @@ export function useProductTable() {
   }
 
   function validateProductForm() {
-    const requiredFields = ['tensanpham', 'thuonghieu', 'dongia', 'mausac', 'soluong', 'loai']
+  const requiredFields = ['tensanpham', 'thuonghieu', 'dongia', 'mausac', 'soluong', 'loai']
 
-    for (const field of requiredFields) {
-      const value = productForm.value[field]
-      if (value === undefined || value === null || value === '') {
-        showNotification(`Vui lòng nhập: ${formFields[field]}`, 'error')
-        return false
-      }
-    }
-
-    if (Number(productForm.value.dongia) < 0) {
-      showNotification('Giá sản phẩm không được nhỏ hơn 0', 'error')
+  for (const field of requiredFields) {
+    const value = productForm.value[field]
+    if (value === undefined || value === null || value === '') {
+      showNotification(`Vui lòng nhập: ${formFields[field]}`, 'error')
       return false
     }
-    if (Number(productForm.value.soluong) < 0) {
-      showNotification('Số lượng không được nhỏ hơn 0', 'error')
-      return false
-    }
-
-    // --- CHECK TRÙNG TÊN ---
-    const newName = normalizeNameVN(productForm.value.tensanpham)
-    const dup = (products.value ?? []).some(p =>
-      normalizeNameVN(p.tensanpham) === newName &&
-      (p.id_sp ?? p.id) !== editingProductId.value   // bỏ qua bản ghi đang sửa
-    )
-    if (dup) {
-      showNotification('Tên sản phẩm đã tồn tại. Vui lòng chọn tên khác.', 'error')
-      return false
-    }
-    // --- END CHECK TRÙNG TÊN ---
-
-    // Nếu có giảm giá (id_gg > 0) thì cần hạn giảm giá (dd/MM/yyyy)
-    if ((productForm.value.id_gg ?? 0) > 0) {
-      const normalized = normalizeDDMMYYYY(productForm.value.hangiamgia)
-      if (!normalized) {
-        showNotification('Vui lòng chọn Hạn giảm giá (dd/MM/yyyy)', 'error')
-        return false
-      }
-    }
-
-    return true
   }
 
+  if (Number(productForm.value.dongia) < 0) {
+    showNotification('Giá sản phẩm không được nhỏ hơn 0', 'error')
+    return false
+  }
+  if (Number(productForm.value.soluong) < 0) {
+    showNotification('Số lượng không được nhỏ hơn 0', 'error')
+    return false
+  }
+
+  // --- CHECK TRÙNG TÊN ---
+  const newName = normalizeNameVN(productForm.value.tensanpham)
+  const dup = (products.value ?? []).some(p =>
+    normalizeNameVN(p.tensanpham) === newName &&
+    (p.id_sp ?? p.id) !== editingProductId.value   // bỏ qua bản ghi đang sửa
+  )
+  if (dup) {
+    showNotification('Tên sản phẩm đã tồn tại. Vui lòng chọn tên khác.', 'error')
+    return false
+  }
+  // --- END CHECK TRÙNG TÊN ---
+
+  // Nếu chỉ chọn 1 trong 2 trường giảm giá hoặc hạn giảm giá thì báo lỗi
+  const idGg = productForm.value.id_gg ?? ''
+  const hanGg = productForm.value.hangiamgia ?? ''
+  if ((idGg && !hanGg) || (!idGg && hanGg)) {
+    showNotification('Vui lòng chọn cả loại giảm giá và hạn giảm giá, hoặc bỏ trống cả hai!', 'error')
+    return false
+  }
+
+  return true
+}
+
+  // Nếu chỉ chọn 1 trong 2 trường giảm giá hoặc hạn giảm giá thì báo lỗi
+  const idGg = Number(productForm.value.id_gg || 0)
+  const hanGg = (productForm.value.hangiamgia || '').trim()
+
+  if ((idGg > 0 && !hanGg) || (idGg === 0 && hanGg)) {
+    showNotification('Vui lòng chọn cả loại giảm giá và hạn giảm giá, hoặc bỏ trống cả hai!', 'error')
+    return false
+  }
 
   function normalizeAnhPhuToString(val) {
     if (!val) return ''
@@ -399,6 +406,7 @@ export function useProductTable() {
   }
 
   async function updateExistingProduct() {
+    if (!validateProductForm()) return;
     try {
       if (!productForm.value) return
       loading.value = true
