@@ -188,6 +188,13 @@ watch(selectedStar, () => {
   trangHienTai.value = 1
 })
 
+// Hàm chuẩn hóa ngày
+function parseNgay(ngay) {
+  if (!ngay) return new Date().toISOString()
+  const parsed = dayjs(ngay, ['YYYY-MM-DD', 'DD/MM/YYYY', 'YYYY-MM-DDTHH:mm:ss', 'YYYY/MM/DD'], true)
+  return parsed.isValid() ? parsed.toISOString() : new Date().toISOString()
+}
+
 // Fetch API
 const fetchDanhGia = async () => {
   try {
@@ -199,9 +206,9 @@ const fetchDanhGia = async () => {
       const f = item.fields
       return {
         id: f.id_dg,
-        id_tk: f.id_tk, // FIX: dùng đúng tên trường API
+        id_tk: f.id_tk,
         tenNguoiDung: f.hoveten || 'Người dùng',
-        ngay: f.ngaytao || new Date().toISOString(),
+        ngay: parseNgay(f.ngaytao),
         diemSo: f.diemso,
         noiDung: f.noidung
       }
