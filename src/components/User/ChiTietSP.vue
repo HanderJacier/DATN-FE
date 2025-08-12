@@ -22,7 +22,10 @@
           <template v-if="isGiamGiaValid">
             <div class="small text-muted">
               <span class="text-decoration-line-through me-2">{{ product.dongia.toLocaleString() }}đ</span>
-              <span class="text-danger">-{{ tinhPhanTramGiamGia(product.dongia, product.giamgia) }}%</span>
+              <span class="text-danger">-{{ tinhPhanTramGiamGia(product.dongia, product.loaigiamTen) }}%</span>
+            </div>
+            <div class="text-danger small">
+              Khuyến mãi chỉ còn đến ngày {{ formattedExpiryDate }}
             </div>
           </template>
         </div>
@@ -107,7 +110,7 @@
 
             <!-- Thông số kỹ thuật -->
             <h5 class="fw-bold mb-4 mt-3">Thông số kỹ thuật </h5>
-            <div class="bg-white rounded-4 shadow-sm p-3 border h-1">
+            <div class="bg-white rounded-4 shadow-sm p-3 border h-1" v-show="showMore">
               <div class="table-responsive">
                 <table class="table table-sm align-middle text-start mb-0" style="font-size: 0.95rem;">
                   <tbody>
@@ -204,7 +207,7 @@
               </div>
 
               <div class="d-flex justify-content-center mt-5 align-items-center flex-wrap gap-3">
-                <ThichSanPham :productId="product.id" />
+                <ThichSanPham :productId="product.id_sp" />
                 <template v-if="product.soluong > 0">
                   <div class="d-flex gap-2">
                     <!-- Nút thêm vào giỏ -->
@@ -311,17 +314,33 @@ const ratingStats = ref({
 })
 
 const isGiamGiaValid = computed(() => {
-  return product.value?.giamgia && product.value.giamgia < product.value.dongia
+  if (!product.value?.giamgia || !product.value?.dongia) return false
+  if (product.value.giamgia >= product.value.dongia) return false
+
+  // parse hạn giảm giá "dd/MM/yyyy"
+  const [day, month, year] = product.value.hangiamgia?.split('/') || []
+  if (!day || !month || !year) return false
+
+  // tạo Date với giờ cuối ngày (để hết hạn vào cuối ngày đó)
+  const expiryDate = new Date(`${year}-${month}-${day}T23:59:59`)
+  const now = new Date()
+
+  return now <= expiryDate
+})
+
+const formattedExpiryDate = computed(() => {
+  return product.value?.hangiamgia || ''
 })
 
 const giaHienTai = computed(() => {
   return isGiamGiaValid.value ? product.value.giamgia : product.value.dongia
 })
 
-const tinhPhanTramGiamGia = () => {
-  return isGiamGiaValid.value ? product.value.loaigiamTen : 0
+// sửa lại hàm tính phần trăm giảm giá hiển thị trong template
+const tinhPhanTramGiamGia = (dongia, loaigiam) => {
+  if (!dongia || !loaigiam) return 0
+  return loaigiam // mình giả sử loaigiamTen là phần trăm giảm trực tiếp, vd: 20 (%)
 }
-
 
 const changeImage = (index) => {
   currentIndex.value = index
@@ -362,63 +381,55 @@ const addToCart = () => {
   }
 
   localStorage.setItem('cart', JSON.stringify(cart))
-  window.dispatchEvent(new Event("storage"))
+  window.dispatchEvent(new Event('storage'))
+  alert('Đã thêm vào giỏ hàng')
 }
 
 const buyNow = () => {
   addToCart()
-  router.push('/giohang').then(() => window.location.reload())
+  router.push({ path: '/gio-hang' })
 }
 
-const handleScroll = () => {
-  showStickyHeader.value = window.scrollY > 400
-}
-
-const fetchRatingStats = async (productId) => {
+const fetchRatingStats = async () => {
   try {
-    const response = await axios.post(
-      'http://localhost:8080/api/datn/WBH_US_SEL_THONG_KE_DANH_GIA',
-      {
-        params: { p_sanpham: productId },
-      }
-    );
-    if (Array.isArray(response.data) && response.data.length > 0) {
-      ratingStats.value = response.data[0].fields;
-    }
+    const res = await axios.get(`/api/danhgia/thongke/${product.value.id_sp}`)
+    ratingStats.value = res.data
   } catch (error) {
-    console.error('Lỗi khi lấy thống kê đánh giá:', error);
+    console.error('Lỗi lấy thống kê đánh giá:', error)
   }
-};
+}
 
 onMounted(async () => {
-  const id = route.params.id
-  if (id) {
-    await fetchChiTietSanPham(id)
-    if (product.value) {
-      await fetchRatingStats(product.value.id_sp)
-      const data = product.value
-      specs.value = {
-        other: {
-          'Model': data.model,
-          'Trọng lượng': data.trongluong,
-          'Pin': data.pin,
-          'Cổng kết nối': data.congketnoi,
-          'Tính năng': data.tinhnang,
-          'Màu sắc': data.mausac
-        }
-      }
-    }
-  }
-  window.addEventListener('scroll', handleScroll)
+  await fetchChiTietSanPham(route.params.id)
+  await fetchRatingStats()
+
+  window.addEventListener('scroll', () => {
+    showStickyHeader.value = window.scrollY > 500
+  })
 })
 
 onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll)
+  window.removeEventListener('scroll', () => {
+    showStickyHeader.value = false
+  })
 })
 </script>
 
-
 <style scoped>
+.zoom-wrapper {
+  padding-bottom: 120px;
+}
+
+/* các kiểu dáng hình ảnh cố định */
+.fixed-image-frame {
+  width: 100%;
+  height: 430px;
+  max-height: 430px;
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+}
+
 .fixed-product-img {
   max-width: 100%;
   height: 300px;
