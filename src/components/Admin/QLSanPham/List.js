@@ -3,26 +3,24 @@
 // Nếu DB đã rút về 1..10 (LENOVO..SONY) thì giữ list 1..10.
 // === Ví dụ: KHỚP VỚI SEED 1..20 (Apple..Huawei) ===
 export const brandList = [
-  { id: 1, name: 'Apple' },
-  { id: 2, name: 'Samsung' },
-  { id: 3, name: 'Xiaomi' },
-  { id: 4, name: 'Oppo' },
-  { id: 5, name: 'Vivo' },
-  { id: 6, name: 'Realme' },
-  { id: 7, name: 'Nokia' },
-  { id: 8, name: 'ASUS' },
-  { id: 9, name: 'Dell' },
-  { id: 10, name: 'HP' },
-  { id: 11, name: 'Lenovo' },
-  { id: 12, name: 'Acer' },
-  { id: 13, name: 'Sony' },
-  { id: 14, name: 'LG' },
-  { id: 15, name: 'Panasonic' },
-  { id: 16, name: 'Canon' },
-  { id: 17, name: 'Epson' },
-  { id: 18, name: 'JBL' },
-  { id: 19, name: 'Anker' },
-  { id: 20, name: 'Huawei' }
+  { id: 1, name: 'Lenovo' },
+  { id: 2, name: 'HP' },
+  { id: 3, name: 'Dell' },
+  { id: 4, name: 'Apple' },
+  { id: 5, name: 'ASUS' },
+  { id: 6, name: 'Samsung' },
+  { id: 7, name: 'Xiaomi' },
+  { id: 8, name: 'Vivo' },
+  { id: 9, name: 'OPPO' },
+  { id: 10, name: 'Sony' },
+  { id: 11, name: 'Acer' },
+  { id: 12, name: 'LG' },
+  { id: 13, name: 'Panasonic' },
+  { id: 14, name: 'Canon' },
+  { id: 15, name: 'Epson' },
+  { id: 16, name: 'JBL' },
+  { id: 17, name: 'Anker' },
+  { id: 18, name: 'Huawei' }
 ];
 
 export const formFields = {

@@ -5,43 +5,29 @@
     </h5>
 
     <!-- Form nhập -->
-    <Form
-      :product-form="productForm"
-      :form-fields="formFields"
-      :is-fixed-type="false"              
-      :visible-fields="visibleFields"
-      :is-editing="editingProductId !== null"
-      :notification="notification"
-      :notification-type="notificationType"
-      @create="createNewProduct"
-      @update="updateExistingProduct"
-      @reset-form="handleReset"
-      @delete-product="deleteProduct"
-      @image-change="onImageChange"
-      @multiple-images-change="onMultipleImagesChange"
-    />
- <!-- hoặc bind biến thật nếu có -->
+    <Form :product-form="productForm" :form-fields="formFields" :is-fixed-type="false" :visible-fields="visibleFields"
+      :is-editing="editingProductId !== null" :notification="notification" :notification-type="notificationType"
+      @create="createNewProduct" @update="updateExistingProduct" @reset-form="handleReset"
+      @delete-product="deleteProduct" @image-change="onImageChange" @multiple-images-change="onMultipleImagesChange" />
+    <!-- hoặc bind biến thật nếu có -->
     <!-- Tìm kiếm -->
     <div class="my-4">
-      <input
-        type="text"
-        v-model="searchQuery"
-        placeholder="Tìm kiếm sản phẩm..."
-        class="form-control"
-        @input="currentPage = 1"
-      />
+      <input type="text" v-model="searchQuery" placeholder="Tìm kiếm sản phẩm..." class="form-control"
+        @input="currentPage = 1" />
     </div>
 
     <!-- Bảng hiển thị -->
     <div class="table-responsive" style="max-height: 600px; overflow-x: auto;">
-      <table class="table table-bordered table-hover align-middle text-center bg-white" style="width: max-content; min-width: 100%;">
+      <table class="table table-bordered table-hover align-middle text-center bg-white"
+        style="width: max-content; min-width: 100%;">
         <thead class="table-warning">
           <tr>
             <th>STT</th>
             <th>Tên sản phẩm</th>
-            <th>Thương hiệu</th>
             <th>Loại</th>
             <th>Giá (VND)</th>
+            <th>Giá đã giảm</th>
+            <th>Hạn giảm giá</th>
             <th>Màu sắc</th>
             <th>Ảnh</th>
             <th>Ngày tạo</th>
@@ -53,19 +39,19 @@
           <tr v-for="(product, index) in pagedProducts" :key="product.id_sp || index">
             <td>{{ (currentPage - 1) * pageSize + index + 1 }}</td>
             <td>{{ product.tensanpham }}</td>
-            <td>{{ product.thuonghieuTen }}</td>
             <td>{{ product.loaiTen }}</td>
-            <td>{{ product.dongia }}</td>
+            <td>{{ product.dongia?.toLocaleString() }}</td>
+            <td>
+              <span v-if="product.giamgia && product.giamgia < product.dongia">
+                {{ product.giamgia.toLocaleString() }}
+              </span>
+              <span v-else>-</span>
+            </td>
+            <td>{{ product.hangiamgia }}</td>
             <td>{{ product.mausac }}</td>
             <td>
-              <img
-                v-if="product.anhgoc || product.diachianh"
-                :src="product.anhgoc || product.diachianh"
-                width="40"
-                height="40"
-                class="rounded"
-                alt="Ảnh sản phẩm"
-              />
+              <img v-if="product.anhgoc || product.diachianh" :src="product.anhgoc || product.diachianh" width="40"
+                height="40" class="rounded" alt="Ảnh sản phẩm" />
               <span v-else>-</span>
             </td>
             <td>{{ formatDate(product.ngaytao) }}</td>
@@ -74,7 +60,6 @@
               <button class="btn btn-sm btn-primary me-1" @click="editProduct(index)">
                 Sửa
               </button>
-              <!-- Chọn item rồi xóa theo editingProductId -->
               <button class="btn btn-sm btn-danger" @click="() => { editProduct(index); deleteProduct() }">
                 Xóa
               </button>
