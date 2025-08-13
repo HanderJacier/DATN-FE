@@ -333,28 +333,35 @@ const ratingStats = ref({
 })
 
 const formatDate = (dateString) => {
-  if (!dateString) return '';
-  const date = new Date(dateString);
+  if (!dateString) return ''
+
+  // Nếu dữ liệu là dạng "dd/MM/yyyy"
+  const [day, month, year] = dateString.split('/')
+  const date = new Date(year, month - 1, day)
+
+  // Format lại theo dd/MM/yyyy
   return date.toLocaleDateString('vi-VN', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric'
-  });
-};
+  })
+}
+
 
 
 const isGiamGiaValid = computed(() => {
   if (!product.value?.giamgia || product.value.giamgia >= product.value.dongia) {
     return false
   }
-
-  // Chuyển đổi hạn giảm giá sang Date
   const today = new Date()
-  const hanGiamGia = new Date(product.value.hangiamgia)
-
-  // Nếu chưa quá hạn giảm giá thì hợp lệ
-  return today <= hanGiamGia
+  today.setHours(0, 0, 0, 0)
+  const [day, month, year] = product.value.hangiamgia.split('/')
+  const hanGiamGia = new Date(year, month - 1, day)
+  hanGiamGia.setHours(0, 0, 0, 0)
+  return today < hanGiamGia
 })
+
+
 
 
 const giaHienTai = computed(() => {
