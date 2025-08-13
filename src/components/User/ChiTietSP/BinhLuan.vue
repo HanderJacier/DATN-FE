@@ -121,7 +121,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 import dayjs from 'dayjs'
 import 'dayjs/locale/vi'
@@ -131,6 +131,8 @@ dayjs.locale('vi')
 dayjs.extend(relativeTime)
 
 const route = useRoute()
+const router = useRouter()
+
 const sanPhamId = parseInt(route.params.id)
 
 const danhSachDanhGia = ref([])
@@ -232,7 +234,10 @@ const fetchDanhGia = async () => {
 }
 
 const guiDanhGia = async () => {
-  if (!taiKhoanId) return hienThiThongBao('Vui lòng đăng nhập!', 'danger')
+  if (!taiKhoanId) {
+    router.push('/dangnhap') // Chuyển hướng sang trang đăng nhập
+    return
+  }
 
   if (diemSo.value === 0 && noiDung.value.trim() === '') {
     return hienThiThongBao('Vui lòng nhập đầy đủ thông tin!', 'danger');
