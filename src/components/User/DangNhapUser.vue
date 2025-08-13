@@ -160,29 +160,31 @@ export default {
     const router = useRouter()
 
     const handleLogin = async () => {
-      await login(email.value, password.value)
+    await login(email.value, password.value)
 
-      if (userData.value) {
-        const storage = rememberMe.value ? localStorage : sessionStorage
-        storage.setItem('user', JSON.stringify(userData.value))
-
-        const vaiTro = userData.value.vaitro
-        if (vaiTro === true) {
-          router.push('/admin').then(() => window.location.reload())
-        } else {
-          router.push('/').then(() => window.location.reload())
-        }
+    if (userData.value) {
+      // Nếu là admin thì chỉ lưu vào sessionStorage (chỉ 1 tab)
+      // Nếu là user thì lưu vào localStorage (giữ trên mọi tab)
+      if (userData.value.vaitro === true) {
+        sessionStorage.setItem('user', JSON.stringify(userData.value))
       } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Đăng nhập thất bại',
-          text: loginError.value,
-        })
+        localStorage.setItem('user', JSON.stringify(userData.value))
       }
 
-      console.log('userData:', userData.value)
-      console.log('loginError:', loginError.value)
+      const vaiTro = userData.value.vaitro
+      if (vaiTro === true) {
+        router.push('/admin').then(() => window.location.reload())
+      } else {
+        router.push('/').then(() => window.location.reload())
+      }
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Đăng nhập thất bại',
+        text: loginError.value,
+      })
     }
+  }
 
     return {
       email,

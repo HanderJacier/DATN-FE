@@ -1,6 +1,7 @@
 <template>
   <header>
-    <div class="container-fluid text-white py-2 shadow-sm" style="background: linear-gradient(90deg, #667eea, #764ba2);">
+    <div class="container-fluid text-white py-2 shadow-sm"
+      style="background: linear-gradient(90deg, #667eea, #764ba2);">
       <div class="d-flex align-items-center justify-content-between flex-wrap">
         <!-- Logo -->
         <router-link to="/" class="d-flex align-items-center text-white text-decoration-none">
@@ -9,35 +10,21 @@
         </router-link>
 
         <!-- Tìm kiếm -->
-        <div class="flex-grow-1 mx-4 position-relative" style="max-width:500px;" v-click-outside="() => showSuggestions = false">
+        <div class="flex-grow-1 mx-4 position-relative" style="max-width:500px;"
+          v-click-outside="() => showSuggestions = false">
           <div class="input-group">
-            <input
-              type="text"
-              class="form-control"
-              v-model="searchKey"
-              @input="filterProducts"
-              @focus="showSuggestions = true"
-              @keyup.enter="goToSearchPage"
-              placeholder="Tìm kiếm sản phẩm..."
-            />
+            <input type="text" class="form-control" v-model="searchKey" @input="filterProducts"
+              @focus="showSuggestions = true" @keyup.enter="goToSearchPage" placeholder="Tìm kiếm sản phẩm..." />
             <button class="btn btn-light text-primary" type="button" @click="goToSearchPage">
               <i class="bi bi-search"></i>
             </button>
           </div>
 
           <!-- Gợi ý kết quả -->
-          <div
-            v-if="showSuggestions && filteredProducts.length > 0"
-            class="position-absolute bg-white text-dark rounded shadow p-3 w-100 mt-1"
-            style="z-index:1000;"
-          >
-            <div
-              v-for="(item, index) in filteredProducts.slice(0, 5)"
-              :key="index"
-              class="py-1 border-bottom"
-              @click="selectHint(item.tensanpham)"
-              style="cursor:pointer;"
-            >
+          <div v-if="showSuggestions && filteredProducts.length > 0"
+            class="position-absolute bg-white text-dark rounded shadow p-3 w-100 mt-1" style="z-index:1000;">
+            <div v-for="(item, index) in filteredProducts.slice(0, 5)" :key="index" class="py-1 border-bottom"
+              @click="selectHint(item.tensanpham)" style="cursor:pointer;">
               <i class="bi bi-search me-2"></i>{{ item.tensanpham }}
             </div>
           </div>
@@ -52,16 +39,25 @@
             </button>
             <ul class="dropdown-menu dropdown-menu-end mt-2" :class="{ show: isDropdownOpen }">
               <template v-if="user">
-                <li><router-link class="dropdown-item" to="/thongtintk"><i class="fas fa-user me-2"></i> Tài khoản của tôi</router-link></li>
-                <li><router-link class="dropdown-item" to="/hoadon"><i class="fas fa-box me-2 text-primary"></i> Đơn mua</router-link></li>
-                <li><router-link class="dropdown-item" to="/sanphamyeuthich"><i class="fas fa-heart me-2 text-danger"></i> Yêu thích</router-link></li>
-                <li><router-link class="dropdown-item" to="/gopynguoidung"><i class="fas fa-envelope me-2 text-warning"></i> Góp ý</router-link></li>
-                <li><hr class="dropdown-divider" /></li>
-                <li><a class="dropdown-item" href="#" @click.prevent="logout"><i class="fas fa-sign-out-alt text-success me-2"></i> Đăng xuất</a></li>
+                <li><router-link class="dropdown-item" to="/thongtintk"><i class="fas fa-user me-2"></i> Tài khoản của
+                    tôi</router-link></li>
+                <li><router-link class="dropdown-item" to="/hoadon"><i class="fas fa-box me-2 text-primary"></i> Đơn
+                    mua</router-link></li>
+                <li><router-link class="dropdown-item" to="/sanphamyeuthich"><i
+                      class="fas fa-heart me-2 text-danger"></i> Yêu thích</router-link></li>
+                <li><router-link class="dropdown-item" to="/gopynguoidung"><i
+                      class="fas fa-envelope me-2 text-warning"></i> Góp ý</router-link></li>
+                <li>
+                  <hr class="dropdown-divider" />
+                </li>
+                <li><a class="dropdown-item" href="#" @click.prevent="logout"><i
+                      class="fas fa-sign-out-alt text-success me-2"></i> Đăng xuất</a></li>
               </template>
               <template v-else>
-                <li><router-link class="dropdown-item" to="/dangnhap"><i class="fas fa-sign-in-alt me-2"></i> Đăng nhập</router-link></li>
-                <li><router-link class="dropdown-item" to="/dangky"><i class="fas fa-user-plus text-primary me-2"></i> Đăng ký</router-link></li>
+                <li><router-link class="dropdown-item" to="/dangnhap"><i class="fas fa-sign-in-alt me-2"></i> Đăng
+                    nhập</router-link></li>
+                <li><router-link class="dropdown-item" to="/dangky"><i class="fas fa-user-plus text-primary me-2"></i>
+                    Đăng ký</router-link></li>
               </template>
             </ul>
           </div>
@@ -69,7 +65,9 @@
           <router-link class="btn btn-dark d-flex align-items-center position-relative" to="/giohang">
             <img :src="cartImg" alt="cart" class="me-2" style="width:18px;height:18px;" />
             <span>Giỏ hàng</span>
-            <span v-if="cartCount > 0" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.75rem;">
+            <span v-if="cartCount > 0"
+              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+              style="font-size: 0.75rem;">
               {{ cartCount }}
             </span>
           </router-link>
@@ -110,7 +108,14 @@ export default {
 
     const { allProducts } = useSanPhamSearch()  // ✅ dùng từ composable
 
-    const displayName = computed(() => user.value?.hoVaTen || "Tài khoản")
+    const displayName = computed(() =>
+      user.value?.hoveten ||
+      user.value?.fullname ||
+      user.value?.tendangnhap ||
+      user.value?.username ||
+      user.value?.email ||
+      "Tài khoản"
+    )
 
     const toggleDropdown = () => {
       isDropdownOpen.value = !isDropdownOpen.value
@@ -124,7 +129,15 @@ export default {
     }
 
     const getStoredUser = () => {
-      const u = JSON.parse(localStorage.getItem("user")) || JSON.parse(sessionStorage.getItem("user"))
+      let u = null
+      // Ưu tiên sessionStorage (admin)
+      const sessionUser = sessionStorage.getItem("user")
+      if (sessionUser) {
+        u = JSON.parse(sessionUser)
+      } else {
+        const localUser = localStorage.getItem("user")
+        if (localUser) u = JSON.parse(localUser)
+      }
       user.value = u
     }
 
