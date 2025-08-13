@@ -29,12 +29,15 @@
           <tbody>
             <tr v-for="(item, index) in paginatedFeedback" :key="item.id_gy">
               <td>{{ index + 1 + (currentPage - 1) * pageSize }}</td>
-              <td>{{ item.hoVaTen || 'Ẩn danh' }}</td>
+              <td>{{ item.hoveten || 'Ẩn danh' }}</td>
               <td>{{ item.noidung }}</td>
               <td>{{ formatDate(item.ngay_gui) }}</td>
             </tr>
-            <tr v-if="paginatedFeedback.length === 0">
+            <tr v-if="!loading && paginatedFeedback.length === 0">
               <td colspan="4">Không có góp ý nào phù hợp.</td>
+            </tr>
+            <tr v-if="error">
+              <td colspan="4" class="text-danger">Lỗi khi tải góp ý.</td>
             </tr>
           </tbody>
         </table>
@@ -58,65 +61,45 @@
   </div>
 </template>
 
-<script>
-import apiClient from '@/api';
+<script setup>
+import { ref, computed, watch } from 'vue'
+import useGopYPhanTrang from '@/components/Admin/CRUD/GOPY/Select.js'
 
-export default {
-  data() {
-    return {
-      feedbackList: [],
-      searchTerm: '',
-      searchContent: '',
-      currentPage: 1,
-      pageSize: 10,
-    };
-  },
-  computed: {
-    filteredFeedback() {
-      return this.feedbackList.filter((item) => {
-        const matchName =
-          !this.searchTerm ||
-          item.hoVaTen?.toLowerCase().includes(this.searchTerm.toLowerCase());
-        const matchContent =
-          !this.searchContent ||
-          item.noidung?.toLowerCase().includes(this.searchContent.toLowerCase());
-        return matchName && matchContent;
-      });
-    },
-    paginatedFeedback() {
-      const start = (this.currentPage - 1) * this.pageSize;
-      return this.filteredFeedback.slice(start, start + this.pageSize);
-    },
-    totalPages() {
-      return Math.ceil(this.filteredFeedback.length / this.pageSize);
-    },
-  },
-  methods: {
-    async fetchFeedback() {
-      try {
-        const res = await apiClient.get('/san-pham/gop-y?p_pageNo=1&p_pageSize=100');
-        this.feedbackList = res.data || [];
-      } catch (error) {
-        console.error(' Lỗi tải góp ý:', error);
-        alert('Lỗi khi tải danh sách góp ý.');
-      }
-    },
-    formatDate(dateString) {
-      if (!dateString) return 'Không rõ';
-      const date = new Date(dateString);
-      return isNaN(date) ? 'Không rõ' : date.toLocaleDateString('vi-VN');
-    },
-  },
-  watch: {
-    searchTerm() {
-      this.currentPage = 1;
-    },
-    searchContent() {
-      this.currentPage = 1;
-    },
-  },
-  mounted() {
-    this.fetchFeedback();
-  },
-};
+const searchTerm = ref('')
+const searchContent = ref('')
+const currentPage = ref(1)
+const pageSize = ref(10)
+
+const { gopies, loading, error } = useGopYPhanTrang()
+
+const filteredFeedback = computed(() =>
+  (gopies.value || []).filter(item => {
+    const matchName =
+      !searchTerm.value ||
+      item.hoVaTen?.toLowerCase().includes(searchTerm.value.toLowerCase())
+    const matchContent =
+      !searchContent.value ||
+      item.noidung?.toLowerCase().includes(searchContent.value.toLowerCase())
+    return matchName && matchContent
+  })
+)
+
+const paginatedFeedback = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  return filteredFeedback.value.slice(start, start + pageSize.value)
+})
+
+const totalPages = computed(() =>
+  Math.max(1, Math.ceil(filteredFeedback.value.length / pageSize.value))
+)
+
+watch([searchTerm, searchContent], () => {
+  currentPage.value = 1
+})
+
+function formatDate(dateString) {
+  if (!dateString) return 'Không rõ'
+  const date = new Date(dateString)
+  return isNaN(date) ? 'Không rõ' : date.toLocaleDateString('vi-VN')
+}
 </script>
