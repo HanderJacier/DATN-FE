@@ -107,8 +107,8 @@ export default {
   },
   mounted() {
     const storageUser = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user'));
-    if (storageUser && storageUser.hoVaTen) {
-      this.username = storageUser.hoVaTen;
+    if (storageUser && storageUser.hoveten) {
+      this.username = storageUser.hoveten;
     } else {
       this.username = 'Người dùng';
     }
