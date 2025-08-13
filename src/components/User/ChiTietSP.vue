@@ -334,19 +334,15 @@ const ratingStats = ref({
 
 const formatDate = (dateString) => {
   if (!dateString) return ''
-
-  // Nếu dữ liệu là dạng "dd/MM/yyyy"
   const [day, month, year] = dateString.split('/')
   const date = new Date(year, month - 1, day)
-
-  // Format lại theo dd/MM/yyyy
+  // theo dd.mm.yy
   return date.toLocaleDateString('vi-VN', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric'
   })
 }
-
 
 
 const isGiamGiaValid = computed(() => {
@@ -360,8 +356,6 @@ const isGiamGiaValid = computed(() => {
   hanGiamGia.setHours(0, 0, 0, 0)
   return today < hanGiamGia
 })
-
-
 
 
 const giaHienTai = computed(() => {
