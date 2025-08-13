@@ -27,12 +27,22 @@ const discountMap = {
   15: 70
 };
 
-function isDiscountValid(hanGiamGia) {
-  if (!hanGiamGia) return false
-  const [d, m, y] = hanGiamGia.split('/')
-  if (!d || !m || !y) return false
-  const han = new Date(`${y}-${m}-${d}T23:59:59`)
-  return han >= new Date()
+function isGiamGiaValid(sp) {
+  if (!sp?.giamgia || sp.giamgia >= sp.dongia) {
+    return false
+  }
+  if (!sp.hangiamgia) return false
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const [day, month, year] = sp.hangiamgia.split('/')
+  if (!day || !month || !year) return false
+
+  const hanGiamGia = new Date(year, month - 1, day)
+  hanGiamGia.setHours(0, 0, 0, 0)
+
+  return hanGiamGia > today
 }
 </script>
 
@@ -53,7 +63,7 @@ function isDiscountValid(hanGiamGia) {
 
               <!-- Giá sản phẩm -->
               <p class="fw-semibold mb-2" v-if="typeof sp.dongia === 'number'">
-                <template v-if="sp.giamgia && sp.giamgia < sp.dongia && isDiscountValid(sp.hangiamgia)">
+                <template v-if="isGiamGiaValid(sp)">
                   <span class="text-danger me-2 fw-bold">
                     {{ sp.giamgia.toLocaleString() }}₫
                   </span>
