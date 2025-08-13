@@ -141,9 +141,20 @@
               <h3 class="fw-bold mb-3">{{ product.tensanpham }}</h3>
 
               <div class="product-meta d-flex flex-wrap align-items-center gap-4 mb-4">
+                <!-- Số lượng -->
+                <div class="d-flex align-items-center meta-item">
+                  <span class="icon-circle bg-success-subtle text-success me-1">
+                    <i class="fas fa-box"></i>
+                  </span>
+                  <span class="text-secondary small">
+                    Số lượng:
+                    <strong class="ms-1 text-dark">{{ product.soluong || 0 }}</strong>
+                  </span>
+                </div>
+
                 <!-- Đã bán -->
                 <div class="d-flex align-items-center meta-item">
-                  <span class="icon-circle bg-primary-subtle text-primary me-2">
+                  <span class="icon-circle bg-primary-subtle text-primary me-1">
                     <i class="fas fa-shopping-cart"></i>
                   </span>
                   <span class="text-secondary small">
@@ -154,7 +165,7 @@
 
                 <!-- Đánh giá -->
                 <div class="d-flex align-items-center meta-item">
-                  <span class="icon-circle bg-warning-subtle text-warning me-2">
+                  <span class="icon-circle bg-warning-subtle text-warning me-1">
                     <i class="fas fa-star"></i>
                   </span>
                   <span class="text-secondary small">
@@ -279,13 +290,15 @@
                     nhận
                     được một món quà bí ẩn (tai nghe, ốp lưng, sạc nhanh… trị giá đến <strong
                       class="text-danger">300.000đ</strong>).</li>
-                  <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Tặng Combo bảo vệ toàn diện Kính
+                  <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Tặng Combo bảo vệ toàn diện
+                    Kính
                     Cường Lực + Ốp lưng</li>
                   <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Tặng phiếu mua hàng <strong
                       class="text-danger">50.000đ</strong> khi
                     mua
                     sim TechMartVN kèm máy.</li>
-                  <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Tặng thêm 1 tháng bảo hành.</li>
+                  <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Tặng thêm 1 tháng bảo hành.
+                  </li>
                   <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Liên hệ TechmartVN để được tư
                     vấn
                     giá tốt nhất cho khách hàng doanh nghiệp khi mua số lượng nhiều.</li>
