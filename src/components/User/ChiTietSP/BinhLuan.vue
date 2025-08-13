@@ -1,6 +1,6 @@
 <template>
   <div class="container my-4">
-    <!-- Thanh thông báo -->
+    <!-- Thông báo chung -->
     <div v-if="thongBao.show"
       :class="['alert', thongBao.type === 'success' ? 'alert-success' : 'alert-danger', 'alert-dismissible', 'fade', 'show']"
       role="alert"
@@ -8,6 +8,23 @@
       {{ thongBao.message }}
       <button type="button" class="btn-close" aria-label="Close" @click="thongBao.show = false"></button>
     </div>
+
+    <!-- Thông báo yêu cầu đăng nhập -->
+    <div v-if="yeuCauDangNhap"
+      class="alert alert-warning alert-dismissible fade show d-flex align-items-center justify-content-between"
+      role="alert"
+      style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1050; min-width: 320px;">
+      <span><i class="fas fa-exclamation-circle me-2"></i>Bạn cần đăng nhập để gửi đánh giá!</span>
+      <div class="ms-3">
+        <button class="btn btn-success btn-sm me-1" @click="chuyenDangNhap">
+          <i class="fas fa-check"></i>
+        </button>
+        <button class="btn btn-danger btn-sm" @click="yeuCauDangNhap = false">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+
 
     <h4 class="mb-3">Đánh giá sản phẩm</h4>
 
@@ -149,11 +166,28 @@ if (userData && userData.id_tk) {
   taiKhoanId = userData.id_tk
 }
 
-// Thông báo
+// Thông báo chung
 const thongBao = ref({ show: false, message: '', type: 'success' })
 function hienThiThongBao(message, type = 'success') {
   thongBao.value = { show: true, message, type }
   setTimeout(() => (thongBao.value.show = false), 3000)
+}
+
+// Thông báo yêu cầu đăng nhập
+const yeuCauDangNhap = ref(false)
+let timeoutYeuCau = null
+function chuyenDangNhap() {
+  clearTimeout(timeoutYeuCau)
+  yeuCauDangNhap.value = false
+  router.push('/dangnhap')
+}
+
+function hienThongBaoDangNhap() {
+  yeuCauDangNhap.value = true
+  clearTimeout(timeoutYeuCau)
+  timeoutYeuCau = setTimeout(() => {
+    yeuCauDangNhap.value = false
+  }, 1500) //Số giây cần ẩn
 }
 
 // Trạng thái form
@@ -235,20 +269,21 @@ const fetchDanhGia = async () => {
 
 const guiDanhGia = async () => {
   if (!taiKhoanId) {
-    router.push('/dangnhap') // Chuyển hướng sang trang đăng nhập
+    hienThongBaoDangNhap()
     return
   }
 
+
   if (diemSo.value === 0 && noiDung.value.trim() === '') {
-    return hienThiThongBao('Vui lòng nhập đầy đủ thông tin!', 'danger');
+    return hienThiThongBao('Vui lòng nhập đầy đủ thông tin đánh giá!', 'danger')
   }
 
   if (diemSo.value === 0) {
-    return hienThiThongBao('Vui lòng chọn số sao đánh giá!', 'danger');
+    return hienThiThongBao('Vui lòng chọn số sao đánh giá!', 'danger')
   }
 
   if (noiDung.value.trim() === '') {
-    return hienThiThongBao('Vui lòng nhập nội dung đánh giá!', 'danger');
+    return hienThiThongBao('Vui lòng nhập nội dung đánh giá!', 'danger')
   }
 
 
