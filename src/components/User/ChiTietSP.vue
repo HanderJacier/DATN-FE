@@ -256,7 +256,19 @@
                     </button>
                   </div>
                 </template>
+
+                <!-- Hết hàng -->
+                <template v-else>
+                  <div
+                    class="btn btn-danger d-flex align-items-center justify-content-center  gap-2 px-3 py-2 rounded-3 shadow-sm fw-semibold"
+                    style="font-size: 1.1rem;">
+                    <i class="fas fa-exclamation-circle me-2" style="font-size: 1.3rem;"></i>
+                    <span class="fw-bold text-uppercase">Sản phẩm đã hết hàng</span>
+                  </div>
+                </template>
+
               </div>
+
 
               <!-- Ưu đãi cho sinh viên -->
               <div class="p-2 mt-3"
@@ -290,15 +302,13 @@
                     nhận
                     được một món quà bí ẩn (tai nghe, ốp lưng, sạc nhanh… trị giá đến <strong
                       class="text-danger">300.000đ</strong>).</li>
-                  <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Tặng Combo bảo vệ toàn diện
-                    Kính
+                  <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Tặng Combo bảo vệ toàn diện Kính
                     Cường Lực + Ốp lưng</li>
                   <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Tặng phiếu mua hàng <strong
                       class="text-danger">50.000đ</strong> khi
                     mua
                     sim TechMartVN kèm máy.</li>
-                  <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Tặng thêm 1 tháng bảo hành.
-                  </li>
+                  <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Tặng thêm 1 tháng bảo hành.</li>
                   <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Liên hệ TechmartVN để được tư
                     vấn
                     giá tốt nhất cho khách hàng doanh nghiệp khi mua số lượng nhiều.</li>
