@@ -28,84 +28,76 @@
         </div>
 
         <div class="d-grid">
-          <button type="submit" class="btn btn-outline-primary">Gửi thư góp ý</button>
+          <button type="submit" class="btn btn-outline-primary" :disabled="loading">
+            <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
+            Gửi thư góp ý
+          </button>
         </div>
       </form>
     </div>
   </div>
 </template>
 
-<script>
-import Swal from 'sweetalert2';
-import { postFeedback } from '@/api.js';
+<script setup>
+import Swal from 'sweetalert2'
+import { ref } from 'vue'
+import useGopYCreate from '@/components/User/LoadDB/GopY.js'
 
-export default {
-  data() {
-    return {
-      feedback: '',
-      id_tk: null,
-      username: 'Bạn',
-    };
-  },
-  created() {
-    try {
-      const storageUser = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user'));
-      if (storageUser) {
-        this.id_tk = storageUser.id_tk || storageUser.idtk;
-        this.username = storageUser.hoVaTen || 'Bạn';
-      }
-    } catch (e) {
-      console.error('Lỗi đọc storage:', e);
-    }
-  },
-  methods: {
-    async submitFeedback() {
-      if (!this.feedback.trim()) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Bạn chưa nhập nội dung',
-          text: 'Vui lòng viết nội dung góp ý trước khi gửi!',
-        });
-        return;
-      }
+const feedback = ref('')
+const id_tk = ref(null)
+const username = ref('Bạn')
 
-      if (!this.id_tk) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Không tìm thấy tài khoản',
-          text: 'Vui lòng đăng nhập lại!',
-        }).then(() => {
-          this.$router.push('/dangnhap');
-        });
-        return;
-      }
+const { loading, error, success, createGopY } = useGopYCreate()
 
-      try {
-        await postFeedback({
-          noidung: this.feedback,
-          id_tk: this.id_tk
-        });
-
-        Swal.fire({
-          icon: 'success',
-          title: 'Góp ý đã được gửi!',
-          text: 'Cảm ơn bạn đã chia sẻ ý kiến quý giá.',
-          timer: 3000,
-          showConfirmButton: false
-        });
-
-        this.feedback = '';
-      } catch (error) {
-        console.error('Lỗi gửi góp ý:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Gửi góp ý thất bại!',
-          text: 'Vui lòng thử lại sau.',
-        });
-      }
-    }
+// Lấy user từ localStorage/sessionStorage
+try {
+  const raw = localStorage.getItem('user') || sessionStorage.getItem('user')
+  const storageUser = raw ? JSON.parse(raw) : null
+  if (storageUser) {
+    id_tk.value = storageUser.id_tk || storageUser.idtk
+    username.value = storageUser.hoVaTen || storageUser.hoveten || 'Bạn'
   }
-};
+} catch (e) {
+  console.error('Lỗi đọc storage:', e)
+}
+
+const submitFeedback = async () => {
+  if (!feedback.value.trim()) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Bạn chưa nhập nội dung',
+      text: 'Vui lòng viết nội dung góp ý trước khi gửi!',
+    })
+    return
+  }
+
+  if (!id_tk.value) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Không tìm thấy tài khoản',
+      text: 'Vui lòng đăng nhập lại!',
+    }).then(() => window.location.href = '/dangnhap')
+    return
+  }
+
+  const ok = await createGopY({ id_tk: id_tk.value, noidung: feedback.value })
+  if (ok) {
+    Swal.fire({
+      icon: 'success',
+      title: 'Góp ý đã được gửi!',
+      text: 'Cảm ơn bạn đã chia sẻ ý kiến quý giá.',
+      timer: 3000,
+      showConfirmButton: false,
+    })
+    feedback.value = ''
+  } else {
+    Swal.fire({
+      icon: 'error',
+      title: 'Gửi góp ý thất bại!',
+      text: error.value || 'Vui lòng thử lại sau.',
+    })
+  }
+}
 </script>
 
 <style scoped>

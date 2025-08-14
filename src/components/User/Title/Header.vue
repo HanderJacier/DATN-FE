@@ -41,7 +41,7 @@
               <template v-if="user">
                 <li><router-link class="dropdown-item" to="/thongtintk"><i class="fas fa-user me-2"></i> Tài khoản của
                     tôi</router-link></li>
-                <li><router-link class="dropdown-item" to="/hoadon"><i class="fas fa-box me-2 text-primary"></i> Đơn
+                <li><router-link class="dropdown-item" to="/tatca"><i class="fas fa-box me-2 text-primary"></i> Đơn
                     mua</router-link></li>
                 <li><router-link class="dropdown-item" to="/sanphamyeuthich"><i
                       class="fas fa-heart me-2 text-danger"></i> Yêu thích</router-link></li>

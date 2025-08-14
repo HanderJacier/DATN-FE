@@ -7,7 +7,6 @@ import ThongTinTK from '../components/User/ThongTinTK/ThongTinTK.vue'
 import DiaChi from '../components/User/ThongTinTK/DiaChi.vue'
 import SPYeuThich from '../components/User/ThongTinTK/SPYeuThich.vue'
 import HoaDonChiTiet from '../components/User/ThongTinTK/HoaDonChiTiet.vue'
-import HoaDon from '../components/User/ThongTinTK/HoaDon.vue'
 import DoiMatKhau from '../components/User/ThongTinTK/DoiMatKhau.vue'
 import PaymentResult from '../components/User/PaymentForm.vue'
 
@@ -26,12 +25,12 @@ import TimKiem from '../components/User/TimKiem.vue'
 import GopYUser from '../components/User/GopYUser.vue'
 
 // 🎯 Các trạng thái đơn hàng
-import TatCa from '../components/User/ThongTinTK/LichSuMuaHang/TatCa.vue'
-import DangXuLy from '../components/User/ThongTinTK/LichSuMuaHang/DangXuLy.vue'
-import DangGiao from '../components/User/ThongTinTK/LichSuMuaHang/DangGiao.vue'
-import DaGiao from '../components/User/ThongTinTK/LichSuMuaHang/DaGiao.vue'
-import DaHuy from '../components/User/ThongTinTK/LichSuMuaHang/DaHuy.vue'
-import TraHang from '../components/User/ThongTinTK/LichSuMuaHang/TraHang.vue'
+import TatCa from '../components/User/ThongTinTK/HoaDon/TatCa.vue'
+import DangXuLy from '../components/User/ThongTinTK/HoaDon/DangXuLy.vue'
+import DangGiao from '../components/User/ThongTinTK/HoaDon/DangGiao.vue'
+import DaGiao from '../components/User/ThongTinTK/HoaDon/DaGiao.vue'
+import DaHuy from '../components/User/ThongTinTK/HoaDon/DaHuy.vue'
+import TraHang from '../components/User/ThongTinTK/HoaDon/TraHang.vue'
 import XacNhanDonHang from '../components/User/ThongTinTK/XacNhanDonHang.vue'
 import OrderManagement from '../components/Admin/OrderManagement.vue'
 
@@ -44,7 +43,6 @@ const routes = [
   { path: '/sanphamyeuthich', component: SPYeuThich },
   { path: '/diachinguoidung', component: DiaChi },
   { path: '/hoadonchitiet', component: HoaDonChiTiet },
-  { path: '/hoadon', component: HoaDon },
   { path: '/doimatkhau', component: DoiMatKhau },
 
   { path: '/giohang', component: GioHang },
