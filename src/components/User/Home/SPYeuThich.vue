@@ -27,12 +27,22 @@ const discountMap = {
   15: 70
 };
 
-function isDiscountValid(hanGiamGia) {
-  if (!hanGiamGia) return false
-  const [d, m, y] = hanGiamGia.split('/')
-  if (!d || !m || !y) return false
-  const han = new Date(`${y}-${m}-${d}T23:59:59`)
-  return han >= new Date()
+function isGiamGiaValid(sp) {
+  if (!sp?.giamgia || sp.giamgia >= sp.dongia) {
+    return false
+  }
+  if (!sp.hangiamgia) return false
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const [day, month, year] = sp.hangiamgia.split('/')
+  if (!day || !month || !year) return false
+
+  const hanGiamGia = new Date(year, month - 1, day)
+  hanGiamGia.setHours(0, 0, 0, 0)
+
+  return hanGiamGia > today
 }
 
 </script>
@@ -53,22 +63,24 @@ function isDiscountValid(hanGiamGia) {
               <p class="mb-1 text-secondary small">{{ sp.thuonghieu_ten || 'Thương hiệu khác' }}</p>
 
               <!-- Giá sản phẩm -->
-              <p class="fw-semibold mb-2" v-if="typeof sp.dongia === 'number'">
-                <template v-if="sp.giamgia && sp.giamgia < sp.dongia && isDiscountValid(sp.hangiamgia)">
-                  <span class="text-danger me-2 fw-bold">
+              <div class="product-price" v-if="typeof sp.dongia === 'number'">
+                <template v-if="isGiamGiaValid(sp)">
+                  <span class="price-discount">
                     {{ sp.giamgia.toLocaleString() }}₫
                   </span>
-                  <span class="text-muted text-decoration-line-through small">
+                  <span class="price-original">
                     {{ sp.dongia.toLocaleString() }}₫
                   </span>
-                  <span class="badge bg-primary-subtle text-primary ms-2">
-                    Giảm {{ Math.round((1 - sp.giamgia / sp.dongia) * 100) }}%
+                  <span class="discount-badge">
+                    -{{ Math.round((1 - sp.giamgia / sp.dongia) * 100) }}%
                   </span>
                 </template>
+
                 <template v-else>
-                  <span class="text-dark">{{ sp.dongia.toLocaleString() }}₫</span>
+                  <span class="price-normal">{{ sp.dongia.toLocaleString() }}₫</span>
                 </template>
-              </p>
+              </div>
+
 
               <button class="btn btn-outline-dark w-100 mt-2 rounded-pill">Xem chi tiết</button>
             </div>
@@ -107,6 +119,40 @@ function isDiscountValid(hanGiamGia) {
 .card-img-top {
   border-top-left-radius: 12px;
   border-top-right-radius: 12px;
-  padding-top: 10px;
+  padding-top: 10px;}
+
+.product-price {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.price-discount {
+  color: #e53935;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.price-original {
+  color: #9e9e9e;
+  text-decoration: line-through;
+  font-size: 0.85rem;
+}
+
+.discount-badge {
+  background: linear-gradient(135deg, #ff4b2b, #ff416c);
+  color: white;
+  font-weight: 600;
+  font-size: 0.75rem;
+  padding: 0.25em 0.6em;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(255, 64, 129, 0.3);
+}
+
+.price-normal {
+  color: #e53935;
+  font-weight: 700;
+  font-size: 1rem;
 }
 </style>

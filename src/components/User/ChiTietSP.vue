@@ -141,9 +141,20 @@
               <h3 class="fw-bold mb-3">{{ product.tensanpham }}</h3>
 
               <div class="product-meta d-flex flex-wrap align-items-center gap-4 mb-4">
+                <!-- Số lượng -->
+                <div class="d-flex align-items-center meta-item">
+                  <span class="icon-circle bg-success-subtle text-success me-1">
+                    <i class="fas fa-box"></i>
+                  </span>
+                  <span class="text-secondary small">
+                    Số lượng:
+                    <strong class="ms-1 text-dark">{{ product.soluong || 0 }}</strong>
+                  </span>
+                </div>
+
                 <!-- Đã bán -->
                 <div class="d-flex align-items-center meta-item">
-                  <span class="icon-circle bg-primary-subtle text-primary me-2">
+                  <span class="icon-circle bg-primary-subtle text-primary me-1">
                     <i class="fas fa-shopping-cart"></i>
                   </span>
                   <span class="text-secondary small">
@@ -154,7 +165,7 @@
 
                 <!-- Đánh giá -->
                 <div class="d-flex align-items-center meta-item">
-                  <span class="icon-circle bg-warning-subtle text-warning me-2">
+                  <span class="icon-circle bg-warning-subtle text-warning me-1">
                     <i class="fas fa-star"></i>
                   </span>
                   <span class="text-secondary small">
@@ -245,7 +256,19 @@
                     </button>
                   </div>
                 </template>
+
+                <!-- Hết hàng -->
+                <template v-else>
+                  <div
+                    class="btn btn-danger d-flex align-items-center justify-content-center  gap-2 px-3 py-2 rounded-3 shadow-sm fw-semibold"
+                    style="font-size: 1.1rem;">
+                    <i class="fas fa-exclamation-circle me-2" style="font-size: 1.3rem;"></i>
+                    <span class="fw-bold text-uppercase">Sản phẩm đã hết hàng</span>
+                  </div>
+                </template>
+
               </div>
+
 
               <!-- Ưu đãi cho sinh viên -->
               <div class="p-2 mt-3"
@@ -334,19 +357,15 @@ const ratingStats = ref({
 
 const formatDate = (dateString) => {
   if (!dateString) return ''
-
-  // Nếu dữ liệu là dạng "dd/MM/yyyy"
   const [day, month, year] = dateString.split('/')
   const date = new Date(year, month - 1, day)
-
-  // Format lại theo dd/MM/yyyy
+  // theo dd.mm.yy
   return date.toLocaleDateString('vi-VN', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric'
   })
 }
-
 
 
 const isGiamGiaValid = computed(() => {
@@ -360,8 +379,6 @@ const isGiamGiaValid = computed(() => {
   hanGiamGia.setHours(0, 0, 0, 0)
   return today < hanGiamGia
 })
-
-
 
 
 const giaHienTai = computed(() => {
