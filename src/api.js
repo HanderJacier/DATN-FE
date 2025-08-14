@@ -78,6 +78,28 @@ export function xacNhanThanhToan(maGiaoDich, trangThai) {
   })
 }
 
+// ===== HÓA ĐƠN ĐIỆN TỬ API =====
+export function taoHoaDonDienTu(hoaDonData) {
+  return apiClient.post('hoa-don/tao-hoa-don-dien-tu', hoaDonData)
+}
+
+export function layHoaDonDienTu(hoaDonId) {
+  return apiClient.get(`hoa-don/chi-tiet/${hoaDonId}`)
+}
+
+export function taiHoaDonPDF(hoaDonId) {
+  return apiClient.get(`hoa-don/tai-pdf/${hoaDonId}`, {
+    responseType: 'blob'
+  })
+}
+
+export function guiHoaDonEmail(hoaDonId, email) {
+  return apiClient.post('hoa-don/gui-email', {
+    hoaDonId,
+    email
+  })
+}
+
 // ===== SẢN PHẨM API =====
 export function layDanhSachSanPham() {
   return apiClient.get('SanPham')

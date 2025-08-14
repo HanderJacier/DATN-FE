@@ -274,13 +274,20 @@
 <script>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import Swal from 'sweetalert2'
 import usePayment from '../User/LoadDB/usePayment.js'
 
 export default {
     name: 'Payment',
     setup() {
         const router = useRouter()
-        const { processPayment: executePayment, processing } = usePayment()
+        const { 
+            processPayment: executePayment, 
+            processing, 
+            paymentResult, 
+            invoiceData,
+            downloadInvoice 
+        } = usePayment()
 
         const orderData = ref({
             customerInfo: {},
@@ -377,18 +384,94 @@ export default {
                 console.log('Processing payment with data:', paymentData)
 
                 const result = await executePayment(paymentData)
+                console.log('Payment result:', result)
                 
                 if (result.success) {
-                    // Clear order data from localStorage
+                    // Hiển thị thông báo thành công với tùy chọn tải hóa đơn
+                    const swalResult = await Swal.fire({
+                        title: 'Thanh toán thành công!',
+                        html: `
+                            <div class="text-center">
+                                <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                                <h4 class="mt-3 mb-2">Đơn hàng đã được tạo thành công!</h4>
+                                <p class="text-muted mb-3">
+                                    Mã đơn hàng: <strong>HD${String(result.orderId).padStart(6, '0')}</strong><br>
+                                    ${result.invoiceNumber ? `Số hóa đơn: <strong>${result.invoiceNumber}</strong><br>` : ''}
+                                    Tổng tiền: <strong>${paymentData.finalAmount.toLocaleString('vi-VN')} đ</strong>
+                                </p>
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Chúng tôi sẽ liên hệ với bạn trong vòng 30 phút để xác nhận đơn hàng
+                                </div>
+                            </div>
+                        `,
+                        icon: 'success',
+                        showCancelButton: true,
+                        confirmButtonText: '<i class="fas fa-download me-2"></i>Tải hóa đơn',
+                        cancelButtonText: '<i class="fas fa-home me-2"></i>Về trang chủ',
+                        confirmButtonColor: '#28a745',
+                        cancelButtonColor: '#007bff',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        customClass: {
+                            popup: 'swal-wide'
+                        }
+                    })
+
+                    // Xử lý lựa chọn của người dùng
+                    if (swalResult.isConfirmed && result.invoiceId) {
+                        // Người dùng chọn tải hóa đơn
+                        const downloadResult = await downloadInvoice(result.invoiceId)
+                        
+                        if (downloadResult.success) {
+                            await Swal.fire({
+                                title: 'Tải hóa đơn thành công!',
+                                text: 'Hóa đơn đã được tải xuống. Bạn sẽ được chuyển về trang chủ.',
+                                icon: 'success',
+                                timer: 2000,
+                                showConfirmButton: false
+                            })
+                        } else {
+                            await Swal.fire({
+                                title: 'Lỗi tải hóa đơn',
+                                text: downloadResult.message,
+                                icon: 'warning',
+                                confirmButtonText: 'Về trang chủ'
+                            })
+                        }
+                    }
+
+                    // Clear dữ liệu và chuyển về trang chủ
                     localStorage.removeItem('orderData')
+                    localStorage.removeItem('selectedCartItems')
                     
-                    // Navigate to success page
-                    router.push(`/thanh-toan-thanh-cong/${result.orderId}`)
+                    // Xóa sản phẩm đã mua khỏi giỏ hàng
+                    const cart = JSON.parse(localStorage.getItem('cart')) || []
+                    const remainingCart = cart.filter(cartItem => 
+                        !paymentData.items.some(orderItem => orderItem.id === cartItem.id)
+                    )
+                    localStorage.setItem('cart', JSON.stringify(remainingCart))
+                    window.dispatchEvent(new Event('storage'))
+                    
+                    // Chuyển về trang chủ
+                    router.push('/')
                 } else {
+                    await Swal.fire({
+                        title: 'Thanh toán thất bại!',
+                        text: result.message || 'Có lỗi xảy ra khi xử lý thanh toán',
+                        icon: 'error',
+                        confirmButtonText: 'Thử lại'
+                    })
                     errorMessage.value = result.message || 'Có lỗi xảy ra khi xử lý thanh toán'
                 }
             } catch (error) {
                 console.error('Error processing payment:', error)
+                await Swal.fire({
+                    title: 'Lỗi hệ thống!',
+                    text: 'Có lỗi xảy ra khi xử lý thanh toán. Vui lòng thử lại.',
+                    icon: 'error',
+                    confirmButtonText: 'Đóng'
+                })
                 errorMessage.value = 'Có lỗi xảy ra khi xử lý thanh toán. Vui lòng thử lại.'
             }
         }
@@ -434,6 +517,15 @@ export default {
 </script>
 
 <style scoped>
+/* Custom SweetAlert styles */
+:global(.swal-wide) {
+    width: 600px !important;
+}
+
+:global(.swal2-html-container) {
+    line-height: 1.6 !important;
+}
+
 .step-item {
     display: flex;
     flex-direction: column;
