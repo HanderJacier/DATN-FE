@@ -54,7 +54,7 @@
     <!-- Đơn mua -->
     <div class="mb-4">
       <h6 class="fw-bold text-success mb-2">
-        <i class="bi bi-card-checklist me-2"></i> Đơn mua
+        <i class="bi bi-card-checklist me-2"></i> Sản phẩm và đơn mua
       </h6>
       <ul class="list-unstyled ps-3">
         <li>
@@ -69,30 +69,19 @@
               || $route.path === '/dahuy'
              }"
           >
-            <i class="bi bi-clock-history me-1"></i> Lịch sử mua hàng
+            <i class="bi bi-clock-history me-1"></i> Hóa đơn mua hàng
           </router-link>
         </li>
         <li>
           <router-link
-            to="/hoadon"
-            class="link-item"
-            :class="{ active: $route.path === '/hoadon' }"
-          >
-            <i class="bi bi-receipt-cutoff me-1"></i> Hóa đơn mua hàng
-          </router-link>
-        </li>
-      </ul>
-    </div>
-
-    <!-- Yêu thích -->
-    <div>
-      <router-link
         to="/sanphamyeuthich"
         class="link-item"
         :class="{ active: $route.path === '/sanphamyeuthich' }"
       >
-        <i class="bi bi-heart-fill me-2 text-danger"></i> Sản phẩm yêu thích
+        <i class="bi bi-heart me-2"></i> Sản phẩm yêu thích
       </router-link>
+        </li>
+      </ul>
     </div>
   </div>
 </template>
