@@ -54,7 +54,7 @@ function isGiamGiaValid(sp) {
     <Swiper :slides-per-view="1" :space-between="10"
       :breakpoints="{ 576: { slidesPerView: 2 }, 768: { slidesPerView: 3 }, 992: { slidesPerView: 4 } }" navigation
       :modules="[Navigation]">
-      <SwiperSlide v-for="sp in sanPhamMoiNhat" :key="sp.id_sp">
+      <SwiperSlide v-for="sp in (sanPhamMoiNhat || []).filter(sp => sp.soluong > 0)" :key="sp.id_sp">
         <RouterLink :to="`/sanpham/${sp.id_sp}`" class="text-decoration-none text-dark">
           <div class="card product-card mx-2">
             <img :src="sp.anhgoc" class="card-img-top product-img" :alt="sp.tensanpham" />
