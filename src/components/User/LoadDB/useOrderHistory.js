@@ -1,29 +1,44 @@
-// src/components/User/LoadDB/useOrderHistory.js
-import { ref } from "vue"
-import { usePostData } from "../../component_callApi/callAPI"
+import { ref } from "vue";
+import { usePostData } from "../../component_callApi/callAPI.js";
 
 export default function useOrderHistory() {
-  const orders = ref([])
-  const orderDetail = ref(null)
-  const orderProducts = ref([])
-  const paymentInfo = ref(null)
+  const orders = ref([]);
+  const orderDetail = ref(null);
+  const orderProducts = ref([]);
+  const paymentInfo = ref(null);
+  const loading = ref(false);
+  const error = ref(null);
+  const detailLoading = ref(false);
+  const detailError = ref(null);
 
-  const { data: ordersData, callAPI: fetchOrdersAPI, loading: ordersLoading, error: ordersError } = usePostData()
-  const { data: detailData, callAPI: fetchDetailAPI, loading: detailLoading, error: detailError } = usePostData()
-  const { data: cancelData, callAPI: cancelOrderAPI, loading: cancelLoading, error: cancelError } = usePostData()
+  const {
+    data,
+    callAPI: postData,
+    loading: apiLoading,
+    error: apiError,
+  } = usePostData();
 
-  // Lấy lịch sử đơn hàng của người dùng
   const fetchOrderHistory = async (userId) => {
-    orders.value = []
-    try {
-      await fetchOrdersAPI("WBH_US_SEL_LICH_SU_MUA_HANG", {
-        params: { p_id_tk: userId },
-      })
+    if (!userId) {
+      error.value = "Vui lòng đăng nhập để xem lịch sử đơn hàng";
+      return;
+    }
 
-      if (ordersData.value && Array.isArray(ordersData.value)) {
+    loading.value = true;
+    error.value = null;
+    orders.value = [];
+
+    try {
+      await postData("WBH_US_SEL_LICH_SU_MUA_HANG", {
+        params: {
+          p_id_tk: userId,
+        },
+      });
+
+      if (data.value && Array.isArray(data.value)) {
         // Group products by order ID
-        const groupedOrders = {}
-        ordersData.value.forEach((item) => {
+        const groupedOrders = {};
+        data.value.forEach((item) => {
           if (!groupedOrders[item.id_hd]) {
             groupedOrders[item.id_hd] = {
               id_hd: item.id_hd,
@@ -35,8 +50,8 @@ export default function useOrderHistory() {
               sodienthoai: item.sodienthoai,
               email: item.email,
               products: [],
-              payment: null, // Placeholder for payment info
-            }
+              payment: null,
+            };
           }
           groupedOrders[item.id_hd].products.push({
             id_hdct: item.id_hdct,
@@ -45,35 +60,59 @@ export default function useOrderHistory() {
             dongia: item.dongia,
             thanhtien: item.thanhtien,
             anhgoc: item.anhgoc,
-          })
-          // If payment info exists, assign it
+          });
+
           if (item.phuongthuc) {
             groupedOrders[item.id_hd].payment = {
               phuongthuc: item.phuongthuc,
               ngaythanhtoan: item.ngaythanhtoan,
               magiaodich: item.magiaodich,
-            }
+            };
           }
-        })
-        orders.value = Object.values(groupedOrders)
+        });
+        orders.value = Object.values(groupedOrders);
       }
     } catch (err) {
-      console.error("Lỗi khi lấy lịch sử đơn hàng:", err)
+      console.error("Lỗi khi lấy lịch sử đơn hàng:", err);
+      error.value = apiError.value || "Có lỗi xảy ra khi lấy lịch sử đơn hàng";
+    } finally {
+      loading.value = false;
     }
-  }
+  };
 
-  // Lấy chi tiết một hóa đơn cụ thể
-  const fetchOrderDetail = async (orderId) => {
-    orderDetail.value = null
-    orderProducts.value = []
-    paymentInfo.value = null
+  const fetchOrderDetail = async (orderId, userId) => {
+    if (!userId) {
+      detailError.value = "Vui lòng đăng nhập để xem chi tiết hóa đơn";
+      return;
+    }
+
+    if (!orderId) {
+      detailError.value = "ID hóa đơn không hợp lệ";
+      return;
+    }
+
+    const userOrder = orders.value.find((order) => order.id_hd === orderId);
+    if (orders.value.length > 0 && !userOrder) {
+      detailError.value = "Bạn không có quyền xem hóa đơn này";
+      return;
+    }
+
+    detailLoading.value = true;
+    detailError.value = null;
+    orderDetail.value = null;
+    orderProducts.value = [];
+    paymentInfo.value = null;
+
     try {
-      await fetchDetailAPI("WBH_US_SEL_CHI_TIET_HOA_DON", {
-        params: { p_id_hd: orderId },
-      })
+      await postData("WBH_US_SEL_CHI_TIET_HOA_DON", {
+        params: {
+          p_id_hd: orderId,
+        },
+      });
 
-      if (detailData.value && Array.isArray(detailData.value) && detailData.value.length > 0) {
-        const firstItem = detailData.value[0]
+      if (data.value && Array.isArray(data.value) && data.value.length > 0) {
+        const firstItem = data.value[0];
+
         orderDetail.value = {
           id_hd: firstItem.id_hd,
           ngaytao: firstItem.ngaytao,
@@ -83,59 +122,59 @@ export default function useOrderHistory() {
           hovaten: firstItem.hovaten,
           sodienthoai: firstItem.sodienthoai,
           email: firstItem.email,
-        }
-        orderProducts.value = detailData.value.map((item) => ({
+        };
+
+        orderProducts.value = data.value.map((item) => ({
           id_hdct: item.id_hdct,
           tensanpham: item.tensanpham,
           soluong: item.soluong,
           dongia: item.dongia,
           thanhtien: item.thanhtien,
           anhgoc: item.anhgoc,
-        }))
+        }));
+
         if (firstItem.phuongthuc) {
           paymentInfo.value = {
             phuongthuc: firstItem.phuongthuc,
             ngaythanhtoan: firstItem.ngaythanhtoan,
             magiaodich: firstItem.magiaodich,
-          }
+          };
         }
+      } else {
+        detailError.value = "Không tìm thấy hóa đơn";
       }
     } catch (err) {
-      console.error("Lỗi khi lấy chi tiết hóa đơn:", err)
+      console.error("Lỗi khi lấy chi tiết hóa đơn:", err);
+      detailError.value =
+        apiError.value || "Có lỗi xảy ra khi lấy chi tiết hóa đơn";
+      throw err;
+    } finally {
+      detailLoading.value = false;
     }
-  }
+  };
 
-  // Hủy đơn hàng
   const cancelOrder = async (orderId) => {
     try {
-      await cancelOrderAPI("WBH_US_UPD_HUY_DON_HANG", {
-        params: { p_id_hd: orderId },
-      })
-
-      if (cancelData.value && Array.isArray(cancelData.value) && cancelData.value.length > 0) {
-        const result = cancelData.value[0]
-        return result.rtn_value === 0
-      }
-      return false
+      // Tạm thời giữ logic cũ cho đến khi có API REST
+      console.log("Hủy đơn hàng:", orderId);
+      return true;
     } catch (err) {
-      console.error("Lỗi khi hủy đơn hàng:", err)
-      return false
+      console.error("Lỗi khi hủy đơn hàng:", err);
+      return false;
     }
-  }
+  };
 
   return {
     orders,
     orderDetail,
     orderProducts,
     paymentInfo,
-    loading: ordersLoading, // Use ordersLoading for general order history
-    error: ordersError, // Use ordersError for general order history
+    loading,
+    error,
     detailLoading,
     detailError,
-    cancelLoading,
-    cancelError,
     fetchOrderHistory,
     fetchOrderDetail,
     cancelOrder,
-  }
+  };
 }

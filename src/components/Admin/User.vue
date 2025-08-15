@@ -61,15 +61,9 @@
               <td>{{ user.email }}</td>
               <td>{{ user.sodienthoai }}</td>
               <td>
-                <select 
-                  :value="user.vaitro" 
-                  @change="updateRole(user.id_tk, $event.target.value)"
-                  class="form-select form-select-sm"
-                  :disabled="actionLoading"
-                >
-                  <option :value="0">Người dùng</option>
-                  <option :value="1">Quản trị</option>
-                </select>
+                <span class="badge" :class="user.vaitro == 1 ? 'bg-danger' : 'bg-primary'">
+                  {{ user.vaitro == 1 ? 'Quản trị viên' : 'Người dùng' }}
+                </span>
               </td>
               <td>
                 <div class="form-check form-switch d-flex justify-content-center">
@@ -239,10 +233,22 @@
                 <div class="col-md-3">
                   <div class="mb-3">
                     <label for="vaitro" class="form-label">Vai trò</label>
-                    <select class="form-select" id="vaitro" v-model="currentUser.vaitro">
+                    <select 
+                      class="form-select" 
+                      :class="{ 'bg-light': isEditMode }"
+                      id="vaitro" 
+                      v-model="currentUser.vaitro" 
+                      :disabled="isEditMode"
+                    >
                       <option :value="0">Người dùng</option>
                       <option :value="1">Quản trị viên</option>
                     </select>
+                    <div v-if="isEditMode" class="form-text text-muted">
+                      <i class="bi bi-info-circle"></i> Vai trò không thể thay đổi
+                    </div>
+                    <div v-else class="form-text">
+                      Chọn vai trò cho người dùng mới
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-3">
@@ -294,6 +300,7 @@ export default {
       fetchUserDetail,
       createUser,
       updateUser,
+      updateUserComplete, // Import hàm mới
       updateUserStatus,
       updateUserRole,
       validateUserData
@@ -426,7 +433,7 @@ export default {
 
       let success = false
       if (isEditMode.value) {
-        success = await updateUser(currentUser.value.id_tk, currentUser.value)
+        success = await updateUserComplete(currentUser.value.id_tk, currentUser.value)
       } else {
         success = await createUser(currentUser.value)
       }
@@ -454,16 +461,12 @@ export default {
     }
 
     const updateRole = async (userId, role) => {
-      console.log(`[UserManagement.vue] Updating role for user ${userId} to ${role}`)
-      const success = await updateUserRole(userId, Number(role))
-      
-      if (success) {
-        // Update local data
-        const user = users.value.find(u => u.id_tk === userId)
-        if (user) {
-          user.vaitro = Number(role)
-        }
+      console.log(`[UserManagement.vue] Role update disabled for user ${userId}`)
+      actionResult.value = {
+        success: false,
+        message: "Chức năng cập nhật vai trò đã bị vô hiệu hóa"
       }
+      return false
     }
 
     const formatDate = (dateString) => {

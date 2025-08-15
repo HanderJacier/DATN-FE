@@ -174,7 +174,7 @@ export default {
 
         const trackOrder = () => {
             clearInterval(countdownInterval)
-            router.push('/tatca')
+            router.push('/hoadonchitiet')
         }
 
         const loadOrderInfo = () => {
