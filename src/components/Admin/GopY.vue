@@ -31,7 +31,7 @@
               <td>{{ index + 1 + (currentPage - 1) * pageSize }}</td>
               <td>{{ item.hoveten || 'Ẩn danh' }}</td>
               <td>{{ item.noidung }}</td>
-              <td>{{ formatDate(item.ngay_gui) }}</td>
+              <td>{{ item.ngaytao }}</td>
             </tr>
             <tr v-if="!loading && paginatedFeedback.length === 0">
               <td colspan="4">Không có góp ý nào phù hợp.</td>
@@ -96,10 +96,4 @@ const totalPages = computed(() =>
 watch([searchTerm, searchContent], () => {
   currentPage.value = 1
 })
-
-function formatDate(dateString) {
-  if (!dateString) return 'Không rõ'
-  const date = new Date(dateString)
-  return isNaN(date) ? 'Không rõ' : date.toLocaleDateString('vi-VN')
-}
 </script>
