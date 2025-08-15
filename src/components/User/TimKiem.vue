@@ -22,23 +22,24 @@
             <div class="card-body">
               <h6 class="fw-bold text-truncate">{{ sp.tensanpham }}</h6>
               <p class="mb-1 text-secondary small">{{ sp.thuonghieu_ten || 'Thương hiệu khác' }}</p>
-              <p class="fw-semibold mb-2">
-                <template v-if="sp.giamgia && sp.loaigiam !== null && new Date(sp.hangiamgia) > now">
-                  <span class="text-dark me-2">
-                    {{
-                      sp.loaigiam === 1
-                        ? (sp.dongia - sp.giamgia).toLocaleString()
-                        : (sp.dongia * (1 - sp.giamgia / 100)).toLocaleString()
-                    }}₫
+
+              <!--giá của sản phẩm-->
+              <div class="product-price" v-if="typeof sp.dongia === 'number'">
+                <template v-if="isGiamGiaValid(sp)">
+                  <span class="price-discount">
+                    {{ sp.giamgia.toLocaleString() }}₫
                   </span>
-                  <span class="text-muted text-decoration-line-through small">
+                  <span class="price-original">
                     {{ sp.dongia.toLocaleString() }}₫
+                  </span>
+                  <span class="discount-badge">
+                    -{{ Math.round((1 - sp.giamgia / sp.dongia) * 100) }}%
                   </span>
                 </template>
                 <template v-else>
-                  <span class="text-dark">{{ sp.dongia.toLocaleString() }}₫</span>
+                  <span class="price-normal">{{ sp.dongia.toLocaleString() }}₫</span>
                 </template>
-              </p>
+              </div>
               <button class="btn btn-outline-dark w-100 mt-2 rounded-pill">Xem chi tiết</button>
             </div>
           </div>
@@ -99,13 +100,10 @@ const keyword = ref(route.query.q || '')
 const currentLoai = ref(route.query.loai || '')
 const allProducts = ref([])
 const filteredProducts = ref([])
-const filterType = ref(route.query.filter || '') // 'moi' | 'giamgia' | ''
-
+const filterType = ref(route.query.filter || '')
 
 const itemsPerPage = ref(16)
 const currentPage = ref(1)
-const now = new Date()
-
 
 const loaiMap = {
   'Điện thoại di động': '1',
@@ -132,20 +130,26 @@ const loaiTen = computed(() => {
   return loaiMapReverse[currentLoai.value] || ''
 })
 
-const sanPhamMoi = computed(() => {
-  return [...fetchedProducts.value]
-    .sort((a, b) => new Date(b.ngaytao) - new Date(a.ngaytao))
-    .slice(0, 8) // lấy 8 sản phẩm mới nhất
-})
+//funciton giảm giá
+function isGiamGiaValid(sp) {
+  if (!sp?.giamgia || sp.giamgia >= sp.dongia) {
+    return false
+  }
+  if (!sp.hangiamgia) return false
 
-const sanPhamGiamGia = computed(() => {
-  return fetchedProducts.value.filter(sp =>
-    Number(sp.giakhuyenmai) > 0 &&
-    Number(sp.giakhuyenmai) < Number(sp.giaban)
-  ).slice(0, 8) // lấy 8 sản phẩm có giảm giá
-})
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
 
-// 👉 Lấy toàn bộ sản phẩm từ composable
+  const [day, month, year] = sp.hangiamgia.split('/')
+  if (!day || !month || !year) return false
+
+  const hanGiamGia = new Date(year, month - 1, day)
+  hanGiamGia.setHours(0, 0, 0, 0)
+
+  return hanGiamGia > today
+}
+
+// Lấy dữ liệu sản phẩm từ composable
 const { allProducts: fetchedProducts } = useSanPhamSearch()
 
 const filterProducts = () => {
@@ -158,7 +162,7 @@ const filterProducts = () => {
 
   // Nếu không có điều kiện lọc nào -> lấy toàn bộ
   const noFilter =
-  isShowAll || (!kw && !loai && !filter && !ten && !min && !max)
+    isShowAll || (!kw && !loai && !filter && !ten && !min && !max)
 
   if (noFilter) {
     filteredProducts.value = fetchedProducts.value
@@ -179,8 +183,8 @@ const filterProducts = () => {
       filter === 'moi'
         ? new Date(sp.ngaytao) >= new Date(Date.now() - 1000 * 60 * 60 * 24 * 30)
         : filter === 'giamgia'
-        ? Number(sp.giamgia) > 0 && new Date(sp.hangiamgia) > new Date()
-        : true
+          ? Number(sp.giamgia) > 0 && new Date(sp.hangiamgia) > new Date()
+          : true
 
     const matchTen = !ten || sp.tensanpham.toLowerCase().includes(ten.toLowerCase())
     const matchMin = !min || Number(sp.dongia) >= min
@@ -210,19 +214,19 @@ const goNextPage = () => { if (currentPage.value < totalPages.value) currentPage
 
 watch(() => route.query.q, (newQ) => {
   keyword.value = newQ || ''
-  advancedFilter.value = { ten: '', min: null, max: null } // ✅ reset lọc
+  advancedFilter.value = { ten: '', min: null, max: null }
   filterProducts()
 })
 
 watch(() => route.query.loai, (newLoai) => {
   currentLoai.value = newLoai || ''
-  advancedFilter.value = { ten: '', min: null, max: null } // ✅ reset lọc
+  advancedFilter.value = { ten: '', min: null, max: null }
   filterProducts()
 })
 
 watch(() => route.query.filter, (newFilter) => {
   filterType.value = newFilter || ''
-  advancedFilter.value = { ten: '', min: null, max: null } // ✅ reset lọc
+  advancedFilter.value = { ten: '', min: null, max: null }
   filterProducts()
 })
 
@@ -275,5 +279,41 @@ const updateItemsPerPage = () => {
   transform: scale(1.05);
   z-index: 10;
   position: relative;
+}
+
+
+.product-price {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.price-discount {
+  color: #e53935;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.price-original {
+  color: #9e9e9e;
+  text-decoration: line-through;
+  font-size: 0.85rem;
+}
+
+.discount-badge {
+  background: linear-gradient(135deg, #ff4b2b, #ff416c);
+  color: white;
+  font-weight: 600;
+  font-size: 0.75rem;
+  padding: 0.25em 0.6em;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(255, 64, 129, 0.3);
+}
+
+.price-normal {
+  color: #e53935;
+  font-weight: 700;
+  font-size: 1rem;
 }
 </style>
