@@ -50,16 +50,16 @@
                                     <div class="col-md-6">
                                         <div class="border p-3 rounded bg-light">
                                             <h6 class="fw-bold">Thông tin khách hàng:</h6>
-                                            <p class="mb-1"><strong>Họ tên:</strong> {{ orderData.customerInfo.name }}</p>
-                                            <p class="mb-1"><strong>SĐT:</strong> {{ orderData.customerInfo.phone }}</p>
-                                            <p class="mb-1"><strong>Email:</strong> {{ orderData.customerInfo.email || 'Không có' }}</p>
-                                            <p class="mb-0"><strong>Địa chỉ:</strong> {{ orderData.customerInfo.address }}</p>
+                                            <p class="mb-1"><strong>Họ tên:</strong> {{ orderData.customerInfo?.name || 'Chưa có' }}</p>
+                                            <p class="mb-1"><strong>SĐT:</strong> {{ orderData.customerInfo?.phone || 'Chưa có' }}</p>
+                                            <p class="mb-1"><strong>Email:</strong> {{ orderData.customerInfo?.email || 'Không có' }}</p>
+                                            <p class="mb-0"><strong>Địa chỉ:</strong> {{ orderData.customerInfo?.address || 'Chưa có' }}</p>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="border p-3 rounded bg-light">
                                             <h6 class="fw-bold">Chi tiết đơn hàng:</h6>
-                                            <p class="mb-1"><strong>Số lượng:</strong> {{ orderData.items.length }} sản phẩm</p>
+                                            <p class="mb-1"><strong>Số lượng:</strong> {{ orderData.items?.length || 0 }} sản phẩm</p>
                                             <p class="mb-1"><strong>Tạm tính:</strong> {{ formatPrice(subtotal) }} đ</p>
                                             <p class="mb-1"><strong>Giảm giá:</strong> -{{ formatPrice(discount) }} đ</p>
                                             <p class="mb-0 fs-5 text-danger"><strong>Tổng cộng:</strong> {{ formatPrice(finalAmount) }} đ</p>
@@ -165,8 +165,8 @@
                                                 </button>
                                             </div>
                                             <div class="mb-2">
-                                                <strong>Chủ TK:</strong> CÔNG TY ABC
-                                                <button class="btn btn-sm btn-outline-primary ms-2" @click="copyToClipboard('CÔNG TY ABC')">
+                                                <strong>Chủ TK:</strong> CÔNG TY TECHMART
+                                                <button class="btn btn-sm btn-outline-primary ms-2" @click="copyToClipboard('CÔNG TY TECHMART')">
                                                     <i class="bi bi-clipboard"></i>
                                                 </button>
                                             </div>
@@ -198,8 +198,14 @@
                                         Quét mã QR để thanh toán
                                     </h6>
                                     <div class="qr-code-container my-3">
-                                        <img src="/src/assets/cart.png" 
-                                             alt="QR Code" class="img-fluid" style="max-width: 200px;">
+                                        <div class="bg-white p-3 rounded border d-inline-block">
+                                            <div style="width: 200px; height: 200px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; border: 2px dashed #dee2e6;">
+                                                <div class="text-center text-muted">
+                                                    <i class="bi bi-qr-code" style="font-size: 3rem;"></i>
+                                                    <div class="mt-2">Mã QR thanh toán</div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                     <p class="mb-0">
                                         <strong>Số tiền:</strong> {{ formatPrice(finalAmount) }} đ<br>
@@ -275,7 +281,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Swal from 'sweetalert2'
-import usePayment from '../User/LoadDB/usePayment.js'
+import usePayment from './LoadDB/usePayment.js'
 
 export default {
     name: 'Payment',
@@ -285,14 +291,19 @@ export default {
             processPayment: executePayment, 
             processing, 
             paymentResult, 
-            invoiceData,
-            downloadInvoice 
+            invoiceData
         } = usePayment()
 
         const orderData = ref({
-            customerInfo: {},
+            customerInfo: {
+                name: '',
+                phone: '',
+                email: '',
+                address: ''
+            },
             items: [],
-            totalAmount: 0
+            totalAmount: 0,
+            note: ''
         })
         const paymentMethod = ref('')
         const agreeTerms = ref(false)
@@ -301,10 +312,13 @@ export default {
 
         // Computed properties
         const subtotal = computed(() => {
-            return orderData.value.items.reduce((total, item) => total + item.originalPrice * item.quantity, 0)
+            if (!orderData.value.items || !Array.isArray(orderData.value.items)) return 0
+            return orderData.value.items.reduce((total, item) => total + (item.originalPrice || item.price) * item.quantity, 0)
         })
 
         const discount = computed(() => {
+            if (!orderData.value.items || !Array.isArray(orderData.value.items)) return 0
+            
             let baseDiscount = subtotal.value - orderData.value.items.reduce((total, item) => total + item.price * item.quantity, 0)
             
             // Add 2% discount for bank transfer
@@ -317,6 +331,8 @@ export default {
         })
 
         const finalAmount = computed(() => {
+            if (!orderData.value.items || !Array.isArray(orderData.value.items)) return 0
+            
             let total = orderData.value.items.reduce((sum, item) => sum + item.price * item.quantity, 0)
             
             // Apply 2% discount for bank transfer
@@ -328,11 +344,13 @@ export default {
         })
 
         const transferContent = computed(() => {
-            return `HD${String(Date.now()).slice(-6)} ${orderData.value.customerInfo.phone}`
+            const phone = orderData.value.customerInfo?.phone || ''
+            return `HD${String(Date.now()).slice(-6)} ${phone}`
         })
 
         // Methods
         const formatPrice = (val) => {
+            if (typeof val !== 'number') return '0'
             return val.toLocaleString('vi-VN')
         }
 
@@ -373,6 +391,11 @@ export default {
                 return
             }
 
+            if (!orderData.value.items || orderData.value.items.length === 0) {
+                errorMessage.value = 'Không có sản phẩm để thanh toán'
+                return
+            }
+
             try {
                 const paymentData = {
                     ...orderData.value,
@@ -386,9 +409,18 @@ export default {
                 const result = await executePayment(paymentData)
                 console.log('Payment result:', result)
                 
-                if (result.success) {
-                    // Hiển thị thông báo thành công với tùy chọn tải hóa đơn
-                    const swalResult = await Swal.fire({
+                if (result && result.success) {
+                    // Lưu thông tin kết quả để hiển thị ở trang success
+                    localStorage.setItem('orderResult', JSON.stringify({
+                        orderId: result.orderId,
+                        invoiceId: result.invoiceId,
+                        invoiceNumber: result.invoiceNumber,
+                        totalAmount: finalAmount.value,
+                        paymentMethod: paymentMethod.value
+                    }))
+
+                    // Hiển thị thông báo thành công
+                    await Swal.fire({
                         title: 'Thanh toán thành công!',
                         html: `
                             <div class="text-center">
@@ -397,7 +429,7 @@ export default {
                                 <p class="text-muted mb-3">
                                     Mã đơn hàng: <strong>HD${String(result.orderId).padStart(6, '0')}</strong><br>
                                     ${result.invoiceNumber ? `Số hóa đơn: <strong>${result.invoiceNumber}</strong><br>` : ''}
-                                    Tổng tiền: <strong>${paymentData.finalAmount.toLocaleString('vi-VN')} đ</strong>
+                                    Tổng tiền: <strong>${finalAmount.value.toLocaleString('vi-VN')} đ</strong>
                                 </p>
                                 <div class="alert alert-info">
                                     <i class="fas fa-info-circle me-2"></i>
@@ -406,42 +438,13 @@ export default {
                             </div>
                         `,
                         icon: 'success',
-                        showCancelButton: true,
-                        confirmButtonText: '<i class="fas fa-download me-2"></i>Tải hóa đơn',
-                        cancelButtonText: '<i class="fas fa-home me-2"></i>Về trang chủ',
-                        confirmButtonColor: '#28a745',
-                        cancelButtonColor: '#007bff',
+                        confirmButtonText: '<i class="fas fa-home me-2"></i>Về trang chủ',
+                        confirmButtonColor: '#007bff',
                         allowOutsideClick: false,
-                        allowEscapeKey: false,
-                        customClass: {
-                            popup: 'swal-wide'
-                        }
+                        allowEscapeKey: false
                     })
 
-                    // Xử lý lựa chọn của người dùng
-                    if (swalResult.isConfirmed && result.invoiceId) {
-                        // Người dùng chọn tải hóa đơn
-                        const downloadResult = await downloadInvoice(result.invoiceId)
-                        
-                        if (downloadResult.success) {
-                            await Swal.fire({
-                                title: 'Tải hóa đơn thành công!',
-                                text: 'Hóa đơn đã được tải xuống. Bạn sẽ được chuyển về trang chủ.',
-                                icon: 'success',
-                                timer: 2000,
-                                showConfirmButton: false
-                            })
-                        } else {
-                            await Swal.fire({
-                                title: 'Lỗi tải hóa đơn',
-                                text: downloadResult.message,
-                                icon: 'warning',
-                                confirmButtonText: 'Về trang chủ'
-                            })
-                        }
-                    }
-
-                    // Clear dữ liệu và chuyển về trang chủ
+                    // Clear dữ liệu và chuyển về trang success
                     localStorage.removeItem('orderData')
                     localStorage.removeItem('selectedCartItems')
                     
@@ -453,16 +456,16 @@ export default {
                     localStorage.setItem('cart', JSON.stringify(remainingCart))
                     window.dispatchEvent(new Event('storage'))
                     
-                    // Chuyển về trang chủ
-                    router.push('/')
+                    // Chuyển về trang success
+                    router.push('/return')
                 } else {
                     await Swal.fire({
                         title: 'Thanh toán thất bại!',
-                        text: result.message || 'Có lỗi xảy ra khi xử lý thanh toán',
+                        text: result?.message || 'Có lỗi xảy ra khi xử lý thanh toán',
                         icon: 'error',
                         confirmButtonText: 'Thử lại'
                     })
-                    errorMessage.value = result.message || 'Có lỗi xảy ra khi xử lý thanh toán'
+                    errorMessage.value = result?.message || 'Có lỗi xảy ra khi xử lý thanh toán'
                 }
             } catch (error) {
                 console.error('Error processing payment:', error)
@@ -480,15 +483,26 @@ export default {
             try {
                 const saved = localStorage.getItem('orderData')
                 if (saved) {
-                    orderData.value = JSON.parse(saved)
+                    const parsedData = JSON.parse(saved)
+                    orderData.value = {
+                        customerInfo: parsedData.customerInfo || {
+                            name: '',
+                            phone: '',
+                            email: '',
+                            address: ''
+                        },
+                        items: parsedData.items || [],
+                        totalAmount: parsedData.totalAmount || 0,
+                        note: parsedData.note || ''
+                    }
                     console.log('Loaded order data:', orderData.value)
                 } else {
                     console.warn('No order data found, redirecting to cart')
-                    router.push('/gio-hang')
+                    router.push('/giohang')
                 }
             } catch (error) {
                 console.error('Error loading order data:', error)
-                router.push('/gio-hang')
+                router.push('/giohang')
             }
         }
 
@@ -517,15 +531,6 @@ export default {
 </script>
 
 <style scoped>
-/* Custom SweetAlert styles */
-:global(.swal-wide) {
-    width: 600px !important;
-}
-
-:global(.swal2-html-container) {
-    line-height: 1.6 !important;
-}
-
 .step-item {
     display: flex;
     flex-direction: column;
@@ -607,9 +612,6 @@ export default {
     justify-content: center;
     align-items: center;
     padding: 20px;
-    background-color: white;
-    border-radius: 8px;
-    border: 1px solid #dee2e6;
 }
 
 .card {

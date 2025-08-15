@@ -48,25 +48,51 @@
                                 Đơn hàng của bạn đã được xử lý thành công và hóa đơn đã được tự động tạo.
                             </p>
                             
-                            <div class="alert alert-info">
-                                <i class="bi bi-info-circle me-2"></i>
-                                <strong>Bạn sẽ được chuyển về trang chủ sau 3 giây...</strong>
+                            <!-- Order Info -->
+                            <div v-if="orderInfo" class="alert alert-info">
+                                <h6 class="fw-bold mb-2">Thông tin đơn hàng</h6>
+                                <p class="mb-1"><strong>Mã đơn hàng:</strong> HD{{ String(orderInfo.orderId).padStart(6, '0') }}</p>
+                                <p class="mb-1"><strong>Tổng tiền:</strong> {{ formatPrice(orderInfo.totalAmount) }} đ</p>
+                                <p class="mb-0"><strong>Phương thức:</strong> {{ orderInfo.paymentMethod }}</p>
+                            </div>
+
+                            <!-- Order Items -->
+                            <div v-if="orderItems && orderItems.length > 0" class="mb-4">
+                                <h6 class="fw-bold">Sản phẩm đã đặt:</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Sản phẩm</th>
+                                                <th>Đơn giá</th>
+                                                <th>SL</th>
+                                                <th>Thành tiền</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="product in orderItems" :key="product.id">
                                                 <td>
                                                     <div class="d-flex align-items-center">
-                                                        <img :src="product.anhgoc" style="width: 40px; height: 40px; object-fit: cover;" 
-                                                             class="me-2 rounded" :alt="product.tensanpham" @error="handleImageError">
+                                                        <img :src="product.image" style="width: 40px; height: 40px; object-fit: cover;" 
+                                                             class="me-2 rounded" :alt="product.name" @error="handleImageError">
                                                         <div>
-                                                            <div class="fw-semibold">{{ product.tensanpham }}</div>
+                                                            <div class="fw-semibold small">{{ product.name }}</div>
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td>{{ formatPrice(product.dongia) }} đ</td>
-                                                <td class="text-center">{{ product.soluong }}</td>
-                                                <td class="fw-bold">{{ formatPrice(product.thanhtien) }} đ</td>
+                                                <td>{{ formatPrice(product.price) }} đ</td>
+                                                <td class="text-center">{{ product.quantity }}</td>
+                                                <td class="fw-bold">{{ formatPrice(product.price * product.quantity) }} đ</td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
+                            </div>
+
+                            <!-- Auto redirect notice -->
+                            <div class="alert alert-warning">
+                                <i class="bi bi-info-circle me-2"></i>
+                                <strong>Bạn sẽ được chuyển về trang chủ sau {{ countdown }} giây...</strong>
                             </div>
 
                             <!-- Next Steps -->
@@ -76,10 +102,10 @@
                                     Các bước tiếp theo
                                 </h6>
                                 <div class="text-start">
-                                    <div class="mb-2">
+                                    <!-- <div class="mb-2">
                                         <i class="bi bi-1-circle text-primary me-2"></i>
                                         Chúng tôi sẽ liên hệ với bạn trong vòng 30 phút để xác nhận đơn hàng
-                                    </div>
+                                    </div> -->
                                     <div class="mb-2">
                                         <i class="bi bi-2-circle text-primary me-2"></i>
                                         Đơn hàng sẽ được chuẩn bị và đóng gói cẩn thận
@@ -96,29 +122,19 @@
                             </div>
 
                             <!-- Action Buttons -->
-                            <div class="mt-4 d-flex flex-wrap justify-content-center gap-2">
-                                <button type="button" class="btn btn-primary" @click="goHome">
-                                    <i class="bi bi-house"></i> Về trang chủ
-                                </button>
-                                <button type="button" class="btn btn-outline-primary" @click="continueShopping">
-                                    <i class="bi bi-shop"></i> Tiếp tục mua sắm
-                                </button>
-                                <button type="button" class="btn btn-info" @click="trackOrder">
-                                    <i class="bi bi-search"></i> Tra cứu đơn hàng
-                                </button>
-                                <button type="button" class="btn btn-success" @click="downloadInvoice">
-                                    <i class="bi bi-download"></i> Tải hóa đơn
-                                </button>
-                            </div>
-
-                            <!-- Action Buttons -->
-                            <div class="mt-4 d-flex justify-content-center gap-3">
+                            <div class="mt-4 d-flex flex-wrap justify-content-center gap-3">
                                 <button type="button" class="btn btn-primary btn-lg" @click="goHome">
                                     <i class="bi bi-house me-2"></i>Về trang chủ ngay
                                 </button>
                                 <button type="button" class="btn btn-outline-primary btn-lg" @click="continueShopping">
                                     <i class="bi bi-shop me-2"></i>Tiếp tục mua sắm
                                 </button>
+                                <button type="button" class="btn btn-info btn-lg" @click="trackOrder">
+                                    <i class="bi bi-search me-2"></i>Tra cứu đơn hàng
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -126,33 +142,116 @@
 </template>
 
 <script>
-import { onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 
 export default {
     name: 'PaymentSuccess',
     setup() {
         const router = useRouter()
-        const route = useRoute()
+        const countdown = ref(5)
+        const orderInfo = ref(null)
+        const orderItems = ref([])
+        let countdownInterval = null
         
+        const formatPrice = (val) => {
+            return val.toLocaleString('vi-VN')
+        }
+
+        const handleImageError = (event) => {
+            event.target.src = '/placeholder.svg?height=40&width=40'
+        }
+
         const goHome = () => {
+            clearInterval(countdownInterval)
             router.push('/')
         }
 
         const continueShopping = () => {
+            clearInterval(countdownInterval)
             router.push('/timkiem')
         }
 
+        const trackOrder = () => {
+            clearInterval(countdownInterval)
+            router.push('/tatca')
+        }
+
+        const loadOrderInfo = () => {
+            try {
+                // Load order info from localStorage if available
+                const savedOrderData = localStorage.getItem('orderData')
+                const savedOrderResult = localStorage.getItem('orderResult')
+                
+                if (savedOrderData) {
+                    const orderData = JSON.parse(savedOrderData)
+                    orderItems.value = orderData.items || []
+                    orderInfo.value = {
+                        totalAmount: orderData.totalAmount || 0,
+                        paymentMethod: getPaymentMethodText(orderData.paymentMethod)
+                    }
+                }
+
+                if (savedOrderResult) {
+                    const result = JSON.parse(savedOrderResult)
+                    if (orderInfo.value) {
+                        orderInfo.value.orderId = result.orderId
+                    } else {
+                        orderInfo.value = {
+                            orderId: result.orderId,
+                            totalAmount: 0,
+                            paymentMethod: 'Không xác định'
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading order info:', error)
+            }
+        }
+
+        const getPaymentMethodText = (method) => {
+            switch (method) {
+                case 'COD':
+                    return 'Thanh toán khi nhận hàng'
+                case 'BANK':
+                    return 'Chuyển khoản ngân hàng'
+                case 'QR':
+                    return 'Thanh toán QR Code'
+                default:
+                    return 'Không xác định'
+            }
+        }
+
+        const startCountdown = () => {
+            countdownInterval = setInterval(() => {
+                countdown.value--
+                if (countdown.value <= 0) {
+                    clearInterval(countdownInterval)
+                    router.push('/')
+                }
+            }, 1000)
+        }
+
         onMounted(() => {
-            // Tự động chuyển về trang chủ sau 3 giây
-            setTimeout(() => {
-                router.push('/')
-            }, 3000)
+            loadOrderInfo()
+            startCountdown()
+        })
+
+        onUnmounted(() => {
+            if (countdownInterval) {
+                clearInterval(countdownInterval)
+            }
         })
 
         return {
+            countdown,
+            orderInfo,
+            orderItems,
+            formatPrice,
+            handleImageError,
             goHome,
-            continueShopping
+            continueShopping,
+            trackOrder
         }
     }
 }
@@ -218,7 +317,7 @@ export default {
         font-size: 0.9em;
     }
     
-    .d-flex.gap-2 {
+    .d-flex.gap-3 {
         gap: 0.5rem !important;
     }
     

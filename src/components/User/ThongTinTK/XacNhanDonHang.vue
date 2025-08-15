@@ -2,6 +2,26 @@
     <div class="container my-4 mt-5">
         <div class="row justify-content-center">
             <div class="col-lg-8">
+                <!-- Progress Steps -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="step-item active">
+                            <div class="step-circle">1</div>
+                            <span class="step-label">Xác nhận đơn hàng</span>
+                        </div>
+                        <div class="step-line"></div>
+                        <div class="step-item">
+                            <div class="step-circle">2</div>
+                            <span class="step-label">Thanh toán</span>
+                        </div>
+                        <div class="step-line"></div>
+                        <div class="step-item">
+                            <div class="step-circle">3</div>
+                            <span class="step-label">Hoàn thành</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="card">
                     <div class="card-header bg-warning text-dark">
                         <h4 class="mb-0">
@@ -68,7 +88,7 @@
                                 <div v-if="selectedItems.length === 0" class="alert alert-warning">
                                     <i class="bi bi-exclamation-triangle"></i>
                                     Không có sản phẩm nào được chọn. 
-                                    <router-link to="/gio-hang" class="btn btn-sm btn-primary ms-2">
+                                    <router-link to="/giohang" class="btn btn-sm btn-primary ms-2">
                                         Quay lại giỏ hàng
                                     </router-link>
                                 </div>
@@ -97,7 +117,7 @@
                                                 </td>
                                                 <td>
                                                     <div class="text-danger fw-bold">{{ formatPrice(item.price) }} đ</div>
-                                                    <div v-if="item.originalPrice > item.price" 
+                                                    <div v-if="item.originalPrice && item.originalPrice > item.price" 
                                                          class="text-muted text-decoration-line-through small">
                                                         {{ formatPrice(item.originalPrice) }} đ
                                                     </div>
@@ -137,7 +157,7 @@
 
                             <!-- Action buttons -->
                             <div class="d-flex justify-content-between">
-                                <router-link to="/gio-hang" class="btn btn-outline-secondary">
+                                <router-link to="/giohang" class="btn btn-outline-secondary">
                                     <i class="bi bi-arrow-left"></i>
                                     Quay lại giỏ hàng
                                 </router-link>
@@ -190,10 +210,12 @@ export default {
 
         // Computed properties
         const subtotal = computed(() => {
-            return selectedItems.value.reduce((total, item) => total + item.originalPrice * item.quantity, 0)
+            if (!selectedItems.value || !Array.isArray(selectedItems.value)) return 0
+            return selectedItems.value.reduce((total, item) => total + (item.originalPrice || item.price) * item.quantity, 0)
         })
 
         const totalPrice = computed(() => {
+            if (!selectedItems.value || !Array.isArray(selectedItems.value)) return 0
             return selectedItems.value.reduce((total, item) => total + item.price * item.quantity, 0)
         })
 
@@ -203,6 +225,7 @@ export default {
 
         // Methods
         const formatPrice = (val) => {
+            if (typeof val !== 'number') return '0'
             return val.toLocaleString('vi-VN')
         }
 
@@ -214,12 +237,12 @@ export default {
             errors.value = {}
             let isValid = true
 
-            if (!customerInfo.value.name.trim()) {
+            if (!customerInfo.value.name || !customerInfo.value.name.trim()) {
                 errors.value.name = 'Vui lòng nhập họ và tên'
                 isValid = false
             }
 
-            if (!customerInfo.value.phone.trim()) {
+            if (!customerInfo.value.phone || !customerInfo.value.phone.trim()) {
                 errors.value.phone = 'Vui lòng nhập số điện thoại'
                 isValid = false
             } else if (!/^[0-9]{10,11}$/.test(customerInfo.value.phone.trim())) {
@@ -232,7 +255,7 @@ export default {
                 isValid = false
             }
 
-            if (!customerInfo.value.address.trim()) {
+            if (!customerInfo.value.address || !customerInfo.value.address.trim()) {
                 errors.value.address = 'Vui lòng nhập địa chỉ giao hàng'
                 isValid = false
             }
@@ -246,20 +269,25 @@ export default {
                 return
             }
 
-            if (selectedItems.value.length === 0) {
+            if (!selectedItems.value || selectedItems.value.length === 0) {
                 errorMessage.value = 'Không có sản phẩm nào để đặt hàng'
                 return
             }
 
             // Save order data to localStorage for payment page
             const orderData = {
-                customerInfo: customerInfo.value,
+                customerInfo: {
+                    name: customerInfo.value.name.trim(),
+                    phone: customerInfo.value.phone.trim(),
+                    email: customerInfo.value.email ? customerInfo.value.email.trim() : '',
+                    address: customerInfo.value.address.trim()
+                },
                 items: selectedItems.value,
                 totalAmount: totalPrice.value,
-                paymentMethod: 'COD', // Default to COD
                 note: customerInfo.value.note || 'Đơn hàng từ website'
             }
 
+            console.log('Saving order data:', orderData)
             localStorage.setItem('orderData', JSON.stringify(orderData))
 
             // Navigate to payment page
@@ -270,10 +298,10 @@ export default {
             try {
                 const saved = localStorage.getItem('selectedCartItems')
                 if (saved) {
-                    selectedItems.value = JSON.parse(saved)
+                    const items = JSON.parse(saved)
+                    selectedItems.value = Array.isArray(items) ? items : []
                     console.log('Loaded selected items:', selectedItems.value)
                 } else {
-                    // If no selected items, redirect back to cart
                     console.warn('No selected items found, redirecting to cart')
                     router.push('/giohang')
                 }
@@ -321,6 +349,60 @@ export default {
 </script>
 
 <style scoped>
+.step-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+}
+
+.step-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.step-item.completed .step-circle {
+    background-color: #28a745;
+    color: white;
+}
+
+.step-item.active .step-circle {
+    background-color: #007bff;
+    color: white;
+}
+
+.step-line {
+    height: 2px;
+    background-color: #e9ecef;
+    flex: 1;
+    margin: 0 10px;
+    margin-top: 20px;
+}
+
+.step-line.completed {
+    background-color: #28a745;
+}
+
+.step-label {
+    font-size: 0.875rem;
+    text-align: center;
+    color: #6c757d;
+}
+
+.step-item.completed .step-label,
+.step-item.active .step-label {
+    color: #495057;
+    font-weight: 500;
+}
+
 .card {
     border: 1px solid #e0e0e0;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -345,6 +427,16 @@ export default {
 @media (max-width: 768px) {
     .container {
         padding: 0 10px;
+    }
+    
+    .step-item {
+        font-size: 0.8rem;
+    }
+    
+    .step-circle {
+        width: 35px;
+        height: 35px;
+        font-size: 0.9rem;
     }
     
     .table-responsive {

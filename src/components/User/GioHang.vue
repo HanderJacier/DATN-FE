@@ -228,6 +228,7 @@ export default {
                 }
                 return
             }
+            
 
             // Lưu các sản phẩm đã chọn vào localStorage để sử dụng ở trang xác nhận
             const selectedItems = getSelectedItems()
