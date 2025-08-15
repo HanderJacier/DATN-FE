@@ -63,7 +63,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import useGopYPhanTrang from '@/components/Admin/CRUD/GOPY/Select.js'
+import useGopYPhanTrang from '@/components/Admin/CRUD/GopY/Select.js'
 
 const searchTerm = ref('')
 const searchContent = ref('')
