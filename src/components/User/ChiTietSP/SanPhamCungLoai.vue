@@ -1,9 +1,7 @@
 <template>
     <div class="container my-5" v-if="sameCategoryProducts.length > 0">
-        <!-- Tiêu đề -->
         <h4 class="fw-semibold border-bottom pb-2 mb-3 fw-bold">Sản phẩm cùng loại</h4>
 
-        <!-- Swiper Carousel -->
         <Swiper :slides-per-view="1" :space-between="10" :breakpoints="{
             576: { slidesPerView: 2 },
             768: { slidesPerView: 3 },
@@ -20,7 +18,6 @@
                                 {{ sp.thuonghieu_ten || 'Thương hiệu khác' }}
                             </p>
 
-                            <!-- Giá sản phẩm -->
                             <div class="product-price" v-if="typeof sp.dongia === 'number'">
                                 <template v-if="isGiamGiaValid(sp)">
                                     <span class="price-discount">
@@ -74,6 +71,7 @@ const fetchSameCategory = async (id_sp) => {
         )
 
         if (Array.isArray(response.data)) {
+            // API trả về danh sách fields => lấy ra
             sameCategoryProducts.value = response.data.map(item => item.fields)
         }
     } catch (error) {
@@ -87,14 +85,12 @@ onMounted(() => {
     }
 })
 
+// 👉 THÊM WATCHER NÀY ĐỂ KHI ID TRÊN URL THAY ĐỔI, NÓ SẼ TẢI LẠI SẢN PHẨM CÙNG LOẠI
 watch(
     () => route.params.id,
-    async (newId, oldId) => {
-        if (newId && newId !== oldId) {
-            currentIndex.value = 0 // reset ảnh
-            await fetchChiTietSanPham(newId)
-            await fetchSameCategory(newId)
-            window.scrollTo({ top: 0, behavior: 'smooth' })
+    (newId) => {
+        if (newId) {
+            fetchSameCategory(newId)
         }
     }
 )
