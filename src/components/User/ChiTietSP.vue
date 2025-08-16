@@ -1,5 +1,6 @@
 <template>
   <div class="zoom-wrapper">
+    <!-- Sticky Header -->
     <div v-if="showStickyHeader && product"
       class="position-fixed top-0 start-0 w-100 bg-white shadow-sm d-flex align-items-center justify-content-between px-3 py-2"
       style="height: 70px; z-index: 1050;">
@@ -9,6 +10,7 @@
         <div>
           <div class="fw-semibold small">{{ product.tensanpham }}</div>
           <div class="text-muted small">Phân loại: {{ product.ram }}, {{ product.mausac }}</div>
+          <!-- không dùng cái nào nữa thì xóa đi -->
         </div>
       </div>
 
@@ -32,10 +34,13 @@
       </div>
     </div>
 
+    <!-- Nội dung chính -->
     <div v-if="product">
       <div class="container my-5">
         <div class="row">
+          <!-- Hình ảnh & thông số -->
           <div class="col-md-6">
+            <!-- Carousel -->
             <div class="position-relative">
               <div class="carousel-inner">
                 <div class="carousel-item" :class="{ active: index === currentIndex }"
@@ -45,6 +50,7 @@
                   </div>
                 </div>
               </div>
+              <!-- Carousel điều khiển -->
               <button class="carousel-control-prev custom-control" type="button" @click="prevImage">
                 <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                 <span class="visually-hidden">Previous</span>
@@ -55,12 +61,14 @@
               </button>
             </div>
 
+            <!-- Thumbnails -->
             <div class="d-flex flex-wrap gap-2 mt-3 justify-content-center">
               <img v-for="(image, index) in productImages" :key="index" :src="image.src"
                 class="img-thumbnail border border-2" :class="{ 'border-dark': index === currentIndex }"
                 style="width: 80px; height: 80px; object-fit: cover; cursor: pointer" @click="changeImage(index)" />
             </div>
 
+            <!-- Cam kết -->
             <h5 class="fw-bold mt-4 mb-3">Cam kết sản phẩm</h5>
             <div class="row row-cols-1 row-cols-md-2 gx-4 gy-3 small text-secondary">
               <div class="col">
@@ -75,8 +83,7 @@
                 <div class="bg-white rounded-4 shadow-sm p-3 border h-100">
                   <div class="d-flex align-items-start gap-2">
                     <i class="bi bi-box fs-4 text-primary"></i>
-                    <div>Bảo hành 12 tháng tại trung tâm bảo hành chính hãng. 1 đổi 1 trong 30 ngày nếu
-                      có lỗi phần cứng
+                    <div>Bảo hành 12 tháng tại trung tâm bảo hành chính hãng. 1 đổi 1 trong 30 ngày nếu có lỗi phần cứng
                       từ
                       nhà sản xuất</div>
                   </div>
@@ -94,9 +101,7 @@
                 <div class="bg-white rounded-4 shadow-sm p-3 border h-100">
                   <div class="d-flex align-items-start gap-2">
                     <i class="bi bi-shield-check fs-4 text-primary"></i>
-                    <div>Giá sản phẩm <strong>Đã bao gồm thuế VAT</strong>, giúp bạn yên tâm và dễ
-                      dàng
-                      trong việc tính
+                    <div>Giá sản phẩm <strong>Đã bao gồm thuế VAT</strong>, giúp bạn yên tâm và dễ dàng trong việc tính
                       toán
                       chi phí</div>
                   </div>
@@ -104,6 +109,7 @@
               </div>
             </div>
 
+            <!-- Thông số kỹ thuật -->
             <h5 class="fw-bold mb-4 mt-3">Thông số kỹ thuật </h5>
             <div class="bg-white rounded-4 shadow-sm p-3 border h-1" v-show="showMore">
               <div class="table-responsive">
@@ -118,6 +124,7 @@
               </div>
             </div>
 
+            <!-- Nút xem thêm -->
             <div class="text-center mt-2">
               <button class="btn btn-outline-primary btn-sm rounded-pill px-4"
                 style="font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif; font-size: 0.9rem;"
@@ -128,11 +135,13 @@
 
           </div>
 
+          <!-- Thông tin sản phẩm -->
           <div class="col-md-6">
             <div class="p-3 mt-1">
               <h3 class="fw-bold mb-3">{{ product.tensanpham }}</h3>
 
               <div class="product-meta d-flex flex-wrap align-items-center gap-4 mb-4">
+                <!-- Số lượng -->
                 <div class="d-flex align-items-center meta-item">
                   <span class="icon-circle bg-success-subtle text-success me-1">
                     <i class="fas fa-box"></i>
@@ -143,6 +152,7 @@
                   </span>
                 </div>
 
+                <!-- Đã bán -->
                 <div class="d-flex align-items-center meta-item">
                   <span class="icon-circle bg-primary-subtle text-primary me-1">
                     <i class="fas fa-shopping-cart"></i>
@@ -153,6 +163,7 @@
                   </span>
                 </div>
 
+                <!-- Đánh giá -->
                 <div class="d-flex align-items-center meta-item">
                   <span class="icon-circle bg-warning-subtle text-warning me-1">
                     <i class="fas fa-star"></i>
@@ -160,8 +171,7 @@
                   <span class="text-secondary small">
                     Đánh giá:
                     <template v-if="ratingStats.tong_danh_gia > 0">
-                      <strong class="ms-1 text-dark">{{ ratingStats.diem_trung_binh.toFixed(1)
-                      }}</strong>
+                      <strong class="ms-1 text-dark">{{ ratingStats.diem_trung_binh.toFixed(1) }}</strong>
                       <span class="text-warning">★</span>
                       <small class="ms-1 text-muted">({{ ratingStats.tong_danh_gia }} lượt)</small>
                     </template>
@@ -172,6 +182,7 @@
                 </div>
               </div>
 
+              <!-- Giá sản phẩm -->
               <div class="d-flex justify-content">
                 <div class="card border-0 shadow-sm rounded-4" style="max-width: 700px; width: 500px;">
                   <div class="card-body">
@@ -179,6 +190,7 @@
                       Giá bán
                     </h6>
 
+                    <!--Giá tổng và giá giảm-->
                     <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
                       <span class="fw-bold fs-3 text-danger">
                         {{ giaHienTai.toLocaleString() }}đ
@@ -193,6 +205,7 @@
                       </span>
                     </div>
 
+                    <!-- Thời gian khuyến mãi -->
                     <div v-if="isGiamGiaValid"
                       class="alert alert-warning py-2 px-3 mb-0 d-flex align-items-center gap-2">
                       <i class="bi bi-clock-fill"></i>
@@ -204,7 +217,9 @@
                 </div>
               </div>
 
+              <!--Mùa-->
               <div class="product-options mt-4">
+                <!-- Màu sắc -->
                 <div class="option-group mb-3">
                   <label class="fw-semibold text-secondary me-3">Màu sắc:</label>
                   <button class="option-btn active">
@@ -212,12 +227,20 @@
                   </button>
                 </div>
 
+                <!-- Phiên bản
+                <div class="option-group">
+                  <label class="fw-semibold text-secondary me-3">Phiên bản:</label>
+                  <button class="option-btn active">
+                    {{ product.ram }} {{ product.gpuMemory }}
+                  </button>
+                </div> -->
               </div>
 
               <div class="d-flex justify-content-center mt-5 align-items-center flex-wrap gap-3">
                 <ThichSanPham :productId="product.id" />
                 <template v-if="product.soluong > 0">
                   <div class="d-flex gap-2">
+                    <!-- Nút thêm vào giỏ -->
                     <button
                       class="btn btn-outline-primary d-flex align-items-center justify-content-center gap-2 px-3 py-2 rounded-3 shadow-sm fw-semibold"
                       style="min-width: 180px; height: 44px; white-space: nowrap;" @click="addToCart">
@@ -225,6 +248,7 @@
                       <span>Thêm vào giỏ</span>
                     </button>
 
+                    <!-- Nút mua ngay -->
                     <button
                       class="btn btn-primary d-flex align-items-center justify-content-center gap-2 px-3 py-2 rounded-3 shadow-sm fw-semibold"
                       style="min-width: 180px; height: 44px;" @click="buyNow">
@@ -233,6 +257,7 @@
                   </div>
                 </template>
 
+                <!-- Hết hàng -->
                 <template v-else>
                   <div
                     class="btn btn-danger d-flex align-items-center justify-content-center  gap-2 px-3 py-2 rounded-3 shadow-sm fw-semibold"
@@ -245,49 +270,46 @@
               </div>
 
 
+              <!-- Ưu đãi cho sinh viên -->
               <div class="p-2 mt-3"
                 style="font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif; font-size: 0.95rem; background-color: #f5fafd; border: 1px solid #dceefc; border-radius: 16px;">
                 <ul class="list-unstyled mb-0">
                   <li class="mb-2">
                     <i class="bi bi-check2-circle text-success me-2"></i>
                     Ưu đãi cho Học sinh - sinh viên, Giảng viên - giáo viên chỉ còn
-                    <strong class="text-danger">{{ (giaHienTai - 500000).toLocaleString() }}đ</strong>.
-                    <br>
+                    <strong class="text-danger">{{ (giaHienTai - 500000).toLocaleString() }}đ</strong>. <br>
                     → Khi mua tại cửa hàng
                   </li>
                 </ul>
               </div>
 
 
-              <div class="mt-2" style=" border-radius: 16px;">
+              <!--Hình ảnh vu vơ-->
+              <div class="mt-2" style="  border-radius: 16px;">
                 <img src="/src/components/User/ChiTietSP/simDinhQuaChat.png" alt="" width="610px"
                   style="border-radius: 12px;">
               </div>
 
+              <!--Khuyế mãi-->
               <div class="p-2 mt-3"
                 style="font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif; font-size: 0.95rem; background-color: #f5fafd; border: 1px solid #dceefc; border-radius: 16px;">
                 <h6 class="fw-bold mb-3">
                   <i class="bi bi-gift-fill text-danger me-2"></i>Khuyến mãi hấp dẫn
                 </h6>
                 <ul class="list-unstyled mb-0">
-                  <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Trả góp 0% đến
-                    12 tháng.</li>
-                  <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Mua bất kỳ điện
-                    thoại nào sẽ
+                  <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Trả góp 0% đến 12 tháng.</li>
+                  <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Mua bất kỳ điện thoại nào sẽ
                     nhận
                     được một món quà bí ẩn (tai nghe, ốp lưng, sạc nhanh… trị giá đến <strong
                       class="text-danger">300.000đ</strong>).</li>
-                  <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Tặng Combo bảo
-                    vệ toàn diện Kính
+                  <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Tặng Combo bảo vệ toàn diện Kính
                     Cường Lực + Ốp lưng</li>
-                  <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Tặng phiếu mua
-                    hàng <strong class="text-danger">50.000đ</strong> khi
+                  <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Tặng phiếu mua hàng <strong
+                      class="text-danger">50.000đ</strong> khi
                     mua
                     sim TechMartVN kèm máy.</li>
-                  <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Tặng thêm 1 tháng
-                    bảo hành.</li>
-                  <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Liên hệ
-                    TechmartVN để được tư
+                  <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Tặng thêm 1 tháng bảo hành.</li>
+                  <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Liên hệ TechmartVN để được tư
                     vấn
                     giá tốt nhất cho khách hàng doanh nghiệp khi mua số lượng nhiều.</li>
                 </ul>
@@ -301,6 +323,7 @@
       <ProductReviews />
     </div>
 
+    <!-- Loading -->
     <div v-else class="text-center py-5">
       <div class="spinner-border text-primary" role="status"></div>
       <p class="mt-3">Đang tải sản phẩm...</p>
@@ -461,7 +484,7 @@ onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
 })
 
-// 👉 SỬA LẠI WATCHER ĐỂ BỎ CALL THỪA VÀ GỌI LẠI ĐÁNH GIÁ
+// gọi lại sản phẩm
 watch(
   () => route.params.id,
   async (newId, oldId) => {
