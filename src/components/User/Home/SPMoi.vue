@@ -9,24 +9,6 @@ import useHomeLogic from '@/components/User/LoadDB/Home.js'
 
 // ✅ Gọi hàm composable
 const { sanPhamMoiNhat } = useHomeLogic()
-const discountMap = {
-  1: 0,
-  2: 5,
-  3: 10,
-  4: 15,
-  5: 20,
-  6: 25,
-  7: 30,
-  8: 35,
-  9: 40,
-  10: 45,
-  11: 50,
-  12: 55,
-  13: 60,
-  14: 65,
-  15: 70
-};
-
 
 function isGiamGiaValid(sp) {
   if (!sp?.giamgia || sp.giamgia >= sp.dongia) {
@@ -141,7 +123,7 @@ function isGiamGiaValid(sp) {
 }
 
 .discount-badge {
-  background: linear-gradient(135deg, #ff4b2b, #ff416c);
+  background: linear-gradient(135deg, #ff4b2b, #3e82ff);
   color: white;
   font-weight: 600;
   font-size: 0.75rem;
