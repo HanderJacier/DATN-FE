@@ -9,24 +9,6 @@ import useHomeLogic from '@/components/User/LoadDB/Home.js'
 
 // ✅ Gọi hàm composable
 const { sanPhamMoiNhat } = useHomeLogic()
-const discountMap = {
-  1: 0,
-  2: 5,
-  3: 10,
-  4: 15,
-  5: 20,
-  6: 25,
-  7: 30,
-  8: 35,
-  9: 40,
-  10: 45,
-  11: 50,
-  12: 55,
-  13: 60,
-  14: 65,
-  15: 70
-};
-
 
 function isGiamGiaValid(sp) {
   if (!sp?.giamgia || sp.giamgia >= sp.dongia) {
@@ -54,7 +36,7 @@ function isGiamGiaValid(sp) {
     <Swiper :slides-per-view="1" :space-between="10"
       :breakpoints="{ 576: { slidesPerView: 2 }, 768: { slidesPerView: 3 }, 992: { slidesPerView: 4 } }" navigation
       :modules="[Navigation]">
-      <SwiperSlide v-for="sp in sanPhamMoiNhat" :key="sp.id_sp">
+      <SwiperSlide v-for="sp in (sanPhamMoiNhat || []).filter(sp => sp.soluong > 0)" :key="sp.id_sp">
         <RouterLink :to="`/sanpham/${sp.id_sp}`" class="text-decoration-none text-dark">
           <div class="card product-card mx-2">
             <img :src="sp.anhgoc" class="card-img-top product-img" :alt="sp.tensanpham" />
@@ -141,7 +123,7 @@ function isGiamGiaValid(sp) {
 }
 
 .discount-badge {
-  background: linear-gradient(135deg, #ff4b2b, #ff416c);
+  background: linear-gradient(135deg, #ff4b2b, #3e82ff);
   color: white;
   font-weight: 600;
   font-size: 0.75rem;
