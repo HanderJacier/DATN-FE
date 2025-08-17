@@ -31,15 +31,11 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 
-/**
- * productId là TÙY CHỌN:
- * - Nếu truyền từ trang chi tiết: dùng productId
- * - Nếu không truyền: fallback sang route.params.id
- */
+
 const props = defineProps({
   productId: {
     type: [Number, String],
@@ -54,7 +50,7 @@ const props = defineProps({
 const route = useRoute()
 const router = useRouter()
 
-// === LẤY THAM SỐ GIỐNG TRANG ĐÁNH GIÁ ===
+// lấy tham số truyền vào cho api
 const sanPhamId = computed(() => Number(props.productId ?? route.params.id))
 
 let taiKhoanId = null
@@ -65,7 +61,7 @@ if (userData && userData.id_tk) {
   taiKhoanId = userData.id_tk
 }
 
-// UI nhỏ gọn
+// UI thông báo
 const isLiked = ref(props.isLikedInit)
 const thongBao = ref({ show: false, message: '', type: 'success' })
 function hienThiThongBao(message, type = 'success') {
@@ -86,7 +82,21 @@ function hienThongBaoDangNhap() {
   timeoutYeuCau = setTimeout(() => (yeuCauDangNhap.value = false), 1500)
 }
 
-// === GỌI API CẬP NHẬT YÊU THÍCH ===
+// ------------------- LOCALSTORAGE -------------------
+// key lưu yêu thích theo user
+function getFavoriteKey() {
+  return `favorites_user_${taiKhoanId}`
+}
+
+// khi load lại trang thif kiểm tra localStorage
+onMounted(() => {
+  if (taiKhoanId) {
+    const saved = JSON.parse(localStorage.getItem(getFavoriteKey())) || []
+    isLiked.value = saved.includes(sanPhamId.value)
+  }
+})
+
+// gọi api + lưu vào localStorage
 const handleToggleLike = async () => {
   if (!taiKhoanId) {
     hienThongBaoDangNhap()
@@ -100,7 +110,21 @@ const handleToggleLike = async () => {
         p_taikhoan: taiKhoanId
       }
     })
+
+    // đổi trạng thái
     isLiked.value = !isLiked.value
+
+    // lưu vào localStorage
+    let saved = JSON.parse(localStorage.getItem(getFavoriteKey())) || []
+    if (isLiked.value) {
+      if (!saved.includes(sanPhamId.value)) {
+        saved.push(sanPhamId.value)
+      }
+    } else {
+      saved = saved.filter(id => id !== sanPhamId.value)
+    }
+    localStorage.setItem(getFavoriteKey(), JSON.stringify(saved))
+
     hienThiThongBao(isLiked.value ? 'Đã thêm vào Yêu thích' : 'Đã bỏ khỏi Yêu thích', 'success')
   } catch (err) {
     console.error('Lỗi Yêu thích:', err)

@@ -237,7 +237,7 @@
               </div>
 
               <div class="d-flex justify-content-center mt-5 align-items-center flex-wrap gap-3">
-                <ThichSanPham :productId="product.id" />
+                <ThichSanPham :productId="product.id_sp" />
                 <template v-if="product.soluong > 0">
                   <div class="d-flex gap-2">
                     <!-- Nút thêm vào giỏ -->
