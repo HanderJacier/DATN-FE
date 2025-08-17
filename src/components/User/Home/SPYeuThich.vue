@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, unref } from 'vue'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import 'swiper/css'
 import 'swiper/css/navigation'
@@ -31,10 +31,29 @@ function isGiamGiaValid(sp) {
   today.setHours(0, 0, 0, 0)
   return han > today
 }
+function pctDiscount(sp) {
+  const d = toNum(sp?.dongia)
+  const g = toNum(sp?.giamgia)
+  if (!d || !g) return 0
+  const pct = Math.round((1 - g / d) * 100)
+  return Math.min(99, Math.max(1, pct))
+}
+function onImgErr(e) {
+  e.target.src = 'https://via.placeholder.com/400x300?text=No+Image'
+}
 
-// Chuẩn hóa dữ liệu
-const sanPhamHienThi = computed(() =>
-  (sanPhamYeuThich || [])
+// ===== Chuẩn hoá dữ liệu trước khi render =====
+const sanPhamHienThi = computed(() => {
+  const raw = unref(sanPhamYeuThich)
+  const list = Array.isArray(raw)
+    ? raw
+    : Array.isArray(raw?.data)
+      ? raw.data
+      : Array.isArray(raw?.rows)
+        ? raw.rows
+        : []
+
+  return list
     .filter(sp => (sp?.soluong ?? 0) > 0)
     .map(sp => ({
       ...sp,
@@ -42,14 +61,22 @@ const sanPhamHienThi = computed(() =>
       giamgiaNum: toNum(sp.giamgia),
       thuongHieuHienThi: sp?.thuonghieuTen || sp?.thuonghieu_ten || 'Thương hiệu khác'
     }))
-)
+})
 </script>
 
 <template>
   <section class="mb-5">
     <h4 class="fw-semibold border-bottom pb-2 mb-3 fw-bold">SẢN PHẨM ĐƯỢC YÊU THÍCH NHẤT</h4>
 
+    <!-- Empty state -->
+    <div v-if="sanPhamHienThi.length === 0" class="text-center text-muted py-5">
+      <i class="bi bi-heart fs-1 d-block mb-2"></i>
+      <div class="fw-medium">Chưa có sản phẩm yêu thích để hiển thị</div>
+    </div>
+
+    <!-- Render Swiper chỉ khi có dữ liệu -->
     <Swiper
+      v-else
       :slides-per-view="1"
       :space-between="10"
       :breakpoints="{ 576: { slidesPerView: 2 }, 768: { slidesPerView: 3 }, 992: { slidesPerView: 4 } }"
@@ -59,9 +86,15 @@ const sanPhamHienThi = computed(() =>
       <SwiperSlide v-for="sp in sanPhamHienThi" :key="sp.id_sp">
         <RouterLink :to="`/sanpham/${sp.id_sp}`" class="text-decoration-none text-dark">
           <div class="card product-card mx-2">
-            <img :src="sp.anhgoc" class="card-img-top product-img" :alt="sp.tensanpham" />
+            <img
+              :src="sp.anhgoc"
+              class="card-img-top product-img"
+              :alt="sp.tensanpham"
+              loading="lazy"
+              @error="onImgErr"
+            />
             <div class="card-body">
-              <h6 class="fw-bold text-truncate">{{ sp.tensanpham }}</h6>
+              <h6 class="fw-bold text-truncate" :title="sp.tensanpham">{{ sp.tensanpham }}</h6>
               <p class="mb-1 text-secondary small">{{ sp.thuongHieuHienThi }}</p>
 
               <!-- Giá sản phẩm -->
@@ -70,16 +103,12 @@ const sanPhamHienThi = computed(() =>
                   <template v-if="isGiamGiaValid(sp)">
                     <span class="price-discount">{{ formatVND(sp.giamgiaNum) }}₫</span>
                     <span class="price-original">{{ formatVND(sp.dongiaNum) }}₫</span>
-                    <span class="discount-badge">
-                      -{{ Math.round((1 - sp.giamgiaNum / sp.dongiaNum) * 100) }}%
-                    </span>
+                    <span class="discount-badge">-{{ pctDiscount(sp) }}%</span>
                   </template>
                   <template v-else>
                     <span class="price-normal">{{ formatVND(sp.dongiaNum) }}₫</span>
                   </template>
                 </template>
-
-                <!-- Không có giá hợp lệ -->
                 <template v-else>
                   <span class="price-normal">Liên hệ</span>
                 </template>
