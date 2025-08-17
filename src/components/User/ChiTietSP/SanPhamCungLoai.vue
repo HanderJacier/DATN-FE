@@ -17,7 +17,7 @@
                         <div class="card-body">
                             <h6 class="fw-bold text-truncate">{{ sp.tensanpham }}</h6>
                             <p class="mb-1 text-secondary small">
-                                {{ sp.thuonghieu_ten || 'Thương hiệu khác' }}
+                                {{ sp.thuongHieuHienThi }}
                             </p>
 
                             <!-- Giá sản phẩm -->
@@ -74,8 +74,15 @@ const fetchSameCategory = async (id_sp) => {
         )
 
         if (Array.isArray(response.data)) {
-            sameCategoryProducts.value = response.data.map(item => item.fields)
+            sameCategoryProducts.value = response.data.map(item => {
+                const sp = item.fields
+                return {
+                    ...sp,
+                    thuongHieuHienThi: sp?.thuonghieuTen || sp?.thuonghieu_ten || 'Thương hiệu khác'
+                }
+            })
         }
+
     } catch (error) {
         console.error('Lỗi khi lấy sản phẩm cùng loại:', error)
     }
