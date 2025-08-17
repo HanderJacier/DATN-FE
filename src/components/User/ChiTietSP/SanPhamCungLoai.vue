@@ -1,15 +1,14 @@
 <template>
-    <div class="container my-5" v-if="sameCategoryProducts.length > 0">
+    <div class="container my-5">
         <!-- Tiêu đề -->
         <h4 class="fw-semibold border-bottom pb-2 mb-3 fw-bold">Sản phẩm cùng loại</h4>
 
-        <!-- Swiper Carousel -->
-        <Swiper :slides-per-view="1" :space-between="10" :breakpoints="{
+        <!-- Trường hợp có sản phẩm -->
+        <Swiper v-if="sameCategoryProducts.length > 0" :slides-per-view="1" :space-between="10" :breakpoints="{
             576: { slidesPerView: 2 },
             768: { slidesPerView: 3 },
             992: { slidesPerView: 4 }
         }" navigation :modules="[Navigation]">
-
             <SwiperSlide v-for="sp in sameCategoryProducts" :key="sp.id_sp">
                 <RouterLink :to="`/sanpham/${sp.id_sp}`" class="text-decoration-none text-dark">
                     <div class="card product-card mx-2">
@@ -47,8 +46,15 @@
                 </RouterLink>
             </SwiperSlide>
         </Swiper>
+
+        <!-- Trường hợp không có sản phẩm -->
+        <div v-else class="text-center text-muted py-5">
+            <i class="bi bi-box-seam fs-1 d-block mb-2"></i>
+            <div class="fw-medium">Không có sản phẩm cùng loại phù hợp</div>
+        </div>
     </div>
 </template>
+
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
@@ -74,14 +80,18 @@ const fetchSameCategory = async (id_sp) => {
         )
 
         if (Array.isArray(response.data)) {
-            sameCategoryProducts.value = response.data.map(item => {
-                const sp = item.fields
-                return {
-                    ...sp,
-                    thuongHieuHienThi: sp?.thuonghieuTen || sp?.thuonghieu_ten || 'Thương hiệu khác'
-                }
-            })
+            sameCategoryProducts.value = response.data
+                .map(item => {
+                    const sp = item.fields
+                    return {
+                        ...sp,
+                        thuongHieuHienThi: sp?.thuonghieuTen || sp?.thuonghieu_ten || 'Thương hiệu khác'
+                    }
+                })
+                // ❌ Bỏ sản phẩm trùng với id hiện tại
+                .filter(sp => sp.id_sp !== Number(id_sp))
         }
+
 
     } catch (error) {
         console.error('Lỗi khi lấy sản phẩm cùng loại:', error)
