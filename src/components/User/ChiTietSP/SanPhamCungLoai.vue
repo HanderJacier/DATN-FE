@@ -9,6 +9,7 @@
             768: { slidesPerView: 3 },
             992: { slidesPerView: 4 }
         }" navigation :modules="[Navigation]">
+
             <SwiperSlide v-for="sp in sameCategoryProducts" :key="sp.id_sp">
                 <RouterLink :to="`/sanpham/${sp.id_sp}`" class="text-decoration-none text-dark">
                     <div class="card product-card mx-2">
@@ -55,7 +56,6 @@
     </div>
 </template>
 
-
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
@@ -88,10 +88,9 @@ const fetchSameCategory = async (id_sp) => {
                         thuongHieuHienThi: sp?.thuonghieuTen || sp?.thuonghieu_ten || 'Thương hiệu khác'
                     }
                 })
-                // ❌ Bỏ sản phẩm trùng với id hiện tại
+                //loại bỏ sản phẩm trùng với id hiện tại
                 .filter(sp => sp.id_sp !== Number(id_sp))
         }
-
 
     } catch (error) {
         console.error('Lỗi khi lấy sản phẩm cùng loại:', error)
