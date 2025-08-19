@@ -6,66 +6,47 @@
         <Slidebar />
       </div>
 
-      <!-- ===== Khối địa chỉ ===== -->
+      <!-- Khối địa chỉ -->
       <div class="col-md-8">
         <h4 class="fw-bold mb-4">Địa chỉ của tôi</h4>
 
         <div class="bg-white border rounded p-4 shadow-sm">
-          <form @submit.prevent="submitAddresses">
-            <div class="container mt-4">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5>Địa chỉ</h5>
-                <button class="btn btn-primary" type="button" @click="openAddModal">
-                  + Thêm địa chỉ mới
-                </button>
-              </div>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5>Địa chỉ</h5>
+            <button class="btn btn-primary" type="button" @click="openAddModal">
+              + Thêm địa chỉ mới
+            </button>
+          </div>
 
-              <!-- Danh sách địa chỉ -->
-              <div
-                v-for="(addr, i) in addresses"
-                :key="i"
-                :class="['pt-3 mb-3', i !== 0 ? 'border-top mt-4' : 'pb-3']"
-              >
-                <p class="mb-1 fw-semibold">{{ addr.name }} | {{ addr.phone }}</p>
-                <p class="mb-1">{{ addr.street }}</p>
-                <p class="mb-1">{{ addr.ward }}, {{ addr.district }}, {{ addr.city }}</p>
+          <!-- Danh sách địa chỉ -->
+          <div
+            v-for="(addr, i) in addresses"
+            :key="addr.id_dc ?? i"
+            class="pt-3 mb-3 border-top"
+          >
+            <p class="mb-1">{{ addr.diachi }}</p>
 
-                <span
-                  v-if="addr.default"
-                  class="badge bg-light text-primary border border-primary px-2 py-1"
-                >
-                  Mặc định
-                </span>
-
-                <div class="d-flex gap-2 w-100 justify-content-end mt-2">
-                  <button
-                    v-if="!addr.default"
-                    class="btn btn-outline-secondary"
-                    type="button"
-                    @click="setDefault(i)"
-                  >
-                    Đặt mặc định
-                  </button>
-
-                  <button class="btn btn-primary" type="button" @click="openEditModal(i)">
-                    Cập nhật
-                  </button>
-
-                  <button class="btn btn-outline-danger" type="button" @click="deleteAddress(i)">
-                    <i class="bi bi-trash"></i>
-                  </button>
-                </div>
-              </div>
+            <div class="d-flex gap-2 w-100 justify-content-end mt-2">
+              <button class="btn btn-primary" type="button" @click="openEditModal(i)">
+                Cập nhật
+              </button>
+              <button class="btn btn-outline-danger" type="button" @click="deleteAddress(i)">
+                <i class="bi bi-trash"></i>
+              </button>
             </div>
-          </form>
+          </div>
 
-          <div v-if="isAddressSaved" class="text-success mt-2">
-            ✔ Đã lưu thay đổi địa chỉ
+          <!-- Trạng thái -->
+          <div class="small mt-3">
+            <span v-if="loadingFetch || loadingSubmit">Đang xử lý...</span>
+            <span v-else-if="errorFetch || errorSubmit" class="text-danger">
+              Có lỗi xảy ra, vui lòng thử lại.
+            </span>
           </div>
         </div>
       </div>
 
-      <!-- ===== Modal Bootstrap (Thêm / Cập nhật) ===== -->
+      <!-- Modal Thêm / Cập nhật -->
       <div v-if="showModal">
         <div class="modal-backdrop fade show"></div>
 
@@ -73,54 +54,17 @@
           <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
               <div class="modal-header">
-                <h5 class="modal-title">
-                  {{ isEdit ? 'Cập Nhật Địa Chỉ' : 'Địa Chỉ Mới' }}
-                </h5>
+                <h5 class="modal-title">{{ isEdit ? 'Cập Nhật Địa Chỉ' : 'Địa Chỉ Mới' }}</h5>
                 <button type="button" class="btn-close" @click="closeModal"></button>
               </div>
 
               <div class="modal-body">
-                <div class="row mb-3">
-                  <div class="col">
-                    <input
-                      type="text"
-                      class="form-control"
-                      placeholder="Họ và tên"
-                      v-model="formAddress.name"
-                    />
-                  </div>
-                  <div class="col">
-                    <input
-                      type="text"
-                      class="form-control"
-                      placeholder="Số điện thoại"
-                      v-model="formAddress.phone"
-                    />
-                  </div>
-                </div>
-
-                <div class="mb-3">
-                  <input
-                    type="text"
-                    class="form-control"
-                    placeholder="Tỉnh/ Thành phố, Quận/Huyện, Phường/Xã"
-                    list="locationOptions"
-                    v-model="formAddress.location"
-                  />
-                  <datalist id="locationOptions">
-                    <option value="TP.HCM - Q.12 - Hiệp Thành"></option>
-                    <option value="Hà Nội - Cầu Giấy - Dịch Vọng"></option>
-                    <option value="Đà Nẵng - Hải Châu - Thạch Thang"></option>
-                    <option value="Cần Thơ - Ninh Kiều - Tân An"></option>
-                  </datalist>
-                </div>
-
                 <div class="mb-3">
                   <textarea
                     class="form-control"
-                    rows="2"
-                    placeholder="Địa chỉ cụ thể"
-                    v-model="formAddress.street"
+                    rows="3"
+                    placeholder="Địa chỉ cụ thể (số nhà, đường...)"
+                    v-model="formAddress.diachi"
                   ></textarea>
                 </div>
               </div>
@@ -137,118 +81,153 @@
           </div>
         </div>
       </div>
+      <!-- /Modal -->
     </div>
   </div>
 </template>
 
-<script>
-import Slidebar from '@/components/User/Title/Slidebar.vue';
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import Slidebar from '@/components/User/Title/Slidebar.vue'
 
-export default {
-  name: 'UserAddress',
-  components: { Slidebar },
+// SweetAlert2
+import Swal from 'sweetalert2'
+// Nếu muốn, có thể import CSS global ở main.js hoặc đây:
+// import 'sweetalert2/dist/sweetalert2.min.css'
 
-  data() {
-    return {
-      isAddressSaved: false,
-      showModal: false,
-      isEdit: false,
-      editingIndex: null,
-      formAddress: {
-        name: '',
-        phone: '',
-        location: '',
-        street: '',
-        default: false,
-      },
-      addresses: [
-        {
-          name: 'Thuy Tien',
-          phone: '(+84) 789 345 123',
-          street: 'Số 123, Đường Hiệp Thành 13',
-          ward: 'Phường Hiệp Thành',
-          district: 'Quận 12',
-          city: 'TP. Hồ Chí Minh',
-          default: true,
-        },
-      ],
-    };
-  },
+// Composables gọi API
+import useDiaChiTheoTaiKhoan from '../LoadDB/SELDiaChi'
+import useDiaChi from '../LoadDB/UPDDiachi'
 
-  methods: {
-    openAddModal() {
-      this.isEdit = false;
-      this.editingIndex = null;
-      this.formAddress = {
-        name: '',
-        phone: '',
-        location: '',
-        street: '',
-        default: false,
-      };
-      this.showModal = true;
-    },
-    openEditModal(i) {
-      const a = this.addresses[i];
-      this.isEdit = true;
-      this.editingIndex = i;
-      this.formAddress = {
-        name: a.name,
-        phone: a.phone,
-        location: `${a.city} - ${a.district} - ${a.ward}`,
-        street: a.street,
-        default: a.default,
-      };
-      this.showModal = true;
-    },
-    saveAddress() {
-      const { name, phone, location, street, default: isDef } = this.formAddress;
+// Lấy id_tk từ localStorage (fallback = 2)
+const idTk = Number(localStorage.getItem('id_tk')) || 2
 
-      if (!name || !phone) {
-        alert('Vui lòng nhập Họ tên và Số điện thoại.');
-        return;
-      }
+// UI state
+const showModal = ref(false)
+const isEdit = ref(false)
+const editingIndex = ref(null)
 
-      const [city = '', district = '', ward = ''] = location.split('-').map((s) => s.trim());
-      const obj = { name, phone, street, ward, district, city, default: isDef };
+const formAddress = ref({
+  id_dc: 0,
+  diachi: ''
+})
 
-      if (this.isEdit && this.editingIndex !== null) {
-        this.addresses.splice(this.editingIndex, 1, obj);
-      } else {
-        this.addresses.push(obj);
-      }
+// API: lấy địa chỉ theo tài khoản
+const {
+  addresses: rawAddresses, // [{id_dc, diachi}]
+  fetchDiaChiTheoTaiKhoan,
+  loading: loadingFetch,
+  error: errorFetch
+} = useDiaChiTheoTaiKhoan()
 
-      if (obj.default) {
-        const idx = this.isEdit ? this.editingIndex : this.addresses.length - 1;
-        this.setDefault(idx);
-      }
+// API: CRUD địa chỉ
+const {
+  createDiaChi,
+  updateDiaChi,
+  deleteDiaChi: apiDeleteDiaChi,
+  loading: loadingSubmit,
+  error: errorSubmit
+} = useDiaChi()
 
-      this.closeModal();
-      this.flash('isAddressSaved');
-    },
-    setDefault(i) {
-      this.addresses.forEach((addr, idx) => (addr.default = idx === i));
-    },
-    deleteAddress(i) {
-      if (confirm('Chắc chắn xoá địa chỉ này?')) {
-        this.addresses.splice(i, 1);
-        if (!this.addresses.some((a) => a.default) && this.addresses[0]) {
-          this.addresses[0].default = true;
-        }
-      }
-    },
-    closeModal() {
-      this.showModal = false;
-      this.isEdit = false;
-      this.editingIndex = null;
-    },
-    flash(flag) {
-      this[flag] = true;
-      setTimeout(() => (this[flag] = false), 2000);
-    },
-    submitAddresses() {
-      console.log('Danh sách địa chỉ:', this.addresses);
-    },
-  },
-};
+// Toast helper
+const Toast = Swal.mixin({
+  toast: true,
+  position: 'top-end',
+  showConfirmButton: false,
+  timer: 1800,
+  timerProgressBar: true
+})
+
+// Map ra danh sách hiển thị
+const addresses = computed(() => rawAddresses.value || [])
+
+// Load lần đầu
+onMounted(async () => {
+  await fetchDiaChiTheoTaiKhoan(idTk)
+})
+
+// Mở modal thêm
+function openAddModal() {
+  isEdit.value = false
+  editingIndex.value = null
+  formAddress.value = { id_dc: 0, diachi: '' }
+  showModal.value = true
+}
+
+// Mở modal sửa
+function openEditModal(i) {
+  const a = addresses.value[i]
+  isEdit.value = true
+  editingIndex.value = i
+  formAddress.value = { id_dc: a.id_dc, diachi: a.diachi }
+  showModal.value = true
+}
+
+// Lưu địa chỉ
+async function saveAddress() {
+  const { id_dc, diachi } = formAddress.value
+  if (!diachi || !diachi.trim()) {
+    await Swal.fire({
+      icon: 'warning',
+      title: 'Thiếu địa chỉ',
+      text: 'Vui lòng nhập địa chỉ.',
+      confirmButtonText: 'Đã hiểu'
+    })
+    return
+  }
+
+  try {
+    if (isEdit.value && id_dc > 0) {
+      await updateDiaChi(id_dc, idTk, diachi.trim()) // action 3
+      Toast.fire({ icon: 'success', title: 'Cập nhật địa chỉ thành công' })
+    } else {
+      await createDiaChi(idTk, diachi.trim())        // action 1
+      Toast.fire({ icon: 'success', title: 'Thêm địa chỉ thành công' })
+    }
+    await fetchDiaChiTheoTaiKhoan(idTk)
+    closeModal()
+  } catch (e) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Có lỗi xảy ra',
+      text: 'Vui lòng thử lại sau.'
+    })
+  }
+}
+
+// Xoá địa chỉ
+async function deleteAddress(i) {
+  const a = addresses.value[i]
+  if (!a?.id_dc) return
+
+  const res = await Swal.fire({
+    title: 'Xoá địa chỉ?',
+    text: 'Thao tác này không thể hoàn tác.',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Xoá',
+    cancelButtonText: 'Huỷ',
+    confirmButtonColor: '#d33'
+  })
+
+  if (res.isConfirmed) {
+    try {
+      await apiDeleteDiaChi(a.id_dc, idTk) // action 2
+      await fetchDiaChiTheoTaiKhoan(idTk)
+      Toast.fire({ icon: 'success', title: 'Đã xoá địa chỉ' })
+    } catch (e) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Xoá thất bại',
+        text: 'Vui lòng thử lại.'
+      })
+    }
+  }
+}
+
+function closeModal() {
+  showModal.value = false
+  isEdit.value = false
+  editingIndex.value = null
+}
 </script>
