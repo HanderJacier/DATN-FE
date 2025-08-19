@@ -111,7 +111,7 @@
 
             <!-- Thông số kỹ thuật -->
             <h5 class="fw-bold mb-4 mt-3">Thông số kỹ thuật </h5>
-            <div class="bg-white rounded-4 shadow-sm p-3 border h-1" v-show="showMore">
+            <div class="bg-white rounded-4 shadow-sm p-3 border h-1">
               <div class="table-responsive">
                 <table class="table table-sm align-middle text-start mb-0" style="font-size: 0.95rem;">
                   <tbody>
@@ -123,16 +123,6 @@
                 </table>
               </div>
             </div>
-
-            <!-- Nút xem thêm -->
-            <div class="text-center mt-2">
-              <button class="btn btn-outline-primary btn-sm rounded-pill px-4"
-                style="font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif; font-size: 0.9rem;"
-                @click="toggleMore">
-                {{ showMore ? 'Thu gọn' : 'Xem thêm' }}
-              </button>
-            </div>
-
           </div>
 
           <!-- Thông tin sản phẩm -->
@@ -347,7 +337,6 @@ const router = useRouter()
 const { product, productImages, fetchChiTietSanPham } = useHomeLogic()
 
 const currentIndex = ref(0)
-const showMore = ref(false)
 const showStickyHeader = ref(false)
 
 const specs = ref({ cpu: {}, gpu: {}, other: {} })
@@ -403,10 +392,6 @@ const prevImage = () => {
 const nextImage = () => {
   currentIndex.value =
     currentIndex.value === productImages.value.length - 1 ? 0 : currentIndex.value + 1
-}
-
-const toggleMore = () => {
-  showMore.value = !showMore.value
 }
 
 const addToCart = () => {
