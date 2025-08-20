@@ -135,13 +135,13 @@ function isGiamGiaValid(sp) {
     border-radius: 12px;
     overflow: hidden;
     border: 1px solid #eee;
-    transition: all 0.3s ease;
+    transition: all .3s ease;
     height: 100%;
     background-color: #fff;
 }
 
 .product-card:hover {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
     transform: translateY(-2px);
 }
 
@@ -177,17 +177,17 @@ function isGiamGiaValid(sp) {
 .price-original {
     color: #9e9e9e;
     text-decoration: line-through;
-    font-size: 0.85rem;
+    font-size: .85rem;
 }
 
 .discount-badge {
-    background: linear-gradient(135deg, #ff4b2b, #ff416c);
+    background: linear-gradient(135deg, #ff4b2b, #3e82ff);
     color: white;
     font-weight: 600;
-    font-size: 0.75rem;
-    padding: 0.25em 0.6em;
+    font-size: .75rem;
+    padding: .25em .6em;
     border-radius: 6px;
-    box-shadow: 0 2px 4px rgba(255, 64, 129, 0.3);
+    box-shadow: 0 2px 4px rgba(255, 64, 129, .3);
 }
 
 .price-normal {
