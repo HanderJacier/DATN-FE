@@ -75,24 +75,14 @@ const sanPhamHienThi = computed(() => {
     </div>
 
     <!-- Render Swiper chỉ khi có dữ liệu -->
-    <Swiper
-      v-else
-      :slides-per-view="1"
-      :space-between="10"
-      :breakpoints="{ 576: { slidesPerView: 2 }, 768: { slidesPerView: 3 }, 992: { slidesPerView: 4 } }"
-      navigation
-      :modules="[Navigation]"
-    >
+    <Swiper v-else :slides-per-view="1" :space-between="10"
+      :breakpoints="{ 576: { slidesPerView: 2 }, 768: { slidesPerView: 3 }, 992: { slidesPerView: 4 } }" navigation
+      :modules="[Navigation]">
       <SwiperSlide v-for="sp in sanPhamHienThi" :key="sp.id_sp">
         <RouterLink :to="`/sanpham/${sp.id_sp}`" class="text-decoration-none text-dark">
           <div class="card product-card mx-2">
-            <img
-              :src="sp.anhgoc"
-              class="card-img-top product-img"
-              :alt="sp.tensanpham"
-              loading="lazy"
-              @error="onImgErr"
-            />
+            <img :src="sp.anhgoc" class="card-img-top product-img" :alt="sp.tensanpham" loading="lazy"
+              @error="onImgErr" />
             <div class="card-body">
               <h6 class="fw-bold text-truncate" :title="sp.tensanpham">{{ sp.tensanpham }}</h6>
               <p class="mb-1 text-secondary small">{{ sp.thuongHieuHienThi }}</p>
@@ -114,13 +104,66 @@ const sanPhamHienThi = computed(() => {
 </template>
 
 <style scoped>
-.product-card { border-radius: 12px; overflow: hidden; border: 1px solid #eee; transition: all .3s; height: 100%; background-color: #fff; }
-.product-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,.08); transform: translateY(-2px); }
-.card-img-top.product-img { display: block; margin: auto; width: auto; height: 200px; max-width: 100%; object-fit: contain; background-color: #fff; }
-.card-img-top { border-top-left-radius: 12px; border-top-right-radius: 12px; padding-top: 10px; }
-.product-price { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.price-discount { color: #e53935; font-weight: 700; font-size: 1.05rem; }
-.price-original { color: #9e9e9e; text-decoration: line-through; font-size: .85rem; }
-.discount-badge { background: linear-gradient(135deg, #ff4b2b, #3e82ff); color: #fff; font-weight: 600; font-size: .75rem; padding: .25em .6em; border-radius: 6px; box-shadow: 0 2px 4px rgba(255,64,129,.3); }
-.price-normal { color: #e53935; font-weight: 700; font-size: 1rem; }
+.product-card {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #eee;
+  transition: all .3s ease;
+  height: 100%;
+  background-color: #fff;
+}
+
+.product-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
+  transform: translateY(-2px);
+}
+
+.card-img-top.product-img {
+  display: block;
+  margin: auto;
+  width: auto;
+  height: 200px;
+  max-width: 100%;
+  object-fit: contain;
+  background-color: #fff;
+}
+
+.card-img-top {
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  padding-top: 10px;
+}
+
+.product-price {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Giá hiển thị cuối cùng (dù giảm hay không giảm) */
+.price-discount,
+.price-normal {
+  color: #e53935;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+/* Giá gốc gạch ngang */
+.price-original {
+  color: #9e9e9e;
+  text-decoration: line-through;
+  font-size: .85rem;
+}
+
+/* Badge giảm giá */
+.discount-badge {
+  background: linear-gradient(135deg, #ff4b2b, #3e82ff);
+  color: white;
+  font-weight: 600;
+  font-size: .75rem;
+  padding: .25em .6em;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(255, 64, 129, .3);
+}
 </style>

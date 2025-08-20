@@ -152,18 +152,22 @@ const sanPhamHienThi = computed(() => {
   flex-wrap: wrap;
 }
 
-.price-discount {
+/* Giá hiển thị cuối cùng (dù giảm hay không giảm) */
+.price-discount,
+.price-normal {
   color: #e53935;
   font-weight: 700;
   font-size: 1.05rem;
 }
 
+/* Giá gốc gạch ngang */
 .price-original {
   color: #9e9e9e;
   text-decoration: line-through;
   font-size: .85rem;
 }
 
+/* Badge giảm giá */
 .discount-badge {
   background: linear-gradient(135deg, #ff4b2b, #3e82ff);
   color: white;
@@ -172,11 +176,5 @@ const sanPhamHienThi = computed(() => {
   padding: .25em .6em;
   border-radius: 6px;
   box-shadow: 0 2px 4px rgba(255, 64, 129, .3);
-}
-
-.price-normal {
-  color: #e53935;
-  font-weight: 700;
-  font-size: 1rem;
 }
 </style>
