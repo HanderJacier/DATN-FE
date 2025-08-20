@@ -34,12 +34,13 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 
+
 const props = defineProps({
   productId: {
     type: [Number, String],
     default: null
   },
-  isLikedInit: {
+  isLikedInit: { // nếu muốn set trạng thái ban đầu từ ngoài
     type: Boolean,
     default: false
   }
@@ -47,6 +48,8 @@ const props = defineProps({
 
 const route = useRoute()
 const router = useRouter()
+
+// lấy tham số truyền vào cho api
 const sanPhamId = computed(() => Number(props.productId ?? route.params.id))
 
 let taiKhoanId = null
@@ -57,10 +60,9 @@ if (userData && userData.id_tk) {
   taiKhoanId = userData.id_tk
 }
 
-// --- UI ---
+// UI thông báo
 const isLiked = ref(props.isLikedInit)
 const thongBao = ref({ show: false, message: '', type: 'success' })
-
 function hienThiThongBao(message, type = 'success') {
   thongBao.value = { show: true, message, type }
   setTimeout(() => (thongBao.value.show = false), 2000)
@@ -80,6 +82,7 @@ function hienThongBaoDangNhap() {
 }
 
 // ------------------- LOCALSTORAGE -------------------
+// key lưu yêu thích theo user
 function getFavoriteKey() {
   return `favorites_user_${taiKhoanId}`
 }
@@ -105,7 +108,7 @@ onMounted(async () => {
   }
 })
 
-// ------------------- TOGGLE -------------------
+// gọi api + lưu vào localStorage
 const handleToggleLike = async () => {
   if (!taiKhoanId) {
     hienThongBaoDangNhap()
