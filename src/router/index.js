@@ -27,10 +27,8 @@ import GopYUser from '../components/User/GopYUser.vue'
 // 🎯 Các trạng thái đơn hàng
 import TatCa from '../components/User/ThongTinTK/HoaDon/TatCa.vue'
 import DangXuLy from '../components/User/ThongTinTK/HoaDon/DangXuLy.vue'
-import DangGiao from '../components/User/ThongTinTK/HoaDon/DangGiao.vue'
-import DaGiao from '../components/User/ThongTinTK/HoaDon/DaGiao.vue'
+import DaXuLy from '../components/User/ThongTinTK/HoaDon/DaXuLy.vue'
 import DaHuy from '../components/User/ThongTinTK/HoaDon/DaHuy.vue'
-import TraHang from '../components/User/ThongTinTK/HoaDon/TraHang.vue'
 import XacNhanDonHang from '../components/User/ThongTinTK/XacNhanDonHang.vue'
 import OrderManagement from '../components/Admin/OrderManagement.vue'
 
@@ -43,6 +41,7 @@ const routes = [
   { path: '/sanphamyeuthich', component: SPYeuThich },
   { path: '/diachinguoidung', component: DiaChi },
   { path: '/hoadonchitiet', component: HoaDonChiTiet },
+  { path: '/hoadonchitiet/:id', name: 'hoadonchitiet', component: HoaDonChiTiet },
   { path: '/doimatkhau', component: DoiMatKhau },
 
   { path: '/giohang', component: GioHang },
@@ -57,10 +56,8 @@ const routes = [
   // 🎯 Các route lịch sử đơn hàng theo tab
   { path: '/tatca', component: TatCa },
   { path: '/dangxuly', component: DangXuLy },
-  { path: '/danggiao', component: DangGiao },
-  { path: '/dagiao', component: DaGiao },
+  { path: '/daxuly', component: DaXuLy },
   { path: '/dahuy', component: DaHuy },
-  { path: '/trahang', component: TraHang },
 
   // Admin layout và nested routes
   {

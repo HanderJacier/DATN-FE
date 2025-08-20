@@ -6,245 +6,256 @@
         <Slidebar />
       </div>
 
-      <!-- Nội dung chính -->
+      <!-- Nội dung -->
       <div class="col-md-9">
-        <!-- Thêm loading state và error handling -->
-        <div v-if="detailLoading" class="text-center py-5">
-          <div class="spinner-border text-primary" role="status"></div>
-          <p class="mt-2">Đang tải chi tiết hóa đơn...</p>
+        <!-- Nút quay lại trên đầu -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <router-link to="/tatca" class="btn btn-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Quay lại danh sách
+          </router-link>
         </div>
 
-        <!-- Cải thiện hiển thị lỗi bảo mật -->
-        <div v-else-if="detailError || accessError" class="alert alert-danger">
-          <i class="bi bi-shield-exclamation me-2"></i>
-          <strong>Lỗi truy cập:</strong> {{ detailError || accessError }}
-          <div class="mt-3">
-            <router-link to="/thongtintk/hoadon" class="btn btn-primary">
-              <i class="bi bi-arrow-left me-1"></i>Quay lại danh sách hóa đơn
-            </router-link>
-          </div>
+        <h4 class="fw-bold mb-4">
+          <i class="bi bi-receipt me-2"></i>
+          Chi tiết hóa đơn HD{{ String(orderDetail?.id_hd || id).padStart(3, '0') }}
+        </h4>
+
+        <div v-if="loading" class="text-center py-4">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="mt-2">Đang tải chi tiết...</p>
+        </div>
+
+        <div v-else-if="error" class="alert alert-danger">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          {{ error }}
         </div>
 
         <div v-else-if="orderDetail">
-          <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="fw-bold mb-0">Chi tiết hóa đơn #HD{{ String(orderDetail.id_hd).padStart(3, '0') }}</h4>
-            <button @click="goBack" class="btn btn-outline-secondary">
-              <i class="bi bi-arrow-left me-1"></i>Quay lại
-            </button>
-          </div>
-
-          <div class="bg-white border rounded p-4 shadow-sm">
-            <!-- Thông tin hóa đơn -->
-            <div class="row mb-4">
-              <div class="col-md-6">
-                <p><strong>Ngày tạo:</strong> {{ formatDateTime(orderDetail.ngaytao) }}</p>
-                <p><strong>Khách hàng:</strong> {{ orderDetail.hovaten }}</p>
-                <p><strong>Email:</strong> {{ orderDetail.email }}</p>
-              </div>
-              <div class="col-md-6">
-                <p><strong>Số điện thoại:</strong> {{ orderDetail.sodienthoai }}</p>
-                <p>
-                  <strong>Trạng thái:</strong>
-                  <span :class="getStatusClass(orderDetail.trangthai)">
-                    {{ orderDetail.trangthai }}
-                  </span>
-                </p>
-                <p v-if="orderDetail.noidung"><strong>Ghi chú:</strong> {{ orderDetail.noidung }}</p>
-              </div>
-            </div>
-
-            <!-- Sản phẩm -->
-            <h6 class="fw-bold mb-3">Danh sách sản phẩm</h6>
-            <div class="table-responsive">
-              <table class="table table-bordered text-center align-middle">
-                <thead class="table-light">
-                  <tr>
-                    <th>STT</th>
-                    <th>Hình ảnh</th>
-                    <th>Sản phẩm</th>
-                    <th>Số lượng</th>
-                    <th>Đơn giá</th>
-                    <th>Thành tiền</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(product, index) in orderProducts" :key="product.id_hdct">
-                    <td>{{ index + 1 }}</td>
-                    <td>
-                      <img 
-                        :src="product.anhgoc || '/placeholder.svg?height=50&width=50'" 
-                        :alt="product.tensanpham"
-                        class="img-thumbnail"
-                        style="width: 50px; height: 50px; object-fit: cover;"
-                      />
-                    </td>
-                    <td class="text-start">{{ product.tensanpham }}</td>
-                    <td>{{ product.soluong }}</td>
-                    <td>{{ formatCurrency(product.dongia) }}</td>
-                    <td class="fw-bold text-danger">{{ formatCurrency(product.thanhtien) }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <!-- Thông tin thanh toán -->
-            <div v-if="paymentInfo" class="border-top pt-3 mt-3">
-              <h6 class="fw-bold mb-3">Thông tin thanh toán</h6>
-              <div class="row">
-                <div class="col-md-6">
-                  <p><strong>Phương thức:</strong> {{ paymentInfo.phuongthuc }}</p>
+          <!-- Thông tin hóa đơn -->
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-header">
+                  <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Thông tin hóa đơn</h6>
                 </div>
-                <div class="col-md-6">
-                  <p><strong>Ngày thanh toán:</strong> {{ formatDateTime(paymentInfo.ngaythanhtoan) }}</p>
-                  <p v-if="paymentInfo.magiaodich"><strong>Mã giao dịch:</strong> {{ paymentInfo.magiaodich }}</p>
+                <div class="card-body">
+                  <p><strong>Mã hóa đơn:</strong> HD{{ String(orderDetail.id_hd).padStart(3, '0') }}</p>
+                  <p><strong>Ngày tạo:</strong> {{ (orderDetail.ngaytao) }}</p>
+                  <p><strong>Trạng thái: </strong>
+                    <span class="badge" :class="getStatusClass(orderDetail.trangthai)">
+                      {{ orderDetail.trangthai }}
+                    </span>
+                  </p>
+                  <p><strong>Khách hàng:</strong> {{ orderDetail.hovaten }}</p>
+                  <p><strong>Số điện thoại:</strong> {{ orderDetail.sodienthoai }}</p>
+                  <p v-if="orderDetail.email"><strong>Email:</strong> {{ orderDetail.email }}</p>
                 </div>
               </div>
             </div>
 
-            <!-- Tổng tiền -->
-            <div class="text-end border-top pt-3 mt-3">
-              <h5 class="fw-bold text-danger mb-0">
-                Tổng thanh toán: {{ formatCurrency(orderDetail.giahoadon) }}
-              </h5>
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-header">
+                  <h6 class="mb-0"><i class="bi bi-credit-card me-2"></i>Thông tin thanh toán</h6>
+                </div>
+                <div class="card-body">
+                  <p><strong>Phương thức:</strong> {{ getPaymentMethodText(orderDetail.phuongthuc) }}</p>
+                  <p><strong>Ghi chú:</strong> {{ orderDetail.noidung || 'Không có' }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Danh sách sản phẩm -->
+          <div class="card">
+            <div class="card-header">
+              <h6 class="mb-0"><i class="bi bi-box-seam me-2"></i>Danh sách sản phẩm</h6>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-bordered">
+                  <thead class="table-light">
+                    <tr>
+                      <th>STT</th>
+                      <th>Hình ảnh</th>
+                      <th>Sản phẩm</th>
+                      <th>Số lượng</th>
+                      <th>Đơn giá</th>
+                      <th>Thành tiền</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(product, index) in orderDetail.products" :key="index">
+                      <td>{{ index + 1 }}</td>
+                      <td>
+                        <!-- Ảnh bấm sang trang chi tiết sản phẩm -->
+                        <router-link
+                          :to="{ name: 'ChiTietSanPham', params: { id: product.id_sp } }"
+                          class="d-inline-block"
+                          :title="product.tensanpham"
+                        >
+                          <img
+                            :src="product.anhgoc || '/placeholder.svg'"
+                            class="img-thumbnail"
+                            style="width:50px; height:50px; object-fit:cover; cursor:pointer;"
+                            @error="onImgErr"
+                          />
+                        </router-link>
+                      </td>
+                      <td class="text-start">
+                        <!-- Tên bấm sang trang chi tiết sản phẩm -->
+                        <router-link
+                          :to="{ name: 'ChiTietSanPham', params: { id: product.id_sp } }"
+                          class="text-decoration-none"
+                        >
+                          {{ product.tensanpham }}
+                        </router-link>
+                      </td>
+                      <td class="text-center">{{ product.soluong }}</td>
+                      <td class="text-end">{{ formatCurrency(product.dongia) }}</td>
+                      <td class="text-end text-danger fw-bold">{{ formatCurrency(product.thanhtien) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="text-end mt-4 p-3 bg-light rounded">
+                <h5 class="fw-bold mb-0">
+                  Tổng cộng: <span class="text-danger">{{ formatCurrency(orderDetail.giahoadon) }}</span>
+                </h5>
+              </div>
             </div>
           </div>
         </div>
 
-        <div v-else class="alert alert-info text-center">
-          <i class="bi bi-info-circle fs-1 text-muted"></i>
-          <h5 class="mt-3">Không tìm thấy thông tin hóa đơn</h5>
-        </div>
+        <!-- (Không còn nút quay lại dưới) -->
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, onMounted, computed, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import Slidebar from '@/components/User/Title/Slidebar.vue'
-import useOrderHistory from '@/components/User/LoadDB/useOrderHistory.js'
+import { usePostData } from '@/components/component_callApi/callAPI'
+import useHdChiTietTheoDanhSach from '../LoadDB/HoaDonChiTiet' // chỉnh path theo dự án
 
 export default {
-  name: 'HoaDonChiTiet',
+  name: 'OrderDetail',
   components: { Slidebar },
   setup() {
     const route = useRoute()
-    const router = useRouter()
-    
-    const orderHistory = useOrderHistory()
+    const id = Number(route.params.id)
+
+    // --- API header (WBH_US_SEL_CHI_TIET_HOA_DON)
+    const headerApi = usePostData() // { data, loading, error, callAPI }
+
+    // --- API items theo danh sách id (WBH_US_SEL_HD_CHI_TIET_THEO_DANH_SACH)
     const {
-      orderDetail,
-      orderProducts,
-      paymentInfo,
-      detailLoading,
-      detailError,
-      fetchOrderDetail
-    } = orderHistory
+      fetchHdChiTietTheoDanhSach,
+      getItemsByHoaDon,
+      loading: itemsLoading,
+      error: itemsError
+    } = useHdChiTietTheoDanhSach()
 
-    const accessError = ref('')
+    const orderDetail = ref(null)
 
-    const orderId = computed(() => {
-      return parseInt(route.params.id) || null
-    })
+    const loading = computed(() => headerApi.loading.value || itemsLoading.value)
+    const error = computed(() => headerApi.error.value || itemsError.value)
 
-    const getCurrentUserId = () => {
-      const user = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user'))
-      return user?.id_tk
+    const extractArrays = (payload) => {
+      if (Array.isArray(payload)) return [payload]
+      if (payload && typeof payload === 'object') {
+        return Object.values(payload).filter(v => Array.isArray(v))
+      }
+      return []
     }
 
-    const loadOrderDetail = async () => {
-      if (orderId.value) {
-        try {
-          const userId = getCurrentUserId()
-          if (!userId) {
-            accessError.value = 'Vui lòng đăng nhập để xem chi tiết hóa đơn.'
-            return
-          }
-          
-          if (orderHistory.orders.value.length === 0) {
-            await orderHistory.fetchOrderHistory(userId)
-          }
-          
-          await fetchOrderDetail(orderId.value, userId)
-          accessError.value = ''
-        } catch (error) {
-          accessError.value = 'Bạn không có quyền xem hóa đơn này hoặc hóa đơn không tồn tại.'
-        }
+    const fetchDetail = async () => {
+      if (!id) return
+      orderDetail.value = null
+
+      // 1) Header + payment
+      await headerApi.callAPI('WBH_US_SEL_CHI_TIET_HOA_DON', { params: { p_id_hd: id } })
+      const sets = extractArrays(headerApi.data.value)
+
+      const headerSet =
+        sets.find(arr => arr.some(r => r && typeof r === 'object' && 'id_hd' in r && 'trangthai' in r && 'giahoadon' in r)) || []
+      const paymentSet =
+        sets.find(arr => arr.some(r => r && typeof r === 'object' && ('phuongthuc' in r || 'id_tt' in r))) || []
+
+      const h = headerSet[0] || {}
+
+      // 2) Items theo proc danh sách
+      await fetchHdChiTietTheoDanhSach([id])
+      const items = getItemsByHoaDon(id)
+
+      // 3) Gộp thành orderDetail để phù hợp UI
+      orderDetail.value = {
+        id_hd: h.id_hd ?? id,
+        ngaytao: h.ngaytao,
+        trangthai: h.trangthai,
+        giahoadon: Number(h.giahoadon || 0),
+        noidung: h.noidung,
+        hovaten: h.hoveten,
+        sodienthoai: h.sodienthoai,
+        email: h.email,
+        phuongthuc: (paymentSet[0]?.phuongthuc) || h.phuongthuc,
+        products: items
       }
     }
 
-    const calculateSubtotal = () => {
-      if (!orderProducts.value || !Array.isArray(orderProducts.value)) return 0
-      return orderProducts.value.reduce((sum, product) => sum + (product.thanhtien || 0), 0)
-    }
+    onMounted(fetchDetail)
+    watch(() => route.params.id, () => fetchDetail())
 
-    const formatDateTime = (dateString) => {
-      if (!dateString) return '-'
-      return new Date(dateString).toLocaleString('vi-VN')
+    // Helpers
+    const parseVNDateTime = (s) => {
+      if (!s) return null
+      if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) {
+        const [d,m,y] = s.split('/').map(Number)
+        return new Date(y, m-1, d)
+      }
+      return new Date(s)
     }
-
-    const formatCurrency = (value) => {
-      return new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND',
-      }).format(value || 0)
+    const formatDateTime = (val) => {
+      const dt = parseVNDateTime(val)
+      return dt && !isNaN(dt) ? dt.toLocaleString('vi-VN') : '-'
     }
-
+    const formatCurrency = (amount) =>
+      new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount || 0)
     const getStatusClass = (status) => {
       switch (status) {
-        case 'Đã thanh toán':
-          return 'badge bg-success'
-        case 'Chờ thanh toán':
-          return 'badge bg-warning'
-        case 'Đang xử lý':
-          return 'badge bg-info'
-        case 'Đang giao hàng':
-          return 'badge bg-primary'
-        case 'Đã giao hàng':
-          return 'badge bg-success'
-        case 'Đã hủy':
-          return 'badge bg-danger'
-        default:
-          return 'badge bg-secondary'
+        case 'Chờ thanh toán': return 'bg-warning text-dark'
+        case 'Đã thanh toán': return 'bg-success'
+        case 'Đang xử lý': return 'bg-info'
+        case 'Đang giao hàng': return 'bg-primary'
+        case 'Đã giao hàng': return 'bg-success'
+        case 'Đã hủy': return 'bg-danger'
+        default: return 'bg-secondary'
       }
     }
-
-    const goBack = () => {
-      router.go(-1)
-    }
-
-    const cancelOrder = () => {
-      if (confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')) {
-        // TODO: Implement cancel order API
-        alert('Tính năng hủy đơn hàng đang được phát triển')
+    const getPaymentMethodText = (method) => {
+      switch (method) {
+        case 'COD': return 'Thanh toán khi nhận hàng'
+        case 'BANK': return 'Chuyển khoản ngân hàng'
+        case 'QR': return 'Thanh toán QR Code'
+        case 'MOMO': return 'Ví MoMo'
+        case 'VNPAY': return 'VNPay'
+        default: return method || '—'
       }
     }
-
-    const printInvoice = () => {
-      window.print()
-    }
-
-    onMounted(() => {
-      loadOrderDetail()
-    })
+    const onImgErr = (e) => { e.target.src = '/placeholder.svg' }
 
     return {
-      orderDetail,
-      orderProducts,
-      paymentInfo,
-      detailLoading,
-      detailError,
-      accessError,
-      orderId,
-      calculateSubtotal,
-      formatDateTime,
-      formatCurrency,
-      getStatusClass,
-      goBack,
-      cancelOrder,
-      printInvoice
+      id, loading, error, orderDetail,
+      formatDateTime, formatCurrency, getStatusClass, getPaymentMethodText, onImgErr
     }
   }
 }
 </script>
+
+<style scoped>
+.table th { background-color: #f8f9fa; font-weight: 600; border-color: #dee2e6; }
+.table td { vertical-align: middle; border-color: #dee2e6; }
+.card { border: 1px solid #e3e6f0; box-shadow: 0 0.15rem 1.75rem 0 rgba(58,59,69,.15); }
+</style>
