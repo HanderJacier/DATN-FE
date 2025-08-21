@@ -12,13 +12,8 @@
         <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2">
           <h4 class="fw-bold mb-0">Danh sách sản phẩm yêu thích</h4>
           <div class="d-flex gap-2">
-            <input
-              v-model="searchQuery"
-              type="text"
-              class="form-control"
-              placeholder="Tìm theo tên / thương hiệu..."
-              style="min-width: 260px"
-            />
+            <input v-model="searchQuery" type="text" class="form-control" placeholder="Tìm theo tên / thương hiệu..."
+              style="min-width: 260px" />
           </div>
         </div>
 
@@ -26,10 +21,7 @@
         <div v-if="error" class="alert alert-danger py-2">{{ error }}</div>
 
         <!-- Empty state -->
-        <div
-          v-if="filteredFavorites.length === 0 && !loading && !error"
-          class="text-center text-muted py-5"
-        >
+        <div v-if="filteredFavorites.length === 0 && !loading && !error" class="text-center text-muted py-5">
           <i class="bi bi-heart fs-1 d-block mb-2"></i>
           <div class="fw-medium">Không có sản phẩm phù hợp</div>
         </div>
@@ -38,11 +30,7 @@
         <div v-else class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
           <div class="col" v-for="(product, index) in filteredFavorites" :key="product.id_sp || index">
             <div class="card product-card h-100">
-              <img
-                :src="product.anhgoc"
-                class="card-img-top product-img"
-                :alt="product.tensanpham"
-              />
+              <img :src="product.anhgoc" class="card-img-top product-img" :alt="product.tensanpham" />
 
               <div class="card-body">
                 <h6 class="fw-bold text-truncate mb-1">
@@ -76,12 +64,8 @@
               <div class="card-footer border-0 py-2 px-3">
                 <div class="d-flex gap-2 w-100">
                   <!-- Nút bỏ yêu thích nhỏ gọn -->
-                  <button
-                    class="btn btn-danger btn-icon"
-                    @click="handleUnfavorite(product)"
-                    :disabled="updating"
-                    aria-label="Bỏ yêu thích"
-                  >
+                  <button class="btn btn-danger btn-icon" @click="handleUnfavorite(product)" :disabled="updating"
+                    aria-label="Bỏ yêu thích">
                     <i class="bi bi-heart-fill"></i>
                   </button>
 
@@ -117,8 +101,8 @@ export default {
 
     // Lấy id_tk
     const getStoredUser = () => {
-      try { const s = sessionStorage.getItem('user'); if (s) return JSON.parse(s) } catch (_) {}
-      try { const l = localStorage.getItem('user'); if (l) return JSON.parse(l) } catch (_) {}
+      try { const s = sessionStorage.getItem('user'); if (s) return JSON.parse(s) } catch (_) { }
+      try { const l = localStorage.getItem('user'); if (l) return JSON.parse(l) } catch (_) { }
       return null
     }
     const extractIdTk = (u) => Number(u?.id_tk ?? u?.id ?? u?.userId ?? 0)
@@ -157,10 +141,10 @@ export default {
       const sale = toNumber(sp?.giamgia)
       if (!sale || sale >= base) return false
       if (!sp?.hangiamgia) return false
-      const today = new Date(); today.setHours(0,0,0,0)
+      const today = new Date(); today.setHours(0, 0, 0, 0)
       const [day, month, year] = String(sp.hangiamgia).split('/')
       if (!day || !month || !year) return false
-      const han = new Date(year, month - 1, day); han.setHours(0,0,0,0)
+      const han = new Date(year, month - 1, day); han.setHours(0, 0, 0, 0)
       return han > today
     }
 
@@ -214,6 +198,7 @@ export default {
   height: 100%;
   background-color: #fff;
 }
+
 .product-card:hover {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
   transform: translateY(-2px);
@@ -229,6 +214,7 @@ export default {
   object-fit: contain;
   background-color: #fff;
 }
+
 .card-img-top {
   border-top-left-radius: 12px;
   border-top-right-radius: 12px;
@@ -242,16 +228,19 @@ export default {
   gap: 8px;
   flex-wrap: wrap;
 }
+
 .price-discount {
   color: #e53935;
   font-weight: 700;
   font-size: 1.05rem;
 }
+
 .price-original {
   color: #9e9e9e;
   text-decoration: line-through;
   font-size: 0.85rem;
 }
+
 .discount-badge {
   background: linear-gradient(135deg, #ff4b2b, #3e82ff);
   color: white;
@@ -261,6 +250,7 @@ export default {
   border-radius: 6px;
   box-shadow: 0 2px 4px rgba(255, 64, 129, 0.3);
 }
+
 .price-normal {
   color: #e53935;
   font-weight: 700;
@@ -272,8 +262,14 @@ export default {
   width: 40px;
   height: 40px;
   padding: 0;
-  display: flex; align-items: center; justify-content: center;
-  border-radius: 8px; /* đổi 50% nếu muốn tròn hẳn */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  /* đổi 50% nếu muốn tròn hẳn */
 }
-.btn-icon i { font-size: 1rem; }
+
+.btn-icon i {
+  font-size: 1rem;
+}
 </style>

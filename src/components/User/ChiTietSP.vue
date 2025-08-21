@@ -130,7 +130,7 @@
             <div class="p-3 mt-1">
               <h3 class="fw-bold mb-3">{{ product.tensanpham }}</h3>
 
-              <div class="product-meta d-flex flex-wrap align-items-center gap-4 mb-4">
+              <div class="product-meta d-flex flex-wrap align-items-center gap-4 mb-3">
                 <!-- Số lượng -->
                 <div class="d-flex align-items-center meta-item">
                   <span class="icon-circle bg-success-subtle text-success me-1">
@@ -138,17 +138,6 @@
                   </span>
                   <span class="text-secondary small">
                     Số lượng:
-                    <strong class="ms-1 text-dark">{{ product.soluong || 0 }}</strong>
-                  </span>
-                </div>
-
-                <!-- Đã bán -->
-                <div class="d-flex align-items-center meta-item">
-                  <span class="icon-circle bg-primary-subtle text-primary me-1">
-                    <i class="fas fa-shopping-cart"></i>
-                  </span>
-                  <span class="text-secondary small">
-                    Đã bán:
                     <strong class="ms-1 text-dark">{{ product.soluong || 0 }}</strong>
                   </span>
                 </div>
@@ -556,12 +545,6 @@ watch(
   color: #6c757d;
 }
 
-
-/*Thông tin sản phẩm*/
-.product-meta .meta-item {
-  min-width: 10px;
-  /* khoảng cách đã bán và đnáh giá */
-}
 
 .icon-circle {
   display: flex;

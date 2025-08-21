@@ -87,11 +87,24 @@ function getFavoriteKey() {
   return `favorites_user_${taiKhoanId}`
 }
 
-// khi load lại trang thif kiểm tra localStorage
-onMounted(() => {
-  if (taiKhoanId) {
-    const saved = JSON.parse(localStorage.getItem(getFavoriteKey())) || []
-    isLiked.value = saved.includes(sanPhamId.value)
+// ------------------- LOAD DATA -------------------
+onMounted(async () => {
+  if (!taiKhoanId) return
+
+  try {
+    const res = await axios.get(`http://localhost:8080/api/datn/WBH_US_GET_TRANGTHAI_YT_SP`, {
+      params: {
+        p_sanpham: sanPhamId.value,
+        p_taikhoan: taiKhoanId
+      }
+    })
+
+    // ví dụ API trả về { trangThai: "Y" | "N" }
+    const trangThai = res.data?.trangThai
+    isLiked.value = trangThai === "Y"  // chỉ set true khi DB trả Y
+  } catch (err) {
+    console.error("Lỗi khi lấy trạng thái:", err)
+    isLiked.value = false
   }
 })
 
@@ -110,19 +123,7 @@ const handleToggleLike = async () => {
       }
     })
 
-    // đổi trạng thái
     isLiked.value = !isLiked.value
-
-    // lưu vào localStorage
-    let saved = JSON.parse(localStorage.getItem(getFavoriteKey())) || []
-    if (isLiked.value) {
-      if (!saved.includes(sanPhamId.value)) {
-        saved.push(sanPhamId.value)
-      }
-    } else {
-      saved = saved.filter(id => id !== sanPhamId.value)
-    }
-    localStorage.setItem(getFavoriteKey(), JSON.stringify(saved))
 
     hienThiThongBao(isLiked.value ? 'Đã thêm vào Yêu thích' : 'Đã bỏ khỏi Yêu thích', 'success')
   } catch (err) {
