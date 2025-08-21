@@ -6,7 +6,7 @@ import path from 'node:path'
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5173'
 const ROUTE = '/dangnhap'
-const service = new edge.ServiceBuilder('D:\\FPTPolytechnic\\HK6\\DATN\\Eclipse\\DATN-BE\\msedgedriver.exe')
+const service = new edge.ServiceBuilder(path.resolve('./msedgedriver.exe'))
 const options = new edge.Options().addArguments('--headless=new')
 
 const ART = path.join(os.tmpdir(), 'e2e-artifacts') // ✅ ghi vào thư mục tạm, tránh Vite HMR

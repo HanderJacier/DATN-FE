@@ -5,7 +5,7 @@ import os from 'node:os'
 import path from 'node:path'
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5173'
-const service = new edge.ServiceBuilder('D:\\FPTPolytechnic\\HK6\\DATN\\Eclipse\\DATN-BE\\msedgedriver.exe')
+const service = new edge.ServiceBuilder(path.resolve('./msedgedriver.exe'))
 
 // Debug UI: HEADLESS=false npm run e2e:edge:search:header
 const headless = process.env.HEADLESS !== 'false'
