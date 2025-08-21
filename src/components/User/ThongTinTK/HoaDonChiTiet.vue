@@ -136,6 +136,7 @@
 <script>
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { decId } from '@/utils/idCodec'
 import Slidebar from '@/components/User/Title/Slidebar.vue'
 import { usePostData } from '@/components/component_callApi/callAPI'
 import useHdChiTietTheoDanhSach from '../LoadDB/HoaDonChiTiet' // chỉnh path theo dự án
@@ -252,6 +253,7 @@ export default {
     }
   }
 }
+
 </script>
 
 <style scoped>
