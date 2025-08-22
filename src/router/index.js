@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { encId, decId } from '@/utils/idCodec'
+import { encodeWholeRoute, decodeWholeRoute } from '@/utils/routeMask'
+
 
 // User
 import Home from '../components/User/Home.vue'
@@ -33,83 +34,72 @@ import DaXuLy from '../components/User/ThongTinTK/HoaDon/DaXuLy.vue'
 import DaHuy from '../components/User/ThongTinTK/HoaDon/DaHuy.vue'
 import XacNhanDonHang from '../components/User/ThongTinTK/XacNhanDonHang.vue'
 
-
 const routes = [
-  { path: '/', component: Home },
-  { path: '/dangnhap', component: DangNhap },
-  { path: '/dangky', component: DangKyUser },
+  { path: '/', name: 'Home', component: Home },
+  { path: '/dangnhap', name: 'DangNhap', component: DangNhap },
+  { path: '/dangky', name: 'DangKyUser', component: DangKyUser },
+  { path: '/thongtintk', name: 'ThongTinTK', component: ThongTinTK },
+  { path: '/sanphamyeuthich', name: 'SPYeuThich', component: SPYeuThich },
+  { path: '/diachinguoidung', name: 'DiaChi', component: DiaChi },
 
-  { path: '/thongtintk', component: ThongTinTK },
-  { path: '/sanphamyeuthich', component: SPYeuThich },
-  { path: '/diachinguoidung', component: DiaChi },
-
-  // ====== HÓA ĐƠN ======
-  // Route cũ (component đang dùng) – nhận id số
+  // canonical nội bộ (giữ id số)
   { path: '/hoadonchitiet/:id(\\d+)', name: 'hoadonchitiet', component: HoaDonChiTiet },
-
-  // Route “đẹp” – người dùng gõ URL mã hoá thì decode -> redirect về id số (component không đổi)
-  {
-    path: '/hoadonchitiet/:code',
-    beforeEnter: (to) => {
-      const id = decId(to.params.code)
-      if (id == null) return false // hoặc redirect 404
-      return { name: 'hoadonchitiet', params: { id }, replace: true }
-    }
-  },
-
-  { path: '/doimatkhau', component: DoiMatKhau },
-  { path: '/giohang', component: GioHang },
-  { path: '/thanhtoan', component: ThanhToan },
-
-  // ====== SẢN PHẨM ======
-  // Route cũ (component đang dùng) – nhận id số
   { path: '/sanpham/:id(\\d+)', name: 'ChiTietSanPham', component: ChiTietSP },
 
-  // Route “đẹp” – decode -> redirect về id số
-  {
-    path: '/sanpham/:code',
-    beforeEnter: (to) => {
-      const id = decId(to.params.code)
-      if (id == null) return false // hoặc redirect 404
-      return { name: 'ChiTietSanPham', params: { id }, replace: true }
-    }
-  },
+  { path: '/tatca', name: 'TatCa', component: TatCa },
+  { path: '/dangxuly', name: 'DangXuLy', component: DangXuLy },
+  { path: '/daxuly', name: 'DaXuLy', component: DaXuLy },
+  { path: '/dahuy', name: 'DaHuy', component: DaHuy },
 
-  // (không nên giữ /sanpham rỗng cho trang chi tiết)
-  // { path: '/sanpham', component: ChiTietSP },
-
-  { path: '/timkiem', component: TimKiem },
-  { path: '/gopynguoidung', component: GopYUser },
-  { path: '/return', component: PaymentResult },
-  { path: '/xacnhandonhang', component: XacNhanDonHang },
-
-  // lịch sử đơn hàng
-  { path: '/tatca', component: TatCa },
-  { path: '/dangxuly', component: DangXuLy },
-  { path: '/daxuly', component: DaXuLy },
-  { path: '/dahuy', component: DaHuy },
+  { path: '/doimatkhau', name: 'DoiMatKhau', component: DoiMatKhau },
+  { path: '/giohang', name: 'GioHang', component: GioHang },
+  { path: '/thanhtoan', name: 'ThanhToan', component: ThanhToan },
+  { path: '/timkiem', name: 'TimKiem', component: TimKiem },
+  { path: '/gopynguoidung', name: 'GopYUser', component: GopYUser },
+  { path: '/return', name: 'PaymentResult', component: PaymentResult },
+  { path: '/xacnhandonhang', name: 'XacNhanDonHang', component: XacNhanDonHang },
 
   // Admin
   {
     path: '/admin',
+    name: 'Admin',
     component: Dashboard,
     children: [
-      { path: 'qlsanpham', component: QLSanPham },
-      { path: 'donhang', component: Order },
-      { path: 'nguoidung', component: User },
-      { path: 'qlhoadon', component: OrderManagement },
-      { path: 'thongke', component: ThongKe },
-      { path: 'gopy', component: GopY },
+      { path: 'qlsanpham', name: 'QLSanPham', component: QLSanPham },
+      { path: 'donhang', name: 'Order', component: Order },
+      { path: 'nguoidung', name: 'User', component: User },
+      { path: 'qlhoadon', name: 'OrderManagement', component: OrderManagement },
+      { path: 'thongke', name: 'ThongKe', component: ThongKe },
+      { path: 'gopy', name: 'GopY', component: GopY },
     ]
-  }
+  },
+
+  // ====== PUBLIC MASKED ENTRY (đặt CUỐI, cho phép dấu chấm) ======
+  {
+    path: '/:token(.*)',
+    name: 'MaskedEntry',
+    beforeEnter: (to) => {
+      // Nếu đã match route thật ở trên thì bỏ qua
+      if (to.matched.length && to.matched[0].name !== 'MaskedEntry') return true
+      const decoded = decodeWholeRoute(String(to.params.token))
+      if (!decoded || !decoded.name) return false // 404
+      return {
+        name: decoded.name,
+        params: decoded.params,
+        query: decoded.query,
+        hash: decoded.hash,
+        replace: true
+      }
+    }
+  },
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(), // nếu dùng base: createWebHistory('/base/')
   routes
 })
 
-// Guard cũ của bạn giữ nguyên
+// Guard đăng nhập
 router.beforeEach((to, from, next) => {
   const user = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user'))
   if (to.path === '/dangnhap' && user) return next('/')
@@ -117,35 +107,22 @@ router.beforeEach((to, from, next) => {
   next()
 })
 
-/**
- * Sau khi điều hướng tới route dùng id số,
- * thay URL hiển thị thành bản mã hoá (KHÔNG đổi route đang active, KHÔNG gây re-render)
- */
+// Luôn thay URL hiển thị thành "/<token>" (mask 100%)
 router.afterEach((to) => {
-  // giữ lại query & hash nếu có
-  const q = to.fullPath.split('?')[1] ? `?${to.fullPath.split('?')[1].split('#')[0]}` : ''
-  const h = to.fullPath.includes('#') ? `#${to.fullPath.split('#')[1]}` : ''
+  if (to.name === 'MaskedEntry') return // tránh vòng lặp
 
-  if (to.name === 'ChiTietSanPham' && to.params?.id) {
-    const id = String(to.params.id)
-    if (/^\d+$/.test(id)) {
-      const code = encId(id)
-      const pretty = `/sanpham/${code}${q}${h}`
-      if (location.pathname !== `/sanpham/${code}`) {
-        window.history.replaceState({}, '', pretty)
-      }
-    }
-  }
+  const token = encodeWholeRoute({
+    name: to.name,
+    params: to.params,
+    query: to.query,
+    hash: to.hash || ''
+  })
+  if (!token) return
 
-  if (to.name === 'hoadonchitiet' && to.params?.id) {
-    const id = String(to.params.id)
-    if (/^\d+$/.test(id)) {
-      const code = encId(id)
-      const pretty = `/hoadonchitiet/${code}${q}${h}`
-      if (location.pathname !== `/hoadonchitiet/${code}`) {
-        window.history.replaceState({}, '', pretty)
-      }
-    }
+  const masked = `/${token}`
+  const current = window.location.pathname + window.location.search + window.location.hash
+  if (current !== masked) {
+    window.history.replaceState({}, '', masked)
   }
 })
 
