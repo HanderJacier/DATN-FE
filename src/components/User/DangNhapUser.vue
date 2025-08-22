@@ -115,10 +115,9 @@
               </div>
 
               <div class="d-flex gap-2">
-                <button class="btn btn-outline-danger flex-fill" style="border-radius: 10px;">
-                  <i class="fab fa-google me-2"></i>
-                  Google
-                </button>
+                <div class="flex-fill">
+                  <GoogleLoginButton />
+                </div>
                 <button class="btn btn-outline-primary flex-fill" style="border-radius: 10px;">
                   <i class="fab fa-facebook me-2"></i>
                   Facebook
@@ -143,14 +142,18 @@
 </template>
 
 <script>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import Swal from 'sweetalert2'
 import useLogin from './LoadDB/useLogin'
+import GoogleLoginButton from './GoogleLoginButton.vue'
 
 export default {
+  components: {
+    GoogleLoginButton
+  },
   setup() {
-    const { userData, loginError, login } = useLogin()
+    const { userData: normalUserData, loginError: normalLoginError, login } = useLogin()
 
     const email = ref('')
     const password = ref('')
@@ -159,32 +162,46 @@ export default {
 
     const router = useRouter()
 
+    const errorMessage = computed(() => {
+      return normalLoginError.value
+    })
+
     const handleLogin = async () => {
-    await login(email.value, password.value)
-
-    if (userData.value) {
-      // Nếu là admin thì chỉ lưu vào sessionStorage (chỉ 1 tab)
-      // Nếu là user thì lưu vào localStorage (giữ trên mọi tab)
-      if (userData.value.vaitro === true) {
-        sessionStorage.setItem('user', JSON.stringify(userData.value))
-      } else {
-        localStorage.setItem('user', JSON.stringify(userData.value))
-      }
-
-      const vaiTro = userData.value.vaitro
-      if (vaiTro === true) {
-        router.push('/admin').then(() => window.location.reload())
-      } else {
-        router.push('/').then(() => window.location.reload())
-      }
-    } else {
-      Swal.fire({
-        icon: 'error',
-        title: 'Đăng nhập thất bại',
-        text: loginError.value,
-      })
+      await login(email.value, password.value)
+      processLoginResult(normalUserData.value)
     }
-  }
+
+    const processLoginResult = (userData) => {
+      if (userData) {
+        const userToStore = {
+          ...userData,
+          ...(userData.login_type === 'google' && {
+            google_name: userData.google_name,
+            google_picture: userData.google_picture,
+            login_type: 'google'
+          })
+        }
+
+        if (userData.vaitro === true) {
+          sessionStorage.setItem('user', JSON.stringify(userToStore))
+        } else {
+          localStorage.setItem('user', JSON.stringify(userToStore))
+        }
+
+        const vaiTro = userData.vaitro
+        if (vaiTro === true) {
+          router.push('/admin').then(() => window.location.reload())
+        } else {
+          router.push('/').then(() => window.location.reload())
+        }
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Đăng nhập thất bại',
+          text: errorMessage.value,
+        })
+      }
+    }
 
     return {
       email,
@@ -192,11 +209,10 @@ export default {
       rememberMe,
       showPassword,
       handleLogin,
-      loginError,
+      errorMessage,
     }
   }
 }
-
 </script>
 
 <style scoped>
@@ -209,12 +225,6 @@ export default {
 .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-}
-
-.btn-outline-danger:hover {
-  background-color: #dc3545;
-  border-color: #dc3545;
-  color: white;
 }
 
 .btn-outline-primary:hover {

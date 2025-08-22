@@ -15,7 +15,7 @@
                     <i class="bi bi-cart-x fs-1 text-muted"></i>
                     <h5 class="mt-3">Giỏ hàng của bạn đang trống</h5>
                     <p class="text-muted">Hãy thêm sản phẩm vào giỏ hàng để tiếp tục mua sắm</p>
-                    <router-link to="/sanpham" class="btn btn-primary">
+                    <router-link to="/" class="btn btn-primary">
                         <i class="bi bi-shop"></i> Tiếp tục mua sắm
                     </router-link>
                 </div>
