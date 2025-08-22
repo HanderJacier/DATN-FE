@@ -63,9 +63,7 @@
             class="link-item"
             :class="{ active: $route.path === '/tatca'
               || $route.path === '/dangxuly'
-              || $route.path === '/dagiao'
-              || $route.path === '/danggiao'
-              || $route.path === '/trahang' 
+              || $route.path === '/daxuly'
               || $route.path === '/dahuy'
              }"
           >
