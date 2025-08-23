@@ -140,6 +140,28 @@
                                         </div>
                                     </label>
                                 </div>
+
+                                <!-- MoMo -->
+                                <div class="form-check payment-method mb-3" :class="{ 'selected': paymentMethod === 'MOMO' }">
+                                    <input class="form-check-input" type="radio" name="paymentMethod" 
+                                           id="momo" value="MOMO" v-model="paymentMethod">
+                                    <label class="form-check-label w-100" for="momo">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-wallet2 text-danger me-3" style="font-size: 1.5rem;"></i>
+                                            <div class="flex-grow-1">
+                                                <strong>Ví điện tử MoMo</strong>
+                                                <div class="text-muted small mt-1">
+                                                    • Thanh toán qua ví MoMo<br>
+                                                    • Hỗ trợ mở app hoặc thanh toán web<br>
+                                                    • Nhanh chóng và an toàn
+                                                </div>
+                                            </div>
+                                            <div class="text-end">
+                                                <span class="badge bg-danger">MoMo</span>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
                             </div>
 
                             <!-- Payment Details -->
@@ -224,6 +246,21 @@
                                         <small class="text-muted">Vui lòng chuẩn bị đủ tiền mặt khi shipper giao hàng.</small>
                                     </p>
                                 </div>
+
+                                <!-- MoMo Details -->
+                                <div v-if="paymentMethod === 'MOMO'" class="alert alert-danger">
+                                    <h6 class="fw-bold">
+                                        <i class="bi bi-wallet2"></i>
+                                        Thanh toán MoMo
+                                    </h6>
+                                    <p class="mb-2">
+                                        Bạn sẽ được chuyển đến ví MoMo để thanh toán <strong>{{ formatPrice(finalAmount) }} đ</strong>
+                                    </p>
+                                    <div class="alert alert-warning mb-0">
+                                        <i class="bi bi-exclamation-triangle"></i>
+                                        <strong>Chế độ Demo:</strong> Đây là môi trường test MoMo. Giao dịch không thực tế.
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Terms Agreement -->
@@ -282,6 +319,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Swal from 'sweetalert2'
 import usePayment from './LoadDB/usePayment.js'
+import useMoMo from './LoadDB/useMoMo.js'
 
 export default {
     name: 'Payment',
@@ -293,6 +331,12 @@ export default {
             paymentResult, 
             invoiceData
         } = usePayment()
+        
+        const { 
+            createPaymentUrl: createMoMoUrl, 
+            redirectToPayment: redirectToMoMo,
+            openMoMoApp 
+        } = useMoMo()
 
         const orderData = ref({
             customerInfo: {
@@ -362,6 +406,8 @@ export default {
                     return 'Xác nhận chuyển khoản'
                 case 'QR':
                     return 'Thanh toán QR Code'
+                case 'MOMO':
+                    return 'Thanh toán MoMo'
                 default:
                     return 'Thanh toán ngay'
             }
@@ -406,11 +452,52 @@ export default {
 
                 console.log('Processing payment with data:', paymentData)
 
+                if (paymentMethod.value === 'MOMO') {
+                    const momoResult = await createMoMoUrl(paymentData)
+                    
+                    if (momoResult.success) {
+                        localStorage.setItem('pendingOrder', JSON.stringify(paymentData))
+                        
+                        const result = await Swal.fire({
+                            title: 'Thanh toán MoMo',
+                            html: `
+                                <div class="text-center">
+                                    <p>Chọn cách thanh toán MoMo:</p>
+                                    <div class="d-grid gap-2">
+                                        <button class="btn btn-primary" id="momo-app">
+                                            <i class="bi bi-phone"></i> Mở ứng dụng MoMo
+                                        </button>
+                                        <button class="btn btn-outline-primary" id="momo-web">
+                                            <i class="bi bi-globe"></i> Thanh toán trên web
+                                        </button>
+                                    </div>
+                                </div>
+                            `,
+                            icon: 'info',
+                            showCancelButton: true,
+                            showConfirmButton: false,
+                            cancelButtonText: 'Hủy',
+                            didOpen: () => {
+                                document.getElementById('momo-app').onclick = () => {
+                                    openMoMoApp(momoResult.deeplink)
+                                    Swal.close()
+                                }
+                                document.getElementById('momo-web').onclick = () => {
+                                    redirectToMoMo(momoResult.paymentUrl)
+                                    Swal.close()
+                                }
+                            }
+                        })
+                    } else {
+                        errorMessage.value = momoResult.message || 'Lỗi tạo URL thanh toán MoMo'
+                    }
+                    return
+                }
+
                 const result = await executePayment(paymentData)
                 console.log('Payment result:', result)
                 
                 if (result && result.success) {
-                    // Lưu thông tin kết quả để hiển thị ở trang success
                     localStorage.setItem('orderResult', JSON.stringify({
                         orderId: result.orderId,
                         invoiceId: result.invoiceId,
@@ -419,7 +506,6 @@ export default {
                         paymentMethod: paymentMethod.value
                     }))
 
-                    // Hiển thị thông báo thành công
                     await Swal.fire({
                         title: 'Thanh toán thành công!',
                         html: `
@@ -444,11 +530,9 @@ export default {
                         allowEscapeKey: false
                     })
 
-                    // Clear dữ liệu và chuyển về trang success
                     localStorage.removeItem('orderData')
                     localStorage.removeItem('selectedCartItems')
                     
-                    // Xóa sản phẩm đã mua khỏi giỏ hàng
                     const cart = JSON.parse(localStorage.getItem('cart')) || []
                     const remainingCart = cart.filter(cartItem => 
                         !paymentData.items.some(orderItem => orderItem.id === cartItem.id)
@@ -456,7 +540,6 @@ export default {
                     localStorage.setItem('cart', JSON.stringify(remainingCart))
                     window.dispatchEvent(new Event('storage'))
                     
-                    // Chuyển về trang success
                     router.push('/return')
                 } else {
                     await Swal.fire({
