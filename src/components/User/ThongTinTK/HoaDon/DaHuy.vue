@@ -18,7 +18,7 @@
               <input
                 v-model="searchKeyword"
                 type="text"
-                placeholder="Tìm theo mã hóa đơn, ghi chú..."
+                placeholder="Tìm theo ghi chú..."
                 class="form-control"
                 @keyup.enter="applyFilters"
               />
@@ -92,7 +92,6 @@
             <table class="table table-bordered text-center align-middle">
               <thead class="table-light">
                 <tr>
-                  <th style="width: 100px;">Mã HĐ</th>
                   <th style="width: 120px;">Ngày tạo</th>
                   <th style="width: 130px;">Tổng tiền</th>
                   <th style="width: 120px;">Trạng thái</th>
@@ -103,7 +102,6 @@
               </thead>
               <tbody>
                 <tr v-for="order in paginatedOrders" :key="order.id_hd">
-                  <td class="fw-bold">HD{{ String(order.id_hd).padStart(3, '0') }}</td>
                   <td>{{ formatDate(order.ngaytao) }}</td>
                   <td class="fw-bold text-danger">{{ formatCurrency(order.giahoadon) }}</td>
                   <td>
@@ -181,7 +179,6 @@ export default {
       if (searchKeyword.value.trim()) {
         const keyword = searchKeyword.value.toLowerCase().trim()
         filtered = filtered.filter(order =>
-          `HD${String(order.id_hd).padStart(3, '0')}`.toLowerCase().includes(keyword) ||
           (order.noidung && order.noidung.toLowerCase().includes(keyword))
         )
       }
