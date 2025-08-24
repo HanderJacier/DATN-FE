@@ -4,20 +4,22 @@
     <!-- Tiêu đề + bộ lọc -->
     <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-2">
       <h4 class="fw-bold mb-0 text-uppercase">
-        Kết quả tìm kiếm
+        Kết quả tìm kiếm: 
         <span v-if="keyword">cho: "{{ keyword }}"</span>
         <span v-else-if="loaiTen">theo loại: "{{ loaiTen }}"</span>
+        <span v-else-if="filterType === 'new7'"> Sản phẩm mới nhất</span>
+        <span v-else-if="filterType === 'sale50'"> Giảm giá lên đến 50%</span>
       </h4>
       <Loc @onFilter="onCustomFilter" />
     </div>
 
-    <!-- Empty state (giống Home style) -->
+    <!-- Empty state -->
     <div v-if="pagedProducts.length === 0" class="text-center text-muted py-5" data-testid="search-empty">
       <i class="bi bi-box-seam fs-1 d-block mb-2"></i>
       <div class="fw-medium">Không tìm thấy sản phẩm nào.</div>
     </div>
 
-    <!-- Danh sách sản phẩm (card style giống Home) -->
+    <!-- Danh sách sản phẩm -->
     <div v-else class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4">
       <div class="col" v-for="sp in pagedProducts" :key="sp.id_sp">
         <router-link :to="`/sanpham/${sp.id_sp}`" class="text-decoration-none text-dark" data-testid="search-card">
@@ -87,24 +89,46 @@ import { useRoute } from 'vue-router'
 import useSanPhamSearch from '@/components/User/LoadDB/TimKiem.js'
 import Loc from './Loc.vue'
 
-/* ---------- Helpers giống Home ---------- */
+/* ---------- Helpers ---------- */
 function toNum(v) {
   const n = Number((v ?? '').toString().replace(/[^\d.-]/g, ''))
   return Number.isFinite(n) ? n : null
 }
 function formatVND(n) { return (n ?? 0).toLocaleString('vi-VN') }
 function onImgErr(e) { e.target.src = 'https://via.placeholder.com/400x300?text=No+Image' }
+
+function parseVNDate(s) {
+  if (!s) return null
+  // ISO trước
+  const iso = new Date(s)
+  if (!Number.isNaN(iso.getTime())) return iso
+  // dd/MM/yyyy
+  const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(String(s).trim())
+  if (!m) return null
+  const [_, d, mo, y] = m
+  const dt = new Date(+y, +mo - 1, +d)
+  return Number.isNaN(dt.getTime()) ? null : dt
+}
+function isWithinLastDays(dateStr, days = 7) {
+  const d = parseVNDate(dateStr)
+  if (!d) return false
+  const today = new Date(); today.setHours(0,0,0,0)
+  const cmp = new Date(d); cmp.setHours(0,0,0,0)
+  const diff = (today - cmp) / (1000*60*60*24)
+  return diff >= 0 && diff < days
+}
+
 function isGiamGiaValid(sp) {
   const dongia = toNum(sp?.dongiaNum ?? sp?.dongia)
   const giamgia = toNum(sp?.giamgiaNum ?? sp?.giamgia)
   if (!dongia || !giamgia || giamgia >= dongia) return false
   const hg = sp?.hangiamgia
   if (!hg) return false
-  const [day, month, year] = hg.split('/')
-  if (!day || !month || !year) return false
-  const han = new Date(+year, +month - 1, +day); han.setHours(0,0,0,0)
+  const d = parseVNDate(hg)
+  if (!d) return false
+  d.setHours(0,0,0,0)
   const today = new Date(); today.setHours(0,0,0,0)
-  return han > today
+  return d > today
 }
 function pctDiscount(sp) {
   const d = toNum(sp?.dongiaNum ?? sp?.dongia)
@@ -131,18 +155,16 @@ const itemsPerPage = ref(16)
 const currentPage = ref(1)
 
 const loaiMap = {
-  'Điện thoại di động': '1','Máy tính bảng': '2','Laptop': '3','Máy tính để bàn': '4',
-  'Thiết bị đeo thông minh': '5','Phụ kiện điện thoại': '6','Phụ kiện máy tính': '7',
-  'Thiết bị mạng': '8','Thiết bị lưu trữ': '9','Tivi': '10','Loa và tai nghe': '11',
-  'Đồng hồ thông minh': '12','Máy ảnh và máy quay': '13','Máy in và mực in': '14','Đồ gia dụng thông minh': '15'
+  'Điện thoại di động': '1','Máy tính bảng': '2','Laptop': '3','Phụ kiện': '4',
+  'Tivi': '5','Loa và tai nghe': '6','Đồng hồ thông minh': '7',
 }
 const loaiMapReverse = Object.fromEntries(Object.entries(loaiMap).map(([ten, id]) => [id, ten]))
 const loaiTen = computed(() => currentLoai.value === 'phukien' ? 'Phụ kiện' : (loaiMapReverse[currentLoai.value] || ''))
 
-// Lấy dữ liệu sản phẩm từ composable
+// Dữ liệu sản phẩm
 const { allProducts: fetchedProducts } = useSanPhamSearch()
 
-// Chuẩn hoá list giống Home
+// Chuẩn hoá list
 const normalizedAll = computed(() => {
   const raw = unref(fetchedProducts)
   const list = Array.isArray(raw)
@@ -155,6 +177,7 @@ const normalizedAll = computed(() => {
     ...sp,
     dongiaNum: toNum(sp.dongia),
     giamgiaNum: toNum(sp.giamgia),
+    // tên thương hiệu lấy từ API nếu có; nếu không sẽ là fallback
     thuongHieuHienThi: sp?.thuonghieuTen || sp?.thuonghieu_ten || 'Thương hiệu khác'
   }))
 })
@@ -178,17 +201,29 @@ const filterProducts = () => {
   filteredProducts.value = base.filter(sp => {
     const matchKeyword = kw === '' || (sp.tensanpham || '').toLowerCase().includes(kw)
     const matchThuongHieu = !thuonghieu || String(sp.thuonghieu) === String(thuonghieu)
-    const matchLoai =
-      !loai || String(sp.loai) === String(loai) || (loai === 'phukien' && (sp.loai === 6 || sp.loai === 7))
+
+    // Loại chỉ còn 7; "phukien" (link cũ) quy về loại 4
+    const matchLoai = !loai
+      ? true
+      : (String(sp.loai) === String(loai)) ||
+        (loai === 'phukien' && String(sp.loai) === '4')
+
+    // ===== Các chế độ filter =====
     const matchFilter =
       filter === 'moi'
-        ? new Date(sp.ngaytao) >= new Date(Date.now() - 1000 * 60 * 60 * 24 * 30)
+        ? parseVNDate(sp.ngaytao) && (new Date(sp.ngaytao) >= new Date(Date.now() - 1000 * 60 * 60 * 24 * 30))
         : filter === 'giamgia'
           ? Number(sp.giamgiaNum) > 0 && isGiamGiaValid(sp)
-          : true
+          : filter === 'new7'            // ✅ mới trong 7 ngày
+            ? isWithinLastDays(sp.ngaytao, 7)
+            : filter === 'sale50'        // ✅ giảm giá lên đến 50% (0% < pct ≤ 50%) và còn hạn
+              ? isGiamGiaValid(sp) && (() => { const p = pctDiscount(sp); return p > 0 && p <= 50 })()
+              : true
+
     const matchTen = !ten || (sp.tensanpham || '').toLowerCase().includes(ten.toLowerCase())
     const matchMin = !min || Number(sp.dongiaNum) >= Number(min)
     const matchMax = !max || Number(sp.dongiaNum) <= Number(max)
+
     return matchKeyword && matchLoai && matchFilter && matchTen && matchMin && matchMax && matchThuongHieu
   })
 
@@ -221,15 +256,16 @@ onMounted(() => {
   // khi dữ liệu về, chạy lọc ngay
   watch(fetchedProducts, () => { filterProducts() }, { immediate: true })
 })
-const realId = decId(route.params.code) // số id thật -> dùng để fetch
+const realId = decId(route.params.code) // số id thật -> dùng để fetch (nếu cần)
 </script>
 
 <style scoped>
 /* --- giữ đúng look & feel của Home --- */
 .product-card { border-radius: 12px; overflow: hidden; border: 1px solid #eee; transition: all .3s ease; height: 100%; background-color: #fff; }
-.product-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,.08); transform: translateY(-2px); }
+.product-card:hover { box-shadow: 0 8px 24px rgba(0, 0, 0, .08); transform: translateY(-2px); }
 .card-img-top.product-img { display: block; margin: auto; width: auto; height: 200px; max-width: 100%; object-fit: contain; background-color: #fff; }
 .card-img-top { border-top-left-radius: 12px; border-top-right-radius: 12px; padding-top: 10px; }
+
 .product-price { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .price-discount { font-weight: 700; font-size: 1.05rem; }
 .price-original { color: #9e9e9e; text-decoration: line-through; font-size: .85rem; }

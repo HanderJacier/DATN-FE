@@ -6,11 +6,11 @@
       style="cursor: pointer;">Điện Thoại Di Động</a>
     <a @click.prevent="$router.push({ path: '/timkiem', query: { loai: 'phukien' } })" class="nav-link text-white"
       style="cursor: pointer;">Phụ Kiện</a>
-    <a @click.prevent="$router.push({ path: '/timkiem', query: { loai: 10 } })" class="nav-link text-white"
+    <a @click.prevent="$router.push({ path: '/timkiem', query: { loai: 5 } })" class="nav-link text-white"
       style="cursor: pointer;">Tivi</a>
-    <a @click.prevent="$router.push({ path: '/timkiem', query: { loai: 11 } })" class="nav-link text-white"
+    <a @click.prevent="$router.push({ path: '/timkiem', query: { loai: 6 } })" class="nav-link text-white"
       style="cursor: pointer;">Loa & Tai Nghe</a>
-    <a @click.prevent="$router.push({ path: '/timkiem', query: { loai: 12 } })" class="nav-link text-white"
+    <a @click.prevent="$router.push({ path: '/timkiem', query: { loai: 7 } })" class="nav-link text-white"
       style="cursor: pointer;">Đồng Hồ Thông Minh</a>
   </nav>
 </template>

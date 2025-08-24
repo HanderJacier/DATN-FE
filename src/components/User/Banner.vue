@@ -22,9 +22,6 @@
                       <router-link :to="banner.primaryLink" class="btn btn-primary btn-lg me-3">
                         {{ banner.primaryText }}
                       </router-link>
-                      <router-link :to="banner.secondaryLink" class="btn btn-outline-light btn-lg">
-                        {{ banner.secondaryText }}
-                      </router-link>
                     </div>
                   </div>
                 </div>
@@ -77,42 +74,36 @@ const mainBanners = ref([
     title: 'Công nghệ mới nhất 2025',
     subtitle: 'Khám phá những sản phẩm công nghệ tiên tiến với giá ưu đãi đặc biệt',
     primaryText: 'Mua ngay',
-    primaryLink: '/timkiem?filter=moi',
-    secondaryText: 'Xem thêm',
-    secondaryLink: '/timkiem'
+    primaryLink: '/timkiem?filter=new7',
   },
   {
     image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?...',
     title: 'Giảm giá lên đến 50%',
     subtitle: 'Cơ hội vàng sở hữu những sản phẩm yêu thích với mức giá không thể tốt hơn',
     primaryText: 'Khám phá ngay',
-    primaryLink: '/timkiem?filter=giamgia',
-    secondaryText: 'Xem tất cả',
-    secondaryLink: '/timkiem'
+    primaryLink: '/timkiem?filter=sale50',
   },
 
   {
     image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80',
-    title: 'Laptop Gaming Cao Cấp',
-    subtitle: 'Trải nghiệm gaming đỉnh cao với dòng laptop gaming mới nhất',
+    title: 'Laptop Cao Cấp',
+    subtitle: 'Trải nghiệm đỉnh cao với dòng laptop mới nhất',
     primaryText: 'Tìm hiểu thêm',
     primaryLink: { path: '/timkiem', query: { loai: '3' } },
-    secondaryText: 'So sánh',
-    secondaryLink: '/timkiem?q=gaming'
   }
 ])
 
 const promoBanners = ref([
   {
     image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2080&q=80',
-    title: 'Điện thoại thông minh',
+    title: 'Điện thoại di động',
     description: 'Bộ sưu tập smartphone mới nhất',
     cta: 'Xem ngay →',
     link: { path: '/timkiem', query: { loai: 1 } } // ✅ Sửa từ ?q= sang ?loai=1
   },
   {
     image: 'https://images.unsplash.com/photo-1542393545-10f5cde2c810?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2112&q=80',
-    title: 'Phụ kiện công nghệ',
+    title: 'Phụ kiện',
     description: 'Hoàn thiện trải nghiệm số của bạn',
     cta: 'Khám phá →',
     link: { path: '/timkiem', query: { loai: 'phukien' } } // ✅ Thống nhất dạng router-link object
