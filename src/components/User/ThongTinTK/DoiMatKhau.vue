@@ -9,7 +9,7 @@
       <!-- Nội dung chính -->
       <div class="col-md-8">
         <h4 class="fw-bold mb-4">Đổi mật khẩu</h4>
-        <div class="bg-white border rounded p-4 shadow-sm">
+        <div class="bg-white border rounded p-4">
           <form @submit.prevent="submitForm">
             <div class="mb-3 row w-75 mx-auto">
               <label class="col-sm-4 col-form-label">Mật khẩu hiện tại</label>

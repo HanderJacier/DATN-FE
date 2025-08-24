@@ -14,7 +14,7 @@
         to="/dangxuly"
         class="px-3 py-2 text-decoration-none"
         :class="linkClass('/dangxuly')"
-      >Đang xử lý</router-link>
+      >Chờ xử lý</router-link>
 
       <router-link
         to="/daxuly"

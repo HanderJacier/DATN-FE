@@ -19,11 +19,8 @@
         <div class="col-md-3">
           <select v-model="statusFilter" class="form-select" @change="onFilterChange">
             <option value="">Tất cả trạng thái</option>
-            <option value="Chờ thanh toán">Chờ thanh toán</option>
-            <option value="Đã thanh toán">Đã thanh toán</option>
-            <option value="Đang xử lý">Đang xử lý</option>
-            <option value="Đang giao hàng">Đang giao hàng</option>
-            <option value="Đã giao hàng">Đã giao hàng</option>
+            <option value="Chờ xử lý">Chờ xử lý</option>
+            <option value="Đã xử lý">Đã xử lý</option>
             <option value="Đã hủy">Đã hủy</option>
           </select>
         </div>
@@ -100,7 +97,7 @@
         <table class="table table-bordered text-center align-middle">
           <thead class="table-light">
             <tr>
-              <th>Mã HĐ</th>
+              <th>STT</th>
               <th>Khách hàng</th>
               <th>SĐT</th>
               <th>Ngày tạo</th>
@@ -112,34 +109,28 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="order in orders" :key="order.id_hd">
-              <td>HD{{ String(order.id_hd).padStart(3, '0') }}</td>
+            <tr v-for="(order, idx) in orders" :key="order.id_hd">
+              <td>{{ (currentPage - 1) * pageSize + idx + 1 }}</td>
               <td>{{ order.hoveten }}</td>
               <td>{{ order.sodienthoai }}</td>
               <td>{{ formatDate(order.ngaytao) }}</td>
               <td>{{ formatCurrency(order.giahoadon) }}</td>
               <td>
                 <select
-                  :value="order.trangthai"
-                  @change="updateStatus(order.id_hd, $event.target.value)"
+                  :value="apiToUi(order.trangthai)"
+                  @change="updateStatus(order.id_hd, uiToApi($event.target.value))"
                   class="form-select form-select-sm"
                   :disabled="updateLoading"
                 >
-                  <option value="Chờ thanh toán">Chờ thanh toán</option>
-                  <option value="Đã thanh toán">Đã thanh toán</option>
-                  <option value="Đang xử lý">Đang xử lý</option>
-                  <option value="Đang giao hàng">Đang giao hàng</option>
-                  <option value="Đã giao hàng">Đã giao hàng</option>
+                  <option value="Chờ xử lý">Chờ xử lý</option>
+                  <option value="Đã xử lý">Đã xử lý</option>
                   <option value="Đã hủy">Đã hủy</option>
                 </select>
               </td>
               <td>{{ order.phuongthuc || 'COD' }}</td>
               <td>{{ order.magiaodich || '-' }}</td>
               <td>
-                <button
-                  class="btn btn-sm btn-primary"
-                  @click="viewOrderDetail(order.id_hd)"
-                >
+                <button class="btn btn-sm btn-primary" @click="viewOrderDetail(order.id_hd)">
                   Chi tiết
                 </button>
               </td>
@@ -159,12 +150,7 @@
           <li class="page-item" :class="{ disabled: currentPage === 1 }">
             <button class="page-link" @click="changePage(currentPage - 1)">Trước</button>
           </li>
-          <li 
-            v-for="page in totalPages"
-            :key="page"
-            class="page-item"
-            :class="{ active: currentPage === page }"
-          >
+          <li v-for="page in totalPages" :key="page" class="page-item" :class="{ active: currentPage === page }">
             <button class="page-link" @click="changePage(page)">{{ page }}</button>
           </li>
           <li class="page-item" :class="{ disabled: currentPage === totalPages }">
@@ -184,7 +170,7 @@
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Chi tiết hóa đơn HD{{ String(selectedOrderId).padStart(3, '0') }}</h5>
+            <h5 class="modal-title">Chi tiết hóa đơn</h5>
             <button type="button" class="btn-close" @click="closeDetailModal"></button>
           </div>
           <div class="modal-body">
@@ -281,8 +267,12 @@ export default {
       fetchOrderStats
     } = useOrderManagement()
 
+    // Map UI <-> API: hiển thị "Chờ xử lý" nhưng backend vẫn dùng "Đang xử lý"
+    const apiToUi = (s) => (s === 'Đang xử lý' ? 'Chờ xử lý' : s || '')
+    const uiToApi = (s) => (s === 'Chờ xử lý' ? 'Đang xử lý' : s || '')
+
     const searchKeyword = ref('')
-    const statusFilter = ref('')
+    const statusFilter = ref('') // giữ theo UI: "", "Chờ xử lý", "Đã xử lý", "Đã hủy"
     const fromDate = ref('')
     const toDate = ref('')
     const currentPage = ref(1)
@@ -293,32 +283,19 @@ export default {
     const actionMessage = ref('')
     const actionSuccess = ref(false)
 
-    const totalPages = computed(() => {
-      return Math.ceil(totalOrders.value / pageSize.value)
-    })
+    const totalPages = computed(() => Math.ceil(totalOrders.value / pageSize.value))
 
     // Load dữ liệu ban đầu
     const loadOrders = async (page = 1) => {
       currentPage.value = page
-      console.log('Loading orders with params:', {
-        page,
-        pageSize: pageSize.value,
-        status: statusFilter.value
-      })
-      
-      await fetchAllOrders(page, pageSize.value, statusFilter.value || null)
-      totalOrders.value = orders.value.length // Cần cập nhật logic này nếu có total count từ API
+      await fetchAllOrders(page, pageSize.value, statusFilter.value ? uiToApi(statusFilter.value) : null)
+      // Nếu API có trả tổng count thì thay bằng giá trị đó
+      totalOrders.value = orders.value.length
     }
 
     // Tìm kiếm hóa đơn
     const searchOrdersHandler = async () => {
       currentPage.value = 1
-      console.log('Searching orders with params:', {
-        keyword: searchKeyword.value,
-        fromDate: fromDate.value,
-        toDate: toDate.value
-      })
-      
       await searchOrders(
         searchKeyword.value || null,
         fromDate.value || null,
@@ -339,14 +316,11 @@ export default {
 
     // Làm mới dữ liệu
     const refreshData = async () => {
-      // Reset filters
       searchKeyword.value = ''
       statusFilter.value = ''
       fromDate.value = ''
       toDate.value = ''
       currentPage.value = 1
-      
-      // Load lại dữ liệu
       await loadOrders(1)
       await fetchOrderStats()
     }
@@ -361,29 +335,19 @@ export default {
       }
     }
 
-    const updateStatus = async (orderId, newStatus) => {
-      const success = await updateOrderStatus(orderId, newStatus)
-      
+    const updateStatus = async (orderId, newStatusApi) => {
+      const success = await updateOrderStatus(orderId, newStatusApi)
       if (success) {
-        // Cập nhật local
         const order = orders.value.find(o => o.id_hd === orderId)
-        if (order) {
-          order.trangthai = newStatus
-        }
-        
+        if (order) order.trangthai = newStatusApi
         actionMessage.value = 'Cập nhật trạng thái thành công'
         actionSuccess.value = true
-        
-        // Refresh stats
         await fetchOrderStats()
       } else {
         actionMessage.value = 'Cập nhật trạng thái thất bại'
         actionSuccess.value = false
       }
-      
-      setTimeout(() => {
-        actionMessage.value = ''
-      }, 3000)
+      setTimeout(() => { actionMessage.value = '' }, 3000)
     }
 
     const viewOrderDetail = async (orderId) => {
@@ -403,50 +367,30 @@ export default {
     }
 
     const formatCurrency = (value) => {
-      return new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND',
-      }).format(value || 0)
+      return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value || 0)
     }
 
-    // Watch orders để debug
-    watch(orders, (newOrders) => {
-      console.log('Orders updated:', newOrders)
-    }, { deep: true })
+    // Debug nếu cần
+    watch(orders, () => {}, { deep: true })
 
     onMounted(async () => {
-      console.log('Component mounted, loading initial data...')
-      try {
-        await Promise.all([
-          loadOrders(1),
-          fetchOrderStats()
-        ])
-        console.log('Initial data loaded successfully')
-      } catch (error) {
-        console.error('Error loading initial data:', error)
-      }
+      await Promise.all([ loadOrders(1), fetchOrderStats() ])
     })
 
     return {
-      orders,
-      orderDetail,
-      orderProducts,
-      paymentInfo,
-      orderStats,
-      ordersLoading,
-      ordersError,
-      detailLoading,
-      updateLoading,
-      searchKeyword,
-      statusFilter,
-      fromDate,
-      toDate,
-      currentPage,
-      totalPages,
-      showDetailModal,
-      selectedOrderId,
-      actionMessage,
-      actionSuccess,
+      // data từ composable
+      orders, orderDetail, orderProducts, paymentInfo, orderStats,
+      ordersLoading, ordersError, detailLoading, updateLoading,
+
+      // state
+      searchKeyword, statusFilter, fromDate, toDate,
+      currentPage, pageSize, totalPages,
+      showDetailModal, selectedOrderId, actionMessage, actionSuccess,
+
+      // maps UI<->API
+      apiToUi, uiToApi,
+
+      // methods
       loadOrders,
       searchOrders: searchOrdersHandler,
       onFilterChange,
@@ -463,29 +407,10 @@ export default {
 </script>
 
 <style scoped>
-.form-title {
-  font-size: 18px;
-}
-
-.modal {
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-.card {
-  transition: transform 0.2s;
-}
-
-.card:hover {
-  transform: translateY(-2px);
-}
-
-.table th {
-  background-color: #f8f9fa;
-  font-weight: 600;
-}
-
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+.form-title { font-size: 18px; }
+.modal { background-color: rgba(0, 0, 0, 0.5); }
+.card { transition: transform 0.2s; }
+.card:hover { transform: translateY(-2px); }
+.table th { background-color: #f8f9fa; font-weight: 600; }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
 </style>

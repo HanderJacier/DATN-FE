@@ -203,10 +203,12 @@ export default {
       switch (status) {
         case 'Chờ thanh toán': return 'bg-warning text-dark'
         case 'Đã thanh toán': return 'bg-success'
-        case 'Đang xử lý': return 'bg-info'
+        case 'Đang xử lý': return 'bg-warning text-dark'
+        case 'Chờ xử lý': return 'bg-warning text-dark'
         case 'Đang giao hàng': return 'bg-primary'
         case 'Đã giao hàng': return 'bg-success'
         case 'Đã hủy': return 'bg-danger'
+        case 'Đã xử lý': return 'bg-success'
         default: return 'bg-secondary'
       }
     }
@@ -270,7 +272,7 @@ export default {
 .table td { vertical-align: middle; border-color: #dee2e6; }
 .btn:disabled { opacity: 0.6; cursor: not-allowed; }
 .btn-group-sm > .btn { padding: 0.25rem 0.5rem; font-size: 0.875rem; }
-.card { border: 1px solid #e3e6f0; box-shadow: 0 0.15rem 1.75rem 0 rgba(58,59,69,.15); }
+.card { border: 1px solid #e3e6f0;}
 .pagination .page-link { color: #5a5c69; border-color: #dddfeb; }
 .pagination .page-item.active .page-link { background-color: #5a5c69; border-color: #5a5c69; }
 @media (max-width: 768px) {

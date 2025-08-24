@@ -10,7 +10,7 @@
       <div class="col-md-8">
         <h4 class="fw-bold mb-4">Địa chỉ của tôi</h4>
 
-        <div class="bg-white border rounded p-4 shadow-sm">
+        <div class="bg-white border rounded p-4">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h5>Địa chỉ</h5>
             <button class="btn btn-primary" type="button" @click="openAddModal">

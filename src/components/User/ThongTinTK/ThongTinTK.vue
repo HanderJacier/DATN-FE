@@ -10,7 +10,7 @@
       <!-- Nội dung chính -->
       <div class="col-md-8">
         <h4 class="fw-bold mb-4">Thông tin cá nhân</h4>
-        <div class="bg-white border rounded p-4 shadow-sm">
+        <div class="bg-white border rounded p-4 no-shadow">
           <form @submit.prevent="submitForm">
             <div class="mb-3 row w-75 mx-auto">
               <label class="col-sm-3 col-form-label">Tên đăng nhập</label>
@@ -42,7 +42,7 @@
 
             <div class="text-center w-75 mx-auto">
               <button type="submit" class="btn btn-primary" :disabled="updateLoading">
-                <i class="bi bi-pencil-square me-1"></i> 
+                <i class="bi bi-pencil-square me-1"></i>
                 {{ updateLoading ? 'Đang cập nhật...' : 'Cập nhật thông tin' }}
               </button>
             </div>
@@ -95,15 +95,12 @@ export default {
       const userId = getCurrentUserId()
       if (userId) {
         await fetchUserProfile(userId)
-        
-        // Cập nhật form data khi có thông tin user
         if (userInfo.value) {
           formData.hoveten = userInfo.value.hoveten || ''
           formData.email = userInfo.value.email || ''
           formData.sodienthoai = userInfo.value.sodienthoai || ''
         }
       }
-      console.log('User profile loaded:', formData)
     }
 
     const submitForm = async () => {
@@ -112,13 +109,10 @@ export default {
         alert('Vui lòng đăng nhập lại')
         return
       }
-
       await updateUserProfile(userId, formData)
     }
 
-    onMounted(() => {
-      loadUserProfile()
-    })
+    onMounted(loadUserProfile)
 
     return {
       userInfo,
@@ -132,3 +126,18 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+/* Bỏ mọi bóng đổ trong khối form và phần tử con */
+.no-shadow,
+.no-shadow * {
+  box-shadow: none !important;
+}
+
+/* Bỏ hiệu ứng shadow focus của Bootstrap trên input & button */
+.form-control:focus,
+.btn:focus {
+  box-shadow: none !important;
+  outline: none !important;
+}
+</style>

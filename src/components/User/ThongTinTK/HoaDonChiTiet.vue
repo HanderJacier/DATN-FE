@@ -8,11 +8,26 @@
 
       <!-- Nội dung -->
       <div class="col-md-9">
-        <!-- Nút quay lại trên đầu -->
+        <!-- Nút quay lại + Hủy đơn -->
         <div class="d-flex justify-content-between align-items-center mb-3">
           <router-link to="/tatca" class="btn btn-secondary btn-sm">
             <i class="bi bi-arrow-left"></i> Quay lại danh sách
           </router-link>
+
+          <!-- Nút Hủy đơn (tĩnh) -->
+          <button
+            v-if="canCancel"
+            class="btn btn-danger btn-sm"
+            @click="cancelOrder"
+            :disabled="loading"
+          >
+            <i class="bi bi-x-circle"></i> Hủy đơn hàng
+          </button>
+        </div>
+
+        <!-- Thông báo (tạm thời) -->
+        <div v-if="cancelMsg" class="alert alert-info py-2">
+          {{ cancelMsg }}
         </div>
 
         <h4 class="fw-bold mb-4">
@@ -46,7 +61,17 @@
                       {{ orderDetail.trangthai }}
                     </span>
                   </p>
-                  <p><strong>Khách hàng:</strong> {{ orderDetail.hovaten }}</p>
+
+                  <!-- Nút hủy lặp lại ngay dưới trạng thái (tuỳ thích) -->
+                  <button
+                    v-if="canCancel"
+                    class="btn btn-outline-danger btn-sm mt-2"
+                    @click="cancelOrder"
+                  >
+                    <i class="bi bi-x-circle"></i> Hủy đơn hàng
+                  </button>
+
+                  <p class="mt-3"><strong>Khách hàng:</strong> {{ orderDetail.hovaten }}</p>
                   <p><strong>Số điện thoại:</strong> {{ orderDetail.sodienthoai }}</p>
                   <p v-if="orderDetail.email"><strong>Email:</strong> {{ orderDetail.email }}</p>
                 </div>
@@ -136,7 +161,6 @@
 <script>
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { decId } from '@/utils/idCodec'
 import Slidebar from '@/components/User/Title/Slidebar.vue'
 import { usePostData } from '@/components/component_callApi/callAPI'
 import useHdChiTietTheoDanhSach from '../LoadDB/HoaDonChiTiet' // chỉnh path theo dự án
@@ -160,6 +184,7 @@ export default {
     } = useHdChiTietTheoDanhSach()
 
     const orderDetail = ref(null)
+    const cancelMsg = ref('')
 
     const loading = computed(() => headerApi.loading.value || itemsLoading.value)
     const error = computed(() => headerApi.error.value || itemsError.value)
@@ -224,17 +249,21 @@ export default {
     }
     const formatCurrency = (amount) =>
       new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount || 0)
+
     const getStatusClass = (status) => {
       switch (status) {
         case 'Chờ thanh toán': return 'bg-warning text-dark'
         case 'Đã thanh toán': return 'bg-success'
-        case 'Đang xử lý': return 'bg-info'
+        case 'Đang xử lý': return 'bg-warning text-dark'
+        case 'Chờ xử lý': return 'bg-warning text-dark'
         case 'Đang giao hàng': return 'bg-primary'
         case 'Đã giao hàng': return 'bg-success'
         case 'Đã hủy': return 'bg-danger'
+        case 'Đã xử lý': return 'bg-success'
         default: return 'bg-secondary'
       }
     }
+
     const getPaymentMethodText = (method) => {
       switch (method) {
         case 'COD': return 'Thanh toán khi nhận hàng'
@@ -245,19 +274,36 @@ export default {
         default: return method || '—'
       }
     }
+
     const onImgErr = (e) => { e.target.src = '/placeholder.svg' }
+
+    // ---- HỦY ĐƠN (tĩnh) ----
+    const canCancel = computed(() => {
+      const s = orderDetail.value?.trangthai || ''
+      return s === 'Chờ xử lý' || s === 'Đang xử lý'
+    })
+
+    const cancelOrder = () => {
+      if (!orderDetail.value) return
+      if (!canCancel.value) return
+      const ok = confirm('Bạn muốn hủy đơn hàng này? (Demo: chỉ đổi trạng thái trên giao diện)')
+      if (!ok) return
+      orderDetail.value.trangthai = 'Đã hủy'
+      cancelMsg.value = 'Đã hủy đơn hàng (demo, chưa gọi API).'
+      setTimeout(() => { cancelMsg.value = '' }, 3000)
+    }
 
     return {
       id, loading, error, orderDetail,
+      cancelMsg, canCancel, cancelOrder,
       formatDateTime, formatCurrency, getStatusClass, getPaymentMethodText, onImgErr
     }
   }
 }
-
 </script>
 
 <style scoped>
 .table th { background-color: #f8f9fa; font-weight: 600; border-color: #dee2e6; }
 .table td { vertical-align: middle; border-color: #dee2e6; }
-.card { border: 1px solid #e3e6f0; box-shadow: 0 0.15rem 1.75rem 0 rgba(58,59,69,.15); }
+.card { border: 1px solid #e3e6f0;}
 </style>

@@ -24,13 +24,13 @@
             <i class="fa fa-box me-2"></i> Sản phẩm
           </router-link>
 
-          <router-link
+          <!-- <router-link
             to="/admin/donhang"
             class="nav-link text-white py-2 rounded"
             :class="{ active: $route.path.includes('/admin/donhang') }"
           >
             <i class="fa fa-shopping-cart me-2"></i> Đơn hàng
-          </router-link>
+          </router-link> -->
 
           <router-link
             to="/admin/nguoidung"
@@ -44,7 +44,7 @@
             class="nav-link text-white py-2 rounded"
             :class="{ active: $route.path.includes('/admin/qlhoadon') }"
           >
-            <i class="fa fa-chart-bar me-2"></i> Quản lý hóa đơn
+            <i class="fa fa-chart-bar me-2"></i> Hóa đơn
           </router-link>
           <router-link
             to="/admin/thongke"

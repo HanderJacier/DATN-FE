@@ -28,7 +28,7 @@ import OrderManagement from '../components/Admin/OrderManagement.vue'
 
 // 🎯 Các trạng thái đơn hàng
 import TatCa from '../components/User/ThongTinTK/HoaDon/TatCa.vue'
-import DangXuLy from '../components/User/ThongTinTK/HoaDon/DangXuLy.vue'
+import DangXuLy from '../components/User/ThongTinTK/HoaDon/ChoXuLy.vue'
 import DaXuLy from '../components/User/ThongTinTK/HoaDon/DaXuLy.vue'
 import DaHuy from '../components/User/ThongTinTK/HoaDon/DaHuy.vue'
 import XacNhanDonHang from '../components/User/ThongTinTK/XacNhanDonHang.vue'
