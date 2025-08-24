@@ -94,7 +94,7 @@
                 <div class="bg-white rounded-4 shadow-sm p-3 border h-100">
                   <div class="d-flex align-items-start gap-2">
                     <i class="bi bi-arrow-repeat fs-4 text-primary"></i>
-                    <div>Sách hướng dẫn, Hộp máy, Cáp Type C - Type C</div>
+                    <div>Sách hướng dẫn, Hộp sản phẩm, Cáp Type C - Type C</div>
                   </div>
                 </div>
               </div>
@@ -281,12 +281,12 @@
                 </h6>
                 <ul class="list-unstyled mb-0">
                   <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Trả góp 0% đến 12 tháng.</li>
-                  <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Mua bất kỳ điện thoại nào sẽ
-                    nhận
-                    được một món quà bí ẩn (tai nghe, ốp lưng, sạc nhanh… trị giá đến <strong
-                      class="text-danger">300.000đ</strong>).</li>
+                  <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Mua bất kỳ sản phẩm nào sẽ
+                    nhận được một món quà bí ẩn (tai nghe, sạc nhanh… trị giá đến <strong
+                      class="text-danger">300.000đ</strong>).
+                  </li>
                   <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Tặng Combo bảo vệ toàn diện Kính
-                    Cường Lực + Ốp lưng</li>
+                    Cường Lực</li>
                   <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Tặng phiếu mua hàng <strong
                       class="text-danger">50.000đ</strong> khi
                     mua
