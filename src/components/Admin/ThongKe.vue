@@ -14,7 +14,7 @@
             <option :value="30">30 ngày qua</option>
           </select>
 
-          <!-- 🆕 Hiển thị khoảng ngày -->
+          <!-- Hiển thị khoảng ngày -->
           <div class="form-text mt-1">
             Khoảng thống kê: <strong>{{ revenueRangeLabel }}</strong>
           </div>
@@ -186,36 +186,83 @@ const computeRange = (days) => {
   return { tu: formatDDMMYYYY(start), den: formatDDMMYYYY(end) }
 }
 
-const { tu, den } = computeRange(rangeDays.value)
-const { baoCao, loading: loadingRevenue, error: errorRevenue, fetchBaoCao } = useBaoCaoDoanhThu(tu, den)
+/* Helpers: parse ngày dd/MM/yyyy + format nhãn */
+const parseDateVN = (s) => {
+  if (!s) return null
+  if (s instanceof Date) return s
+  if (typeof s === 'string') {
+    // dd/MM/yyyy
+    const m1 = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+    if (m1) return new Date(Number(m1[3]), Number(m1[2]) - 1, Number(m1[1]))
+    // yyyy-MM-dd (nếu backend đổi)
+    const m2 = s.match(/^(\d{4})-(\d{2})-(\d{2})/)
+    if (m2) return new Date(Number(m2[1]), Number(m2[2]) - 1, Number(m2[3]))
+    const d = new Date(s)
+    if (!isNaN(d)) return d
+  }
+  return null
+}
+const labelFromNgay = (ngay) => {
+  const d = parseDateVN(ngay)
+  if (!d) return String(ngay)
+  const dd = String(d.getDate()).padStart(2, '0')
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  return `${dd}/${mm}`
+}
 
-// 🆕 computed cho khoảng ngày doanh thu
+const { tu, den } = computeRange(rangeDays.value)
+const { baoCao, loading: loadingRevenue, error: errorRevenue, fetchBaoCao } =
+  useBaoCaoDoanhThu(tu, den)
+
+// computed cho khoảng ngày doanh thu
 const revenueRange = computed(() => computeRange(rangeDays.value))
 const revenueRangeLabel = computed(() => `Từ ${revenueRange.value.tu} đến ${revenueRange.value.den}`)
 
 const revenueCanvas = ref(null)
 let revenueChart = null
 
+/* Chuẩn hoá dữ liệu để hỗ trợ nhiều kiểu trả về (array thuần, rows/data, hoặc {fields}) */
 const getRevenueRows = () => {
   const raw = baoCao?.value
-  if (Array.isArray(raw)) return raw
-  if (raw?.rows && Array.isArray(raw.rows)) return raw.rows
-  if (raw?.data && Array.isArray(raw.data)) return raw.data
-  return []
+  let rows = []
+  if (Array.isArray(raw)) rows = raw
+  else if (raw?.rows && Array.isArray(raw.rows)) rows = raw.rows
+  else if (raw?.data && Array.isArray(raw.data)) rows = raw.data
+  else rows = []
+
+  // Normalize: lấy từ fields nếu có
+  rows = rows.map((r) => {
+    const f = r?.fields || r
+    return {
+      ngay: f.ngay ?? f.date ?? f.ngay_tao ?? f.ngaytao ?? f.Ngay ?? f.NGAY,
+      so_don_hang: Number(f.so_don_hang ?? f.so_don ?? f.orders ?? 0),
+      tong_doanh_thu: Number(f.tong_doanh_thu ?? f.doanh_thu ?? f.revenue ?? f.tong ?? 0),
+    }
+  })
+
+  // Sắp xếp tăng dần theo ngày (nếu parse được)
+  rows.sort((a, b) => {
+    const da = parseDateVN(a.ngay)
+    const db = parseDateVN(b.ngay)
+    if (da && db) return da - db
+    if (da && !db) return -1
+    if (!da && db) return 1
+    return 0
+  })
+
+  return rows
 }
+
 const getMaxTicksLimit = (days, len) => {
   if (days <= 7) return Math.min(7, len)
   if (days <= 14) return Math.min(10, len)
   return Math.min(12, len)
 }
+
+/* Vẽ chart với dữ liệu đã normalize + tooltip hiển thị số đơn */
 const drawRevenueChart = () => {
   const rows = getRevenueRows()
-  const labels = rows.map((r) => {
-    const d = new Date(r.ngay)
-    const dd = String(d.getDate()).padStart(2, '0')
-    const mm = String(d.getMonth() + 1).padStart(2, '0')
-    return `${dd}/${mm}`
-  })
+  const labels = rows.map((r) => labelFromNgay(r.ngay))
   const data = rows.map((r) => Number(r.tong_doanh_thu || 0))
   const maxTicksLimit = getMaxTicksLimit(rangeDays.value, labels.length)
 
@@ -240,8 +287,15 @@ const drawRevenueChart = () => {
         tooltip: {
           callbacks: {
             label: (ctx) => ` ${Number(ctx.parsed.y || 0).toLocaleString('vi-VN')} VNĐ`,
+            afterBody: (items) => {
+              const i = items?.[0]?.dataIndex
+              if (i == null) return []
+              const soDon = Number(rows[i]?.so_don_hang || 0).toLocaleString('vi-VN')
+              return [`Đơn hàng: ${soDon}`]
+            },
           },
         },
+        legend: { display: true },
       },
     },
   })
