@@ -198,7 +198,7 @@ export default {
     const truncateText = (text, maxLength) => !text ? '-' : (text.length > maxLength ? text.substring(0, maxLength) + '...' : text)
 
     // ✅ chỉ cho hủy nếu trạng thái là "Đang xử lý"
-    const canCancelOrder = (status) => status === 'Đang xử lý'
+    const canCancelOrder = (status) => status === 'Chờ xử lý'
 
     // Actions
     const viewOrderDetail = (orderId) => router.push({ name: 'hoadonchitiet', params: { id: orderId } })
