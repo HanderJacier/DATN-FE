@@ -1,100 +1,103 @@
+// useGoogleLogin.js
 "use client";
 
-import { ref } from "vue";
-import { usePostData } from "../component_callApi/callAPI";
+import { ref, onUnmounted } from "vue";
+import { usePostData } from "@/components/component_callApi/callAPI";
 import useAuth from "./useAuth";
+
+function b64urlDecode(s) {
+  if (!s) return "";
+  s = s.replace(/-/g, "+").replace(/_/g, "/");
+  const pad = s.length % 4; if (pad) s += "=".repeat(4 - pad);
+  try { return atob(s); } catch { return ""; }
+}
 
 export default function useGoogleLogin() {
   const userData = ref(null);
   const loginError = ref(null);
   const isLoading = ref(false);
 
-  const { data, callAPI } = usePostData();
+  const { callAPI } = usePostData();
   const { login } = useAuth();
 
-  const initGoogleSignIn = () => {
-    return new Promise((resolve) => {
-      if (window.google) {
-        resolve();
-        return;
-      }
+  let gsiLoaded = false, gsiInited = false;
 
-      const script = document.createElement("script");
-      script.src = "https://accounts.google.com/gsi/client";
-      script.onload = resolve;
-      document.head.appendChild(script);
-    });
-  };
+  const initGoogleSignIn = () => new Promise((resolve, reject) => {
+    if (window.google) { gsiLoaded = true; resolve(); return; }
+    if (gsiLoaded) { resolve(); return; }
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true; script.defer = true;
+    script.onload = () => { gsiLoaded = true; resolve(); };
+    script.onerror = () => reject(new Error("Load Google GSI failed"));
+    document.head.appendChild(script);
+  });
 
   const handleGoogleLogin = async () => {
     try {
-      isLoading.value = true;
+      isLoading.value = true; loginError.value = null;
       await initGoogleSignIn();
-
-      window.google.accounts.id.initialize({
-        client_id:
-          "906002581004-c8p6pp86h4edksknu0dc3j2p8mtvtpjo.apps.googleusercontent.com",
-        callback: handleGoogleResponse,
-      });
-
-      window.google.accounts.id.prompt();
-    } catch (error) {
-      console.error("Lỗi khởi tạo Google Login:", error);
+      if (!gsiInited) {
+        window.google.accounts.id.initialize({
+          client_id: "906002581004-c8p6pp86h4edksknu0dc3j2p8mtvtpjo.apps.googleusercontent.com",
+          callback: handleGoogleResponse,
+        });
+        gsiInited = true;
+      }
+      window.google.accounts.id.prompt(); // hoặc renderButton ở component nút
+    } catch (e) {
+      console.error(e);
       loginError.value = "Không thể khởi tạo Google Login";
       isLoading.value = false;
     }
   };
 
   const handleGoogleResponse = async (response) => {
-    try {
-      const credential = response.credential;
-      const payload = JSON.parse(atob(credential.split(".")[1]));
+  try {
+    const cred = response?.credential;
+    if (!cred) { loginError.value = "Không nhận được thông tin xác thực từ Google"; return; }
 
-      console.log("Google user info:", payload);
+    const payload = JSON.parse(b64urlDecode(cred.split(".")[1] || ""));
+    if (!payload?.email) { loginError.value = "Không lấy được email từ Google"; return; }
 
-      await callAPI("WBH_US_GOOGLE_LOGIN", {
-        params: {
-          p_email: payload.email,
-          p_hoveten: payload.name,
-          p_google_id: payload.sub,
-        },
-      });
+    // Gọi proc
+    await callAPI("WBH_US_CRT_GOOGLE_LOGIN", {
+      params: {
+        p_email: payload.email,
+        p_hoveten: payload.name,
+      },
+    });
 
-      if (Array.isArray(data.value) && data.value.length > 0) {
-        const userResult = data.value[0];
-        const userWithGoogleInfo = {
-          ...userResult,
-          google_name: payload.name,
-          google_picture: payload.picture,
-          google_email: payload.email,
-          login_type: "google",
-        };
+    // Dùng data.value giống useHomeLogic
+    const result = data.value || [];
+    const first = result[0]?.fields ?? result[0];
 
-        userData.value = userWithGoogleInfo;
-        login(userWithGoogleInfo);
-        loginError.value = null;
+    if (first && first.id_tk) {
+      const user = {
+        ...first,
+        google_name: payload.name,
+        google_picture: payload.picture,
+        google_email: payload.email,
+        login_type: "google",
+      };
 
-        const message =
-          userResult.user_type === "new"
-            ? `Chào mừng ${payload.name}! Tài khoản đã được tạo thành công.`
-            : `Xin chào ${payload.name}! Đăng nhập thành công.`;
-
-        console.log("[v0] Google login successful:", message);
-      } else {
-        loginError.value = "Không thể đăng nhập Google";
-      }
-    } catch (error) {
-      console.error("Lỗi xử lý Google Login:", error);
-      loginError.value = "Lỗi đăng nhập Google";
-    } finally {
-      isLoading.value = false;
+      userData.value = user;
+      login(user);  // useAuth sẽ lo lưu xuống localStorage/sessionStorage
+      loginError.value = null;
+    } else {
+      loginError.value = "Không thể đăng nhập Google (DB không trả dữ liệu)";
     }
-  };
+  } catch (e) {
+    console.error("Lỗi đăng nhập Google:", e);
+    loginError.value = "Lỗi đăng nhập Google";
+  } finally {
+    isLoading.value = false;
+  }
+};
 
-  return {
-    userData,
-    loginError,
-    isLoading,
-    handleGoogleLogin,
-  };
+  onUnmounted(() => {
+    try { window.google?.accounts.id.disableAutoSelect?.(); } catch {}
+  });
+
+  return { userData, loginError, isLoading, handleGoogleLogin, handleGoogleResponse, initGoogleSignIn };
 }

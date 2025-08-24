@@ -126,14 +126,8 @@
                 <hr class="flex-grow-1">
               </div>
 
-              <div class="d-flex gap-2">
-                <div class="flex-fill">
+              <div class="d-flex w-100 gap-2 justify-content-center">
                   <GoogleLoginButton />
-                </div>
-                <button class="btn btn-outline-primary flex-fill" style="border-radius: 10px;">
-                  <i class="fab fa-facebook me-2"></i>
-                  Facebook
-                </button>
               </div>
             </div>
 
