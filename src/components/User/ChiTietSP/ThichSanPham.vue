@@ -5,15 +5,6 @@
       :class="{ 'btn-danger text-white': isLiked }" @click="handleToggleLike">
       <i class="bi" :class="isLiked ? 'bi-heart-fill' : 'bi-heart'"></i>
     </button>
-
-    <!-- Thông báo -->
-    <div v-if="thongBao.show"
-      :class="['alert', thongBao.type === 'success' ? 'alert-success' : 'alert-danger', 'alert-dismissible', 'fade', 'show']"
-      role="alert"
-      style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1050; min-width: 300px;">
-      {{ thongBao.message }}
-      <button type="button" class="btn-close" aria-label="Close" @click="thongBao.show = false"></button>
-    </div>
   </div>
 </template>
 
@@ -49,11 +40,15 @@ if (userData && userData.id_tk) {
 
 // ---------------- UI ----------------
 const isLiked = ref(props.isLikedInit)
-const thongBao = ref({ show: false, message: '', type: 'success' })
-function hienThiThongBao(message, type = 'success') {
-  thongBao.value = { show: true, message, type }
-  setTimeout(() => (thongBao.value.show = false), 2000)
-}
+
+// Thông báo lỗi
+const Toast = Swal.mixin({
+  toast: true,
+  position: 'top-end',
+  showConfirmButton: false,
+  timer: 2000,
+  timerProgressBar: true
+})
 
 // ---------------- LocalStorage ----------------
 function getFavoriteKey() {
@@ -96,10 +91,10 @@ onMounted(async () => {
   }
 })
 
+
 // ---------------- Toggle yêu thích ----------------
 async function handleToggleLike() {
   if (!taiKhoanId) {
-    // ❌ Chưa đăng nhập → bật SweetAlert giống "xóa địa chỉ"
     const res = await Swal.fire({
       icon: 'warning',
       title: 'Yêu cầu đăng nhập',
@@ -129,17 +124,17 @@ async function handleToggleLike() {
     let favs = JSON.parse(localStorage.getItem(getFavoriteKey()) || '[]')
     if (newStatus) {
       if (!favs.includes(sanPhamId.value)) favs.push(sanPhamId.value)
-      hienThiThongBao('Đã thêm vào Yêu thích', 'success')
+      Toast.fire({ icon: 'success', title: 'Đã thêm vào yêu thích' })
     } else {
       favs = favs.filter(id => id !== sanPhamId.value)
-      hienThiThongBao('Đã bỏ khỏi Yêu thích', 'success')
+      Toast.fire({ icon: 'success', title: 'Đã bỏ khỏi danh sách yêu thích' })
     }
     localStorage.setItem(getFavoriteKey(), JSON.stringify(favs))
     isLiked.value = newStatus
 
   } catch (err) {
     console.error('Lỗi khi cập nhật Yêu thích:', err)
-    hienThiThongBao('Cập nhật Yêu thích thất bại!', 'danger')
+    Toast.fire({ icon: 'error', title: 'Cập nhật Yêu thích thất bại!' })
   }
 }
 </script>
