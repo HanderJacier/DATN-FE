@@ -221,16 +221,14 @@
                   <div class="d-flex gap-2">
                     <!-- Nút thêm vào giỏ -->
                     <button
-  class="btn btn-outline-primary d-flex align-items-center justify-content-center gap-2 px-3 py-2 rounded-3 shadow-sm fw-semibold"
-  style="min-width: 180px; height: 44px; white-space: nowrap;"
-  @click="addToCart"
->
-  <i class="bi bi-cart-fill fs-5"></i>
-  <span>Thêm vào giỏ</span>
-  <span v-if="cartQuantity > 0" class="badge bg-warning text-dark ms-2">
-    Đã có: {{ cartQuantity }}
-  </span>
-</button>
+                      class="btn btn-outline-primary d-flex align-items-center justify-content-center gap-2 px-3 py-2 rounded-3 shadow-sm fw-semibold"
+                      style="min-width: 180px; height: 44px; white-space: nowrap;" @click="addToCart">
+                      <i class="bi bi-cart-fill fs-5"></i>
+                      <span>Thêm vào giỏ</span>
+                      <span v-if="cartQuantity > 0" class="badge bg-warning text-dark ms-2">
+                        Đã có: {{ cartQuantity }}
+                      </span>
+                    </button>
 
                     <!-- Nút mua ngay -->
                     <button

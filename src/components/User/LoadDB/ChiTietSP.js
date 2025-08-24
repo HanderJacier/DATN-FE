@@ -28,19 +28,13 @@ export default function useHomeLogic() {
         alt: common.tensanpham || "Ảnh chính",
       };
 
-      // Lọc ảnh phụ không trùng id_a
-      const seenIds = new Set();
-      const subImages = result
-        .filter((item) => {
-          const id_a = item.id_a;
-          if (!id_a || seenIds.has(id_a)) return false;
-          seenIds.add(id_a);
-          return true;
-        })
-        .map((item) => ({
-          src: item.diachianh,
-          alt: item.tensanpham || "Ảnh phụ",
+      let subImages = [];
+      if (common.ds_anh_phu) {
+        subImages = common.ds_anh_phu.split(',').map((link) => ({
+          src: link.trim(),
+          alt: common.tensanpham || "Ảnh phụ",
         }));
+      }
 
       // Gộp ảnh gốc + ảnh phụ
       productImages.value = [mainImage, ...subImages];
