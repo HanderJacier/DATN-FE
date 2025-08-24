@@ -5,27 +5,6 @@
       :class="{ 'btn-danger text-white': isLiked }" @click="handleToggleLike">
       <i class="bi" :class="isLiked ? 'bi-heart-fill' : 'bi-heart'"></i>
     </button>
-
-    <!-- Thông báo -->
-    <div v-if="thongBao.show"
-      :class="['alert', thongBao.type === 'success' ? 'alert-success' : 'alert-danger', 'alert-dismissible', 'fade', 'show']"
-      role="alert"
-      style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1050; min-width: 300px;">
-      {{ thongBao.message }}
-      <button type="button" class="btn-close" aria-label="Close" @click="thongBao.show = false"></button>
-    </div>
-
-    <!-- Yêu cầu đăng nhập -->
-    <div v-if="yeuCauDangNhap"
-      class="alert alert-warning alert-dismissible fade show d-flex align-items-center justify-content-between"
-      role="alert"
-      style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1050; min-width: 320px;">
-      <span><i class="fas fa-exclamation-circle me-2"></i>Bạn cần đăng nhập để sử dụng Yêu thích!</span>
-      <div class="ms-3">
-        <button class="btn btn-success btn-sm me-1" @click="chuyenDangNhap"><i class="fas fa-check"></i></button>
-        <button class="btn btn-danger btn-sm" @click="yeuCauDangNhap = false"><i class="fas fa-times"></i></button>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -33,6 +12,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
+import Swal from 'sweetalert2'
 
 const props = defineProps({
   productId: {
@@ -60,24 +40,15 @@ if (userData && userData.id_tk) {
 
 // ---------------- UI ----------------
 const isLiked = ref(props.isLikedInit)
-const thongBao = ref({ show: false, message: '', type: 'success' })
-function hienThiThongBao(message, type = 'success') {
-  thongBao.value = { show: true, message, type }
-  setTimeout(() => (thongBao.value.show = false), 2000)
-}
 
-const yeuCauDangNhap = ref(false)
-let timeoutYeuCau = null
-function chuyenDangNhap() {
-  clearTimeout(timeoutYeuCau)
-  yeuCauDangNhap.value = false
-  router.push('/dangnhap')
-}
-function hienThongBaoDangNhap() {
-  yeuCauDangNhap.value = true
-  clearTimeout(timeoutYeuCau)
-  timeoutYeuCau = setTimeout(() => (yeuCauDangNhap.value = false), 1500)
-}
+// Thông báo lỗi
+const Toast = Swal.mixin({
+  toast: true,
+  position: 'top-end',
+  showConfirmButton: false,
+  timer: 2000,
+  timerProgressBar: true
+})
 
 // ---------------- LocalStorage ----------------
 function getFavoriteKey() {
@@ -88,22 +59,19 @@ function getFavoriteKey() {
 onMounted(async () => {
   if (!taiKhoanId) return
 
-  // Kiểm tra localStorage trước
   const localFavorites = JSON.parse(localStorage.getItem(getFavoriteKey()) || '[]')
   if (localFavorites.includes(sanPhamId.value)) {
     isLiked.value = true
   }
 
-  // Load trạng thái từ server
   try {
     const res = await axios.get('http://localhost:8080/api/datn/WBH_US_SEL_SP_YT', {
       params: { p_id_tk: taiKhoanId }
     })
 
     const danhSachYT = res.data?.fields ? [res.data.fields] : res.data?.map(item => item.fields) || []
-
-    // Kiểm tra sản phẩm hiện tại có trong danh sách YT không
     const spYT = danhSachYT.find(item => Number(item.sanpham) === sanPhamId.value)
+
     if (spYT && spYT.trangthai === 'Y') {
       isLiked.value = true
       if (!localFavorites.includes(sanPhamId.value)) {
@@ -123,17 +91,29 @@ onMounted(async () => {
   }
 })
 
+
 // ---------------- Toggle yêu thích ----------------
 async function handleToggleLike() {
   if (!taiKhoanId) {
-    hienThongBaoDangNhap()
+    const res = await Swal.fire({
+      icon: 'warning',
+      title: 'Yêu cầu đăng nhập',
+      text: 'Bạn cần đăng nhập để sử dụng tính năng Yêu thích.',
+      showCancelButton: true,
+      confirmButtonText: 'Đăng nhập ngay',
+      cancelButtonText: 'Để sau',
+      confirmButtonColor: '#28a745',
+      cancelButtonColor: '#d33'
+    })
+    if (res.isConfirmed) {
+      router.push('/dangnhap')
+    }
     return
   }
 
   const newStatus = !isLiked.value
 
   try {
-    // Gọi API cập nhật trạng thái yêu thích
     await axios.post('http://localhost:8080/api/datn/WBH_US_UPD_CAPNHAT_YT_SP', {
       params: {
         p_sanpham: sanPhamId.value,
@@ -141,23 +121,20 @@ async function handleToggleLike() {
       }
     })
 
-    // Cập nhật localStorage
     let favs = JSON.parse(localStorage.getItem(getFavoriteKey()) || '[]')
     if (newStatus) {
       if (!favs.includes(sanPhamId.value)) favs.push(sanPhamId.value)
-      hienThiThongBao('Đã thêm vào Yêu thích', 'success')
+      Toast.fire({ icon: 'success', title: 'Đã thêm vào yêu thích' })
     } else {
       favs = favs.filter(id => id !== sanPhamId.value)
-      hienThiThongBao('Đã bỏ khỏi Yêu thích', 'success')
+      Toast.fire({ icon: 'success', title: 'Đã bỏ khỏi danh sách yêu thích' })
     }
     localStorage.setItem(getFavoriteKey(), JSON.stringify(favs))
-
-    // Cập nhật UI
     isLiked.value = newStatus
 
   } catch (err) {
     console.error('Lỗi khi cập nhật Yêu thích:', err)
-    hienThiThongBao('Cập nhật Yêu thích thất bại!', 'danger')
+    Toast.fire({ icon: 'error', title: 'Cập nhật Yêu thích thất bại!' })
   }
 }
 </script>

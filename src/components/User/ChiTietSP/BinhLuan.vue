@@ -9,23 +9,6 @@
       <button type="button" class="btn-close" aria-label="Close" @click="thongBao.show = false"></button>
     </div>
 
-    <!-- Thông báo yêu cầu đăng nhập -->
-    <div v-if="yeuCauDangNhap"
-      class="alert alert-warning alert-dismissible fade show d-flex align-items-center justify-content-between"
-      role="alert"
-      style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1050; min-width: 320px;">
-      <span><i class="fas fa-exclamation-circle me-2"></i>Bạn cần đăng nhập để gửi đánh giá!</span>
-      <div class="ms-3">
-        <button class="btn btn-success btn-sm me-1" @click="chuyenDangNhap">
-          <i class="fas fa-check"></i>
-        </button>
-        <button class="btn btn-danger btn-sm" @click="yeuCauDangNhap = false">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-    </div>
-
-
     <h4 class="mb-3">Đánh giá sản phẩm</h4>
 
     <!-- Bộ lọc sao -->
@@ -143,6 +126,7 @@ import axios from 'axios'
 import dayjs from 'dayjs'
 import 'dayjs/locale/vi'
 import relativeTime from 'dayjs/plugin/relativeTime'
+import Swal from 'sweetalert2'
 
 dayjs.locale('vi')
 dayjs.extend(relativeTime)
@@ -171,23 +155,6 @@ const thongBao = ref({ show: false, message: '', type: 'success' })
 function hienThiThongBao(message, type = 'success') {
   thongBao.value = { show: true, message, type }
   setTimeout(() => (thongBao.value.show = false), 3000)
-}
-
-// Thông báo yêu cầu đăng nhập
-const yeuCauDangNhap = ref(false)
-let timeoutYeuCau = null
-function chuyenDangNhap() {
-  clearTimeout(timeoutYeuCau)
-  yeuCauDangNhap.value = false
-  router.push('/dangnhap')
-}
-
-function hienThongBaoDangNhap() {
-  yeuCauDangNhap.value = true
-  clearTimeout(timeoutYeuCau)
-  timeoutYeuCau = setTimeout(() => {
-    yeuCauDangNhap.value = false
-  }, 1500) //Số giây cần ẩn
 }
 
 // Trạng thái form
@@ -269,27 +236,41 @@ const fetchDanhGia = async () => {
 
 const guiDanhGia = async () => {
   if (!taiKhoanId) {
-    hienThongBaoDangNhap()
+    // ✅ SweetAlert cảnh báo đăng nhập
+    const res = await Swal.fire({
+      icon: 'warning',
+      title: 'Yêu cầu đăng nhập',
+      text: 'Bạn cần đăng nhập để gửi đánh giá.',
+      showCancelButton: true,
+      confirmButtonText: 'Đăng nhập ngay',
+      cancelButtonText: 'Để sau',
+      confirmButtonColor: '#28a745',
+      cancelButtonColor: '#d33'
+    })
+    if (res.isConfirmed) {
+      router.push('/dangnhap')
+    }
     return
   }
-
 
   if (diemSo.value === 0 && noiDung.value.trim() === '') {
     return hienThiThongBao('Vui lòng nhập đầy đủ thông tin đánh giá!', 'danger')
   }
-
   if (diemSo.value === 0) {
     return hienThiThongBao('Vui lòng chọn số sao đánh giá!', 'danger')
   }
-
   if (noiDung.value.trim() === '') {
     return hienThiThongBao('Vui lòng nhập nội dung đánh giá!', 'danger')
   }
 
-
   try {
     await axios.post('http://localhost:8080/api/datn/WBH_US_CRT_DANH_GIA', {
-      params: { p_taikhoan: taiKhoanId, p_sanpham: sanPhamId, p_noidung: noiDung.value, p_diemso: diemSo.value }
+      params: {
+        p_taikhoan: taiKhoanId,
+        p_sanpham: sanPhamId,
+        p_noidung: noiDung.value,
+        p_diemso: diemSo.value
+      }
     })
     await fetchDanhGia()
     dangSuaDanhGia.value = false
