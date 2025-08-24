@@ -41,15 +41,15 @@
           <!-- Hình ảnh & thông số -->
           <div class="col-md-6">
             <!-- Carousel -->
+            <!-- Carousel -->
             <div class="position-relative">
-              <div class="carousel-inner">
-                <div class="carousel-item" :class="{ active: index === currentIndex }"
-                  v-for="(image, index) in productImages" :key="index" v-show="index === currentIndex">
-                  <div class="fixed-image-frame d-flex justify-content-center align-items-center">
-                    <img :src="image.src" :alt="image.alt" class="fixed-product-img" />
-                  </div>
+              <transition name="fade" mode="out-in">
+                <div :key="currentIndex" class="fixed-image-frame d-flex justify-content-center align-items-center">
+                  <img :src="productImages[currentIndex]?.src" :alt="productImages[currentIndex]?.alt"
+                    class="fixed-product-img" />
                 </div>
-              </div>
+              </transition>
+
               <!-- Carousel điều khiển -->
               <button class="carousel-control-prev custom-control" type="button" @click="prevImage">
                 <span class="carousel-control-prev-icon" aria-hidden="true"></span>
@@ -60,6 +60,7 @@
                 <span class="visually-hidden">Next</span>
               </button>
             </div>
+
 
             <!-- Thumbnails -->
             <div class="d-flex flex-wrap gap-2 mt-3 justify-content-center">
@@ -583,5 +584,17 @@ watch(
   color: #0d6efd;
   font-weight: 600;
   box-shadow: 0 2px 6px rgba(13, 110, 253, 0.15);
+}
+
+
+/*nút điều khiển*/
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>
