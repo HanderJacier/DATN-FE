@@ -7,35 +7,42 @@ export default function useDiaChiTheoTaiKhoan() {
 
   const { data, loading, error, callAPI } = usePostData()
 
-  const fetchDiaChiTheoTaiKhoan = async (id_tk) => {
+  const reset = () => {
     addresses.value = []
     userInfo.value = null
+  }
 
+  const fetchDiaChiTheoTaiKhoan = async (id_tk) => {
+    reset()
+    if (id_tk == null) return
+
+    // ✅ PROC nhận @p_taikhoan, KHÔNG phải p_id_tk
     await callAPI('WBH_US_SEL_DIACHI_THEO_TAIKHOAN', {
-      params: { p_id_tk: id_tk }
+      params: { p_taikhoan: id_tk }
     })
 
-    const result = data.value || []
+    const result = Array.isArray(data.value) ? data.value : []
 
-    if (Array.isArray(result) && result.length > 0) {
+    if (result.length > 0) {
       const first = result[0]
       userInfo.value = {
-        id_tk: first.taikhoan,
-        hoveten: first.hoveten,
-        sodienthoai: first.sodienthoai,
-        email: first.email
+        id_tk: first.taikhoan ?? id_tk,
+        hoveten: first.hoveten ?? '',
+        sodienthoai: first.sodienthoai ?? '',
+        email: first.email ?? ''
       }
 
       const seen = new Set()
       addresses.value = result
         .filter(r => {
-          if (!r.id_dc || seen.has(r.id_dc)) return false
-          seen.add(r.id_dc)
+          const id = r.id_dc
+          if (!id || seen.has(id)) return false
+          seen.add(id)
           return true
         })
         .map(r => ({
           id_dc: r.id_dc,
-          diachi: r.diachi
+          diachi: r.diachi ?? ''
         }))
     }
   }
@@ -44,6 +51,7 @@ export default function useDiaChiTheoTaiKhoan() {
     addresses,
     userInfo,
     fetchDiaChiTheoTaiKhoan,
+    reset,
     loading,
     error
   }
