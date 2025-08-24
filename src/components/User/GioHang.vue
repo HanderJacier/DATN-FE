@@ -40,7 +40,7 @@
                                     <select class="form-select form-select-sm mt-2 bg-light" style="width: 200px;" disabled>
                                         <option selected>Phân loại: {{ item.variant }}</option>
                                     </select>
-                                    <div v-if="item.stockQuantity" class="text-muted small mt-1">
+                                    <div v-if="item.stockQuantity !== undefined" class="text-muted small mt-1">
                                         Còn lại: {{ item.stockQuantity }} sản phẩm
                                     </div>
                                 </div>
@@ -58,7 +58,8 @@
                                             :disabled="item.quantity <= 1">−</button>
                                     <span class="mx-2 fw-semibold">{{ item.quantity }}</span>
                                     <button class="btn btn-outline-secondary btn-sm" 
-                                            @click="increaseQty(index)">+</button>
+                                            @click="increaseQty(index)"
+                                            :disabled="item.quantity >= item.stockQuantity">+</button>
                                 </div>
                                 <button class="btn btn-sm btn-outline-danger ms-3" 
                                         @click="removeItem(index)">
@@ -71,41 +72,36 @@
             </div>
             
             <!-- Thông tin đơn hàng -->
-            <div class="col-lg-4" v-if="cart.length > 0">
-                <div class="card p-3 sticky-top" style="top: 100px;">
-                    <h6 class="fw-bold">
-                        <i class="bi bi-receipt"></i>
-                        Thông tin đơn hàng
-                    </h6>
-                    
-                    <div class="d-flex justify-content-between py-2">
-                        <span>Tổng tiền ({{ selectedQuantity }} sản phẩm)</span>
-                        <span class="text-danger fw-bold">{{ formatPrice(totalPrice) }} đ</span>
-                    </div>
-                    
-                    <div class="d-flex justify-content-between py-2 border-top">
-                        <span>Tổng khuyến mãi</span>
-                        <span class="text-success">{{ formatPrice(totalDiscount) }} đ</span>
-                    </div>
-                    
-                    <div class="d-flex justify-content-between py-2 border-top fw-bold">
-                        <span>Cần thanh toán</span>
-                        <span class="text-danger fs-5">{{ formatPrice(totalPrice) }} đ</span>
-                    </div>
-                    
-                    <button class="btn btn-warning w-100 mt-3" @click="goToOrderConfirmation"
-                            :disabled="selectedQuantity === 0">
-                        <i class="bi bi-check-circle"></i>
-                        Xác nhận đơn hàng
-                    </button>
-                    
-                    <div class="text-center mt-2">
-                        <small class="text-muted">
-                            Bạn đã chọn {{ selectedQuantity }} sản phẩm
-                        </small>
-                    </div>
-                </div>
-            </div>
+              <div class="container my-4 mt-5">
+    <h3 class="mb-4">Xác nhận đơn hàng</h3>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Sản phẩm</th>
+          <th>Giá</th>
+          <th>Số lượng</th>
+          <th>Thành tiền</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="item in cart" :key="item.id">
+          <td>{{ item.name }}</td>
+          <td>{{ item.price.toLocaleString() }}đ</td>
+          <td>{{ item.quantity }}</td>
+          <td>{{ (item.price * item.quantity).toLocaleString() }}đ</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="text-end fw-bold fs-5 mt-3">
+      Tổng tiền: 
+      <span class="text-danger">
+        {{ totalPrice.toLocaleString() }}đ
+      </span>
+    </div>
+    <button class="btn btn-primary mt-4" @click="goToOrderConfirmation" :disabled="selectedQuantity === 0">
+      Xác nhận đơn hàng
+    </button>
+  </div>
         </div>
 
         <!-- Action Messages -->
@@ -144,12 +140,9 @@ export default {
         const selectAll = ref(false)
 
         // Computed properties
-        const totalPrice = computed(() => {
-            return cart.value.reduce((total, item) =>
-                item.selected ? total + item.price * item.quantity : total, 0
-            )
-        })
-
+       const totalPrice = computed(() =>
+  cart.value.reduce((sum, item) => sum + item.price * item.quantity, 0)
+)
         const totalDiscount = computed(() => {
             return cart.value.reduce((total, item) =>
                 item.selected ? total + (item.originalPrice - item.price) * item.quantity : total, 0
@@ -184,7 +177,7 @@ export default {
                 selectAll.value = false
             }
         }, { deep: true })
-
+        
         // Methods
         const formatPrice = (val) => {
             return val.toLocaleString('vi-VN')
@@ -195,7 +188,15 @@ export default {
         }
 
         const increaseQty = (index) => {
-            cart.value[index].quantity++
+            const item = cart.value[index]
+            if (item.quantity + 1 > item.stockQuantity) {
+                actionResult.value = {
+                    success: false,
+                    message: 'Không đủ số lượng sản phẩm trong kho!'
+                }
+                return
+            }
+            item.quantity++
             saveCart()
         }
 
@@ -228,7 +229,15 @@ export default {
                 }
                 return
             }
-            
+            const user = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user'))
+            if (!user || !user.id_tk) {
+                actionResult.value = {
+                    success: false,
+                    message: 'Vui lòng đăng nhập để tiếp tục đặt hàng.'
+                }
+                router.push('/dangnhap')
+                return
+            }
 
             // Lưu các sản phẩm đã chọn vào localStorage để sử dụng ở trang xác nhận
             const selectedItems = getSelectedItems()
@@ -237,6 +246,10 @@ export default {
             // Chuyển đến trang xác nhận đơn hàng
             router.push('/xacnhandonhang')
         }
+        const clearCartOnLogout = () => {
+  localStorage.removeItem("cart")
+  window.dispatchEvent(new CustomEvent("cartUpdated"))
+}
 
         // Auto-hide action result after 5 seconds
         watch(actionResult, (newVal) => {
@@ -268,7 +281,9 @@ export default {
             increaseQty,
             decreaseQty,
             removeItem,
+            
             toggleAll,
+            clearCartOnLogout,
             goToOrderConfirmation,
             saveCart
         }

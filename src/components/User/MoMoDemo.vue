@@ -1,3 +1,4 @@
+
 <template>
   <div class="momo-container">
     <div class="momo-header">
@@ -58,67 +59,99 @@
   </div>
 </template>
 
-<script setup>
+<script>
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import useCartManagement from './LoadDB/useCartManagement.js';
 
-const route = useRoute();
-const router = useRouter();
+export default {
+  name: 'MoMoPayment',
+  setup() {
+    const route = useRoute();
+    const router = useRouter();
+    const { removeSelectedItems } = useCartManagement();
 
-const orderId = ref('');
-const hoadonId = ref('');
-const amount = ref(0);
-const qrCodeUrl = ref('');
-const isProcessing = ref(false);
-const progress = ref(0);
-const paymentResult = ref(null);
+    const orderId = ref('');
+    const hoadonId = ref('');
+    const amount = ref(0);
+    const qrCodeUrl = ref('');
+    const isProcessing = ref(false);
+    const progress = ref(0);
+    const paymentResult = ref(null);
 
-onMounted(() => {
-  orderId.value = route.query.orderId || 'DEMO_ORDER';
-  hoadonId.value = route.query.hoadonId || '';
-  amount.value = parseInt(route.query.amount) || 0;
-  qrCodeUrl.value = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(window.location.href)}`;
-});
+    onMounted(() => {
+      orderId.value = route.query.orderId || 'DEMO_ORDER';
+      hoadonId.value = route.query.hoadonId || '';
+      amount.value = parseInt(route.query.amount) || 0;
+      qrCodeUrl.value = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(window.location.href)}`;
+    });
 
-const formatCurrency = (value) => {
-  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
-};
+    const formatCurrency = (value) => {
+      return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+    };
 
-const startPayment = () => {
-  isProcessing.value = true;
-  progress.value = 0;
-  paymentResult.value = null;
+    const startPayment = () => {
+      isProcessing.value = true;
+      progress.value = 0;
+      paymentResult.value = null;
 
-  const interval = setInterval(() => {
-    progress.value += 10;
-    if (progress.value >= 100) {
-      clearInterval(interval);
-      completePayment();
-    }
-  }, 300);
-};
+      const interval = setInterval(() => {
+        progress.value += 10;
+        if (progress.value >= 100) {
+          clearInterval(interval);
+          completePayment();
+        }
+      }, 300);
+    };
 
-const completePayment = () => {
-  isProcessing.value = false;
-  const isSuccess = Math.random() > 0.3;
-  paymentResult.value = {
-    success: isSuccess,
-    message: isSuccess ? 'Thanh toán thành công! Cảm ơn bạn đã sử dụng dịch vụ.' : 'Thanh toán thất bại. Vui lòng thử lại sau.',
-  };
-};
+    const completePayment = () => {
+      isProcessing.value = false;
+      const isSuccess = Math.random() > 0.3; // Demo logic, replace with actual payment API
+      paymentResult.value = {
+        success: isSuccess,
+        message: isSuccess ? 'Thanh toán thành công! Cảm ơn bạn đã sử dụng dịch vụ.' : 'Thanh toán thất bại. Vui lòng thử lại sau.',
+      };
 
-const goToSuccess = () => {
-  const returnUrl = `/return?status=success&orderId=${orderId.value}&hoadonId=${hoadonId.value}&resultCode=0&message=Thanh%20toán%20thành%20công`;
-  router.push(returnUrl);
-};
+      if (isSuccess) {
+        // Clear selected items from cart after successful payment
+        removeSelectedItems();
+        // Clear selectedCartItems from localStorage
+        localStorage.removeItem('selectedCartItems');
+        // Clear orderData from localStorage
+        localStorage.removeItem('orderData');
+      }
+    };
 
-const retryPayment = () => {
-  paymentResult.value = null;
-  progress.value = 0;
-};
+    const goToSuccess = () => {
+      const returnUrl = '/';
+      router.push(returnUrl);
+    };
 
-const goBack = () => {
-  router.push('/giohang');
+    const retryPayment = () => {
+      paymentResult.value = null;
+      progress.value = 0;
+    };
+
+    const goBack = () => {
+      router.push('/giohang');
+    };
+
+    return {
+      orderId,
+      hoadonId,
+      amount,
+      qrCodeUrl,
+      isProcessing,
+      progress,
+      paymentResult,
+      formatCurrency,
+      startPayment,
+      completePayment,
+      goToSuccess,
+      retryPayment,
+      goBack,
+    };
+  },
 };
 </script>
 

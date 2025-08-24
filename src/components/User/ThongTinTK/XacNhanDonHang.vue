@@ -188,11 +188,13 @@
 <script>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import useCartManagement from '../LoadDB/useCartManagement'
 
 export default {
     name: 'OrderConfirmation',
     setup() {
         const router = useRouter()
+        const { loadCart } = useCartManagement() 
 
         const selectedItems = ref([])
         const processing = ref(false)
@@ -327,6 +329,7 @@ export default {
         }
 
         onMounted(() => {
+            loadCart() 
             loadSelectedItems()
             loadUserInfo()
         })
