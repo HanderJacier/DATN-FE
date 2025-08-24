@@ -159,9 +159,23 @@ export default {
     // Unfavorite
     const handleUnfavorite = async (product) => {
       if (!product?.id_sp || !idTk) return
+
       const ok = await updateSPYeuThich({ sanpham: Number(product.id_sp), taikhoan: idTk })
-      if (ok) await fetchSPYeuThich(idTk)
+      if (ok) {
+        // Xóa khỏi localStorage
+        const key = `favorites_user_${idTk}`
+        let favs = JSON.parse(localStorage.getItem(key) || '[]')
+        favs = favs.filter(id => id !== Number(product.id_sp))
+        localStorage.setItem(key, JSON.stringify(favs))
+
+        // Refresh danh sách favorite trên page
+        await fetchSPYeuThich(idTk)
+
+        // Dispatch event để các nút chi tiết lắng nghe và cập nhật trạng thái
+        window.dispatchEvent(new CustomEvent('favorite-updated', { detail: { id_sp: Number(product.id_sp), liked: false } }))
+      }
     }
+
 
     // Điều hướng
     const goToDetail = (product) => {
