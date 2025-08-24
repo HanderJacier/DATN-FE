@@ -221,11 +221,16 @@
                   <div class="d-flex gap-2">
                     <!-- Nút thêm vào giỏ -->
                     <button
-                      class="btn btn-outline-primary d-flex align-items-center justify-content-center gap-2 px-3 py-2 rounded-3 shadow-sm fw-semibold"
-                      style="min-width: 180px; height: 44px; white-space: nowrap;" @click="addToCart">
-                      <i class="bi bi-cart-fill fs-5"></i>
-                      <span>Thêm vào giỏ</span>
-                    </button>
+  class="btn btn-outline-primary d-flex align-items-center justify-content-center gap-2 px-3 py-2 rounded-3 shadow-sm fw-semibold"
+  style="min-width: 180px; height: 44px; white-space: nowrap;"
+  @click="addToCart"
+>
+  <i class="bi bi-cart-fill fs-5"></i>
+  <span>Thêm vào giỏ</span>
+  <span v-if="cartQuantity > 0" class="badge bg-warning text-dark ms-2">
+    Đã có: {{ cartQuantity }}
+  </span>
+</button>
 
                     <!-- Nút mua ngay -->
                     <button
@@ -320,7 +325,15 @@ import ThichSanPham from './ChiTietSP/ThichSanPham.vue'
 import ProductReviews from './ChiTietSP/BinhLuan.vue'
 import SanPhamMoi from './ChiTietSP/SanPhamCungLoai.vue'
 import SanPhamCungLoai from './ChiTietSP/SanPhamCungLoai.vue'
+import useCartManagement from './LoadDB/useCartManagement.js'
+const { cart, addToCart: addToCartComposable, loadCart } = useCartManagement()
 
+const cartQuantity = computed(() => {
+  const item = cart.value.find(
+    i => i.id === product.value?.id_sp && i.variant === (product.value?.mausac || 'Mặc định')
+  )
+  return item ? item.quantity : 0
+})
 const route = useRoute()
 const router = useRouter()
 const { product, productImages, fetchChiTietSanPham } = useHomeLogic()
@@ -384,27 +397,11 @@ const nextImage = () => {
 }
 
 const addToCart = () => {
-  const cart = JSON.parse(localStorage.getItem('cart')) || []
-  const item = {
-    id: product.value.id_sp,
-    name: product.value.tensanpham,
-    price: giaHienTai.value,
-    image: productImages.value[0]?.src || product.value.anhgoc,
-    quantity: 1,
-    variant: product.value.mausac || 'Mặc định',
-    selected: true,
-    originalPrice: product.value.dongia
+  if (cartQuantity.value + 1 > product.value.soluong) {
+    alert('Không đủ số lượng tồn kho')
+    return
   }
-
-  const index = cart.findIndex(p => p.id === item.id)
-  if (index !== -1) {
-    cart[index].quantity += 1
-  } else {
-    cart.push(item)
-  }
-
-  localStorage.setItem('cart', JSON.stringify(cart))
-  window.dispatchEvent(new Event("storage"))
+  addToCartComposable(product.value, 1)
 }
 
 const buyNow = () => {
@@ -433,6 +430,7 @@ const fetchRatingStats = async (productId) => {
 };
 
 onMounted(async () => {
+  loadCart()
   const id = route.params.id
   if (id) {
     await fetchChiTietSanPham(id)

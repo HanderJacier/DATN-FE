@@ -17,7 +17,7 @@ import ChiTietSP from "../components/User/ChiTietSP.vue";
 import TimKiem from "../components/User/TimKiem.vue";
 import GopYUser from "../components/User/GopYUser.vue";
 import Return from "../view/Return.vue";
-import MoMoDemo from "../view/MoMoDemo.vue";
+import MoMoDemo from "../components/User/MoMoDemo.vue";
 // Admin
 import Dashboard from "../components/Admin/Dashboard.vue";
 import GopY from "../components/Admin/GopY.vue";
