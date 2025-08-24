@@ -22,7 +22,7 @@ function isGiamGiaValid(sp) {
   if (!dongia || !giamgia || giamgia >= dongia) return false
   if (!sp?.hangiamgia) return false
 
-  const [day, month, year] = sp.hangiamgia.split('/')
+  const [day, month, year] = String(sp.hangiamgia).split('/')
   if (!day || !month || !year) return false
   const han = new Date(+year, +month - 1, +day)
   han.setHours(0, 0, 0, 0)
@@ -59,7 +59,8 @@ const sanPhamHienThi = computed(() => {
       ...sp,
       dongiaNum: toNum(sp.dongia),
       giamgiaNum: toNum(sp.giamgia),
-      thuongHieuHienThi: sp?.thuonghieuTen || sp?.thuonghieu_ten || 'Thương hiệu khác'
+      thuongHieuHienThi: sp?.thuonghieuTen || sp?.thuonghieu_ten || 'Thương hiệu khác',
+      pct: pctDiscount(sp)
     }))
 })
 </script>
@@ -75,14 +76,27 @@ const sanPhamHienThi = computed(() => {
     </div>
 
     <!-- Render Swiper chỉ khi có dữ liệu -->
-    <Swiper v-else :slides-per-view="1" :space-between="10"
-      :breakpoints="{ 576: { slidesPerView: 2 }, 768: { slidesPerView: 3 }, 992: { slidesPerView: 4 } }" navigation
-      :modules="[Navigation]">
+    <Swiper
+      v-else
+      :slides-per-view="1"
+      :space-between="10"
+      :breakpoints="{ 576: { slidesPerView: 2 }, 768: { slidesPerView: 3 }, 992: { slidesPerView: 4 } }"
+      navigation
+      :modules="[Navigation]"
+    >
       <SwiperSlide v-for="sp in sanPhamHienThi" :key="sp.id_sp">
         <RouterLink :to="`/sanpham/${sp.id_sp}`" class="text-decoration-none text-dark">
-          <div class="card product-card mx-2">
-            <img :src="sp.anhgoc" class="card-img-top product-img" :alt="sp.tensanpham" loading="lazy"
-              @error="onImgErr" />
+          <div class="card product-card mx-2 position-relative">
+            <!-- 🔻 Badge % giảm giá ở góc trên ảnh -->
+            <div class="sale-badge" :title="`Giảm ${sp.pct}%`">-{{ sp.pct }}%</div>
+
+            <img
+              :src="sp.anhgoc"
+              class="card-img-top product-img"
+              :alt="sp.tensanpham"
+              loading="lazy"
+              @error="onImgErr"
+            />
             <div class="card-body">
               <h6 class="fw-bold text-truncate" :title="sp.tensanpham">{{ sp.tensanpham }}</h6>
               <p class="mb-1 text-secondary small">{{ sp.thuongHieuHienThi }}</p>
@@ -91,7 +105,7 @@ const sanPhamHienThi = computed(() => {
               <div class="product-price">
                 <span class="price-discount">{{ formatVND(sp.giamgiaNum) }}₫</span>
                 <span class="price-original">{{ formatVND(sp.dongiaNum) }}₫</span>
-                <span class="discount-badge">-{{ pctDiscount(sp) }}%</span>
+                <!-- (ĐÃ bỏ badge phần trăm ở dưới để tránh trùng với badge trên ảnh) -->
               </div>
 
               <button class="btn btn-outline-dark w-100 mt-2 rounded-pill">Xem chi tiết</button>
@@ -112,12 +126,12 @@ const sanPhamHienThi = computed(() => {
   height: 100%;
   background-color: #fff;
 }
-
 .product-card:hover {
   box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
   transform: translateY(-2px);
 }
 
+/* Ảnh */
 .card-img-top.product-img {
   display: block;
   margin: auto;
@@ -127,43 +141,61 @@ const sanPhamHienThi = computed(() => {
   object-fit: contain;
   background-color: #fff;
 }
-
 .card-img-top {
   border-top-left-radius: 12px;
   border-top-right-radius: 12px;
   padding-top: 10px;
 }
 
+/* Giá */
 .product-price {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
 }
-
-/* Giá hiển thị cuối cùng (dù giảm hay không giảm) */
 .price-discount,
 .price-normal {
   color: #e53935;
   font-weight: 700;
   font-size: 1.05rem;
 }
-
-/* Giá gốc gạch ngang */
 .price-original {
   color: #9e9e9e;
   text-decoration: line-through;
   font-size: .85rem;
 }
 
-/* Badge giảm giá */
-.discount-badge {
-  background: linear-gradient(135deg, #ff4b2b, #3e82ff);
-  color: white;
-  font-weight: 600;
-  font-size: .75rem;
-  padding: .25em .6em;
-  border-radius: 6px;
-  box-shadow: 0 2px 4px rgba(255, 64, 129, .3);
+/* 🔻 Badge % giảm giá ở góc */
+.sale-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px; /* đổi sang right: 8px nếu thích góc phải */
+  z-index: 6;
+  background: #e53935;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 8px;
+  line-height: 1;
+  box-shadow: 0 2px 6px rgba(0,0,0,.18);
+  user-select: none;
 }
+
+/* (Tuỳ chọn) Kiểu ribbon nhỏ nếu muốn nổi bật hơn:
+.sale-badge {
+  top: 12px;
+  left: -8px;
+  border-radius: 0 6px 6px 0;
+}
+.sale-badge::after {
+  content: '';
+  position: absolute;
+  left: 0; bottom: -6px;
+  border-width: 6px 6px 0 0;
+  border-style: solid;
+  border-color: #a02727 transparent transparent transparent;
+}
+*/
 </style>

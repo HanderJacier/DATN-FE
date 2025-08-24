@@ -22,7 +22,7 @@ function isGiamGiaValid(sp) {
   if (!dongia || !giamgia || giamgia >= dongia) return false
   if (!sp?.hangiamgia) return false
 
-  const [day, month, year] = sp.hangiamgia.split('/')
+  const [day, month, year] = String(sp.hangiamgia).split('/')
   if (!day || !month || !year) return false
   const han = new Date(+year, +month - 1, +day)
   han.setHours(0, 0, 0, 0)
@@ -42,6 +42,16 @@ function onImgErr(e) {
   e.target.src = 'https://via.placeholder.com/400x300?text=No+Image'
 }
 
+// Format hiển thị lượt yêu thích theo yêu cầu
+function formatLikesDisplay(n) {
+  const x = Number(n ?? 0)
+  if (x <= 9) return String(x)             // 0-9: số thật
+  if (x < 20) return '10+'                 // 10–19
+  if (x < 100) return '20+'                // 20–99
+  if (x < 10_000_000) return '100+'        // 100–9,999,999
+  return '10tr+'                           // >= 10,000,000
+}
+
 // ===== Chuẩn hoá dữ liệu trước khi render =====
 const sanPhamHienThi = computed(() => {
   const raw = unref(sanPhamYeuThich)
@@ -55,12 +65,23 @@ const sanPhamHienThi = computed(() => {
 
   return list
     .filter(sp => (sp?.soluong ?? 0) > 0)
-    .map(sp => ({
-      ...sp,
-      dongiaNum: toNum(sp.dongia),
-      giamgiaNum: toNum(sp.giamgia),
-      thuongHieuHienThi: sp?.thuonghieuTen || sp?.thuonghieu_ten || 'Thương hiệu khác'
-    }))
+    .map(sp => {
+      const favRaw =
+        sp?.SoYeuThich ??
+        sp?.favoriteCount ??
+        sp?.favorites ??
+        sp?.yeuthich ??
+        0
+      const favCountNum = Math.max(0, toNum(favRaw) ?? 0)
+      return {
+        ...sp,
+        dongiaNum: toNum(sp.dongia),
+        giamgiaNum: toNum(sp.giamgia),
+        thuongHieuHienThi: sp?.thuonghieuTen || sp?.thuonghieu_ten || 'Thương hiệu khác',
+        favCountNum,
+        favDisplay: formatLikesDisplay(favCountNum)
+      }
+    })
 })
 </script>
 
@@ -75,14 +96,29 @@ const sanPhamHienThi = computed(() => {
     </div>
 
     <!-- Render Swiper chỉ khi có dữ liệu -->
-    <Swiper v-else :slides-per-view="1" :space-between="10"
-      :breakpoints="{ 576: { slidesPerView: 2 }, 768: { slidesPerView: 3 }, 992: { slidesPerView: 4 } }" navigation
-      :modules="[Navigation]">
+    <Swiper
+      v-else
+      :slides-per-view="1"
+      :space-between="10"
+      :breakpoints="{ 576: { slidesPerView: 2 }, 768: { slidesPerView: 3 }, 992: { slidesPerView: 4 } }"
+      navigation
+      :modules="[Navigation]"
+    >
       <SwiperSlide v-for="sp in sanPhamHienThi" :key="sp.id_sp">
         <RouterLink :to="`/sanpham/${sp.id_sp}`" class="text-decoration-none text-dark">
-          <div class="card product-card mx-2">
-            <img :src="sp.anhgoc" class="card-img-top product-img" :alt="sp.tensanpham" loading="lazy"
-              @error="onImgErr" />
+          <div class="card product-card mx-2 position-relative">
+            <!-- 💖 Badge lượt yêu thích ở góc trên phải -->
+            <div class="fav-badge" :title="`${sp.favCountNum.toLocaleString('vi-VN')} lượt yêu thích`">
+              <i class="bi bi-heart-fill me-1"></i>{{ sp.favDisplay }}
+            </div>
+
+            <img
+              :src="sp.anhgoc"
+              class="card-img-top product-img"
+              :alt="sp.tensanpham"
+              loading="lazy"
+              @error="onImgErr"
+            />
             <div class="card-body">
               <h6 class="fw-bold text-truncate" :title="sp.tensanpham">{{ sp.tensanpham }}</h6>
               <p class="mb-1 text-secondary small">{{ sp.thuongHieuHienThi }}</p>
@@ -122,12 +158,12 @@ const sanPhamHienThi = computed(() => {
   height: 100%;
   background-color: #fff;
 }
-
 .product-card:hover {
   box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
   transform: translateY(-2px);
 }
 
+/* Ảnh */
 .card-img-top.product-img {
   display: block;
   margin: auto;
@@ -137,29 +173,25 @@ const sanPhamHienThi = computed(() => {
   object-fit: contain;
   background-color: #fff;
 }
-
 .card-img-top {
   border-top-left-radius: 12px;
   border-top-right-radius: 12px;
   padding-top: 10px;
 }
 
+/* Giá */
 .product-price {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
 }
-
-/* Giá hiển thị cuối cùng (dù giảm hay không giảm) */
 .price-discount,
 .price-normal {
   color: #e53935;
   font-weight: 700;
   font-size: 1.05rem;
 }
-
-/* Giá gốc gạch ngang */
 .price-original {
   color: #9e9e9e;
   text-decoration: line-through;
@@ -175,5 +207,27 @@ const sanPhamHienThi = computed(() => {
   padding: .25em .6em;
   border-radius: 6px;
   box-shadow: 0 2px 4px rgba(255, 64, 129, .3);
+}
+
+/* 💖 Badge lượt yêu thích (góc trên phải) */
+.fav-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(255, 64, 129, .95);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.18);
+  backdrop-filter: saturate(1.2) blur(1px);
+}
+.fav-badge .bi-heart-fill {
+  font-size: 0.75rem;
 }
 </style>
