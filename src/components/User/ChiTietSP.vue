@@ -173,11 +173,11 @@
                     <!--Giá tổng và giá giảm-->
                     <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
                       <span class="fw-bold fs-3 text-danger">
-                        {{ giaHienTai.toLocaleString() }}đ
+                        {{ giaHienTai.toLocaleString('de-DE') }}đ
                       </span>
 
                       <span v-if="isGiamGiaValid" class="text-muted text-decoration-line-through small">
-                        {{ product.dongia.toLocaleString() }}đ
+                        {{ product.dongia.toLocaleString('de-DE') }}đ
                       </span>
 
                       <span v-if="isGiamGiaValid" class="badge bg-danger text-white px-2 py-1 small rounded-pill">
