@@ -159,7 +159,6 @@ export default {
     // Unfavorite
     const handleUnfavorite = async (product) => {
       if (!product?.id_sp || !idTk) return
-
       const ok = await updateSPYeuThich({ sanpham: Number(product.id_sp), taikhoan: idTk })
       if (ok) {
         // Xóa khỏi localStorage
