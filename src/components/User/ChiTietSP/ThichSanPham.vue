@@ -34,13 +34,12 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 
-
 const props = defineProps({
   productId: {
     type: [Number, String],
     default: null
   },
-  isLikedInit: { // nếu muốn set trạng thái ban đầu từ ngoài
+  isLikedInit: {
     type: Boolean,
     default: false
   }
@@ -49,7 +48,6 @@ const props = defineProps({
 const route = useRoute()
 const router = useRouter()
 
-// lấy tham số truyền vào cho api
 const sanPhamId = computed(() => Number(props.productId ?? route.params.id))
 
 let taiKhoanId = null
@@ -60,7 +58,7 @@ if (userData && userData.id_tk) {
   taiKhoanId = userData.id_tk
 }
 
-// UI thông báo
+// ---------------- UI ----------------
 const isLiked = ref(props.isLikedInit)
 const thongBao = ref({ show: false, message: '', type: 'success' })
 function hienThiThongBao(message, type = 'success') {
@@ -81,41 +79,31 @@ function hienThongBaoDangNhap() {
   timeoutYeuCau = setTimeout(() => (yeuCauDangNhap.value = false), 1500)
 }
 
-// ------------------- LOCALSTORAGE -------------------
-// key lưu yêu thích theo user
+// ---------------- LocalStorage ----------------
 function getFavoriteKey() {
   return `favorites_user_${taiKhoanId}`
 }
 
-// ------------------- LOAD DATA -------------------
-onMounted(async () => {
+// ---------------- Load trạng thái ----------------
+onMounted(() => {
   if (!taiKhoanId) return
-
-  try {
-    const res = await axios.get(`http://localhost:8080/api/datn/WBH_US_GET_TRANGTHAI_YT_SP`, {
-      params: {
-        p_sanpham: sanPhamId.value,
-        p_taikhoan: taiKhoanId
-      }
-    })
-
-    // ví dụ API trả về { trangThai: "Y" | "N" }
-    const trangThai = res.data?.trangThai
-    isLiked.value = trangThai === "Y"  // chỉ set true khi DB trả Y
-  } catch (err) {
-    console.error("Lỗi khi lấy trạng thái:", err)
-    isLiked.value = false
+  const localFavorites = JSON.parse(localStorage.getItem(getFavoriteKey()) || '[]')
+  if (localFavorites.includes(sanPhamId.value)) {
+    isLiked.value = true
   }
 })
 
-// gọi api + lưu vào localStorage
-const handleToggleLike = async () => {
+// ---------------- Toggle yêu thích ----------------
+async function handleToggleLike() {
   if (!taiKhoanId) {
     hienThongBaoDangNhap()
     return
   }
 
+  const newStatus = !isLiked.value
+
   try {
+    // Gọi API cập nhật trạng thái yêu thích
     await axios.post('http://localhost:8080/api/datn/WBH_US_UPD_CAPNHAT_YT_SP', {
       params: {
         p_sanpham: sanPhamId.value,
@@ -123,11 +111,22 @@ const handleToggleLike = async () => {
       }
     })
 
-    isLiked.value = !isLiked.value
+    // Cập nhật localStorage
+    let favs = JSON.parse(localStorage.getItem(getFavoriteKey()) || '[]')
+    if (newStatus) {
+      if (!favs.includes(sanPhamId.value)) favs.push(sanPhamId.value)
+      hienThiThongBao('Đã thêm vào Yêu thíchhhhhhhhhhhh', 'success')
+    } else {
+      favs = favs.filter(id => id !== sanPhamId.value)
+      hienThiThongBao('Đã bỏ khỏi Yêu thích', 'success')
+    }
+    localStorage.setItem(getFavoriteKey(), JSON.stringify(favs))
 
-    hienThiThongBao(isLiked.value ? 'Đã thêm vào Yêu thích' : 'Đã bỏ khỏi Yêu thích', 'success')
+    // Cập nhật UI
+    isLiked.value = newStatus
+
   } catch (err) {
-    console.error('Lỗi Yêu thích:', err)
+    console.error('Lỗi khi cập nhật Yêu thích:', err)
     hienThiThongBao('Cập nhật Yêu thích thất bại!', 'danger')
   }
 }
