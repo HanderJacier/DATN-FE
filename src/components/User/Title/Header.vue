@@ -2,36 +2,51 @@
   <header>
     <div class="container-fluid text-white py-2 shadow-sm"
       style="background: linear-gradient(90deg, #667eea, #764ba2);">
-      <div class="d-flex align-items-center justify-content-between flex-wrap">
+      <div class="d-flex align-items-center justify-content-between flex-wrap py-2">
         <!-- Logo -->
-        <router-link to="/" class="d-flex align-items-center text-white text-decoration-none">
+        <router-link to="/" class="d-flex align-items-center text-white text-decoration-none me-3">
           <img :src="logoImg" alt="logo" class="me-2" style="height:30px;" />
           <span class="fw-bold fs-5">TechMartVN<span class="fs-6">.com</span></span>
         </router-link>
 
-        <!-- Tìm kiếm -->
-        <div class="flex-grow-1 mx-4 position-relative" style="max-width:500px;"
-          v-click-outside="() => showSuggestions = false">
-          <div class="input-group">
-            <input type="text" class="form-control" v-model="searchKey" @input="filterProducts"
-              @focus="showSuggestions = true" @keyup.enter="goToSearchPage" placeholder="Tìm kiếm sản phẩm..." />
-            <button class="btn btn-light text-primary" type="button" @click="goToSearchPage">
-              <i class="bi bi-search"></i>
+        <!-- Danh mục + Tìm kiếm -->
+        <div class="d-flex align-items-center flex-grow-1 mx-3" style="max-width:650px;">
+          <!-- Nút Danh mục + Catalog -->
+          <div class="position-relative">
+            <button class="btn btn-danhmuc me-2 d-flex align-items-center" @click="toggleCatalog">
+              <i class="bi bi-list" style="font-size: 1.5rem;"></i>
+              <span class="ms-2">Danh mục</span>
             </button>
+
+            <!-- Catalog hiển thị khi showCatalog = true -->
+            <Catalog v-if="showCatalog" @close="showCatalog = false" />
+
           </div>
 
-          <!-- Gợi ý kết quả -->
-          <div v-if="showSuggestions && filteredProducts.length > 0"
-            class="position-absolute bg-white text-dark rounded shadow p-3 w-100 mt-1" style="z-index:1000;">
-            <div v-for="(item, index) in filteredProducts.slice(0, 5)" :key="index" class="py-1 border-bottom"
-              @click="selectHint(item.tensanpham)" style="cursor:pointer;">
-              <i class="bi bi-search me-2"></i>{{ item.tensanpham }}
+          <!-- Ô Tìm kiếm -->
+          <div class=" flex-grow-1 position-relative" v-click-outside="() => showSuggestions = false">
+            <div class="input-group">
+              <input type="text" class="form-control" v-model="searchKey" @input="filterProducts"
+                @focus="showSuggestions = true" @keyup.enter="goToSearchPage" placeholder="Tìm kiếm sản phẩm..." />
+              <button class="btn btn-light text-primary" type="button" @click="goToSearchPage">
+                <i class="bi bi-search"></i>
+              </button>
+            </div>
+
+            <!-- Gợi ý kết quả -->
+            <div v-if="showSuggestions && filteredProducts.length > 0"
+              class="position-absolute bg-white text-dark rounded shadow p-3 w-100 mt-1" style="z-index:1000;">
+              <div v-for="(item, index) in filteredProducts.slice(0, 5)" :key="index" class="py-1 border-bottom"
+                @click="selectHint(item.tensanpham)" style="cursor:pointer;">
+                <i class="bi bi-search me-2"></i>{{ item.tensanpham }}
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Tài khoản & Giỏ hàng -->
         <div class="d-flex align-items-center gap-3">
+          <!-- Dropdown tài khoản -->
           <div class="dropdown" v-click-outside="() => isDropdownOpen = false">
             <button class="btn btn-light text-dark d-flex align-items-center" @click="toggleDropdown">
               <span>{{ displayName }}</span>
@@ -44,7 +59,8 @@
                 <li><router-link class="dropdown-item" to="/tatca"><i class="fas fa-box me-2 text-primary"></i> Đơn
                     mua</router-link></li>
                 <li><router-link class="dropdown-item" to="/sanphamyeuthich"><i
-                      class="fas fa-heart me-2 text-danger"></i> Yêu thích</router-link></li>
+                      class="fas fa-heart me-2 text-danger"></i>
+                    Yêu thích</router-link></li>
                 <li><router-link class="dropdown-item" to="/gopynguoidung"><i
                       class="fas fa-envelope me-2 text-warning"></i> Góp ý</router-link></li>
                 <li>
@@ -62,6 +78,7 @@
             </ul>
           </div>
 
+          <!-- Giỏ hàng -->
           <router-link class="btn btn-dark d-flex align-items-center position-relative" to="/giohang">
             <img :src="cartImg" alt="cart" class="me-2" style="width:18px;height:18px;" />
             <span>Giỏ hàng</span>
@@ -74,8 +91,6 @@
         </div>
       </div>
 
-      <!-- ✅ Đã tách Nav thành component -->
-      <Catalog />
     </div>
   </header>
 </template>
@@ -167,6 +182,13 @@ export default {
       selectedHint.value = null
     }
 
+    const showCatalog = ref(false)
+
+    const toggleCatalog = () => {
+      showCatalog.value = !showCatalog.value
+    }
+
+
     onMounted(() => {
       getStoredUser()
       updateCartCount()
@@ -189,8 +211,11 @@ export default {
       filteredProducts,
       filterProducts,
       selectHint,
-      goToSearchPage
+      goToSearchPage,
+      showCatalog,
+      toggleCatalog
     }
+
   }
 }
 </script>
@@ -198,5 +223,47 @@ export default {
 <style scoped>
 .close-icon {
   color: #9ca3af;
+}
+
+
+/*Danh mục*/
+.btn-danhmuc {
+  background-color: #3d32a2;
+  color: white;
+  font-weight: bold;
+  border-radius: 6px;
+  padding: 1px 7px;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.btn-danhmuc:hover {
+  background-color: #3d32a2;
+  color: white;
+}
+
+.catalog-overlay {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  /* bám theo mép trái container cha */
+  transform: translateX(-90%);
+  /* đẩy toàn bộ sang trái */
+  margin-top: 30px;
+  z-index: 3000;
+}
+
+
+
+.catalog-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 10px;
+  z-index: 3000;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
 }
 </style>
