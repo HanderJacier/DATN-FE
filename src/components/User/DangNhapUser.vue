@@ -3,20 +3,16 @@
     style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
 
     <div class="card shadow-lg border-0" style="border-radius: 20px; overflow: hidden; max-width: 900px; width: 100%;">
-
       <div class="row g-0">
         <!-- Image Section -->
         <div class="col-lg-6 d-none d-lg-flex">
           <div
             class="d-flex flex-column justify-content-center align-items-center text-white p-5 h-100 position-relative"
             style="background: linear-gradient(45deg, rgba(102, 126, 234, 0.9), rgba(118, 75, 162, 0.9)); min-height: 600px;">
-
-            <!-- Background Pattern -->
             <div class="position-absolute top-0 start-0 w-100 h-100 opacity-25"
               style="background-image: url('data:image/svg+xml,%3Csvg width=60 height=60 viewBox=0 0 60 60 xmlns=http://www.w3.org/2000/svg%3E%3Cg fill=none fill-rule=evenodd%3E%3Cg fill=%23ffffff fill-opacity=0.4%3E%3Ccircle cx=30 cy=30 r=2/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');">
             </div>
 
-            <!-- Welcome Content -->
             <div class="text-center position-relative">
               <div class="mb-4">
                 <i class="fas fa-user-circle" style="font-size: 4rem; opacity: 0.9;"></i>
@@ -56,9 +52,15 @@
                   <i class="fas fa-envelope me-2 text-primary"></i>
                   Email hoặc SĐT
                 </label>
-                <input type="text" class="form-control form-control-lg border-2"
+                <input
+                  type="text"
+                  class="form-control form-control-lg border-2"
                   style="border-radius: 10px; background-color: #f8f9fa; border: 2px solid #e9ecef; transition: all 0.3s ease;"
-                  v-model="email" placeholder="Nhập email hoặc số điện thoại" required />
+                  v-model.trim="email"
+                  placeholder="Nhập email hoặc số điện thoại"
+                  autocomplete="username"
+                  required
+                />
               </div>
 
               <div class="mb-4">
@@ -67,11 +69,21 @@
                   Mật khẩu
                 </label>
                 <div class="position-relative">
-                  <input :type="showPassword ? 'text' : 'password'" class="form-control form-control-lg border-2 pe-5"
+                  <input
+                    :type="showPassword ? 'text' : 'password'"
+                    class="form-control form-control-lg border-2 pe-5"
                     style="border-radius: 10px; background-color: #f8f9fa; border: 2px solid #e9ecef; transition: all 0.3s ease;"
-                    v-model="password" placeholder="Nhập mật khẩu" required />
-                  <button type="button" class="btn position-absolute top-50 end-0 translate-middle-y me-2 p-2"
-                    style="border: none; background: none;" @click="showPassword = !showPassword">
+                    v-model="password"
+                    placeholder="Nhập mật khẩu"
+                    autocomplete="current-password"
+                    required
+                  />
+                  <button
+                    type="button"
+                    class="btn position-absolute top-50 end-0 translate-middle-y me-2 p-2"
+                    style="border: none; background: none;"
+                    @click="showPassword = !showPassword"
+                    :aria-label="showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'">
                     <i :class="`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'} text-muted`"></i>
                   </button>
                 </div>
@@ -80,17 +92,12 @@
               <div class="row mb-4">
                 <div class="col-6">
                   <div class="form-check">
-                    <input type="checkbox" class="form-check-input" id="rememberMe" v-model="rememberMe"
-                      style="border-radius: 4px;" />
-                    <label class="form-check-label text-muted" for="rememberMe">
-                      Ghi nhớ đăng nhập
-                    </label>
+                    <input type="checkbox" class="form-check-input" id="rememberMe" v-model="rememberMe" />
+                    <label class="form-check-label text-muted" for="rememberMe">Ghi nhớ đăng nhập</label>
                   </div>
                 </div>
                 <div class="col-6 text-end">
-                  <a href="#" class="text-decoration-none text-primary">
-                    Quên mật khẩu?
-                  </a>
+                  <a href="#" class="text-decoration-none text-primary">Quên mật khẩu?</a>
                 </div>
               </div>
 
@@ -99,10 +106,15 @@
                 {{ errorMessage }}
               </div>
 
-              <button type="submit" class="btn btn-primary btn-lg w-100 mb-4"
+              <button
+                type="submit"
+                class="btn btn-primary btn-lg w-100 mb-4"
+                :disabled="loading"
+                :aria-busy="loading ? 'true' : 'false'"
                 style="border-radius: 10px; background: linear-gradient(45deg, #667eea, #764ba2); border: none; padding: 12px 0; font-weight: 600; transition: all 0.3s ease;">
                 <i class="fas fa-sign-in-alt me-2"></i>
-                Đăng nhập
+                <span v-if="!loading">Đăng nhập</span>
+                <span v-else>Đang xử lý...</span>
               </button>
             </form>
 
@@ -129,9 +141,7 @@
             <div class="text-center">
               <p class="text-muted mb-0">
                 Bạn chưa có tài khoản?
-                <router-link to="/dangky" class="text-decoration-none fw-semibold">
-                  Đăng ký ngay
-                </router-link>
+                <router-link to="/dangky" class="text-decoration-none fw-semibold">Đăng ký ngay</router-link>
               </p>
             </div>
           </div>
@@ -149,11 +159,9 @@ import useLogin from './LoadDB/useLogin'
 import GoogleLoginButton from './GoogleLoginButton.vue'
 
 export default {
-  components: {
-    GoogleLoginButton
-  },
+  components: { GoogleLoginButton },
   setup() {
-    const { userData: normalUserData, loginError: normalLoginError, login } = useLogin()
+    const { loginError, login, loading } = useLogin()
 
     const email = ref('')
     const password = ref('')
@@ -161,44 +169,35 @@ export default {
     const showPassword = ref(false)
 
     const router = useRouter()
-
-    const errorMessage = computed(() => {
-      return normalLoginError.value
-    })
+    const errorMessage = computed(() => loginError.value)
 
     const handleLogin = async () => {
-      await login(email.value, password.value)
-      processLoginResult(normalUserData.value)
-    }
+      // Dọn "dư âm" để không dùng nhầm user cũ
+      localStorage.removeItem('user')
+      sessionStorage.removeItem('user')
 
-    const processLoginResult = (userData) => {
-      if (userData) {
-        const userToStore = {
-          ...userData,
-          ...(userData.login_type === 'google' && {
-            google_name: userData.google_name,
-            google_picture: userData.google_picture,
-            login_type: 'google'
-          })
-        }
+      const { ok, user, error } = await login(email.value, password.value)
 
-        if (userData.vaitro === true) {
+      if (ok && user) {
+        const userToStore = { ...user }
+
+        // Admin -> session; User -> local (giữ logic cũ)
+        if (user.vaitro === true) {
           sessionStorage.setItem('user', JSON.stringify(userToStore))
-        } else {
-          localStorage.setItem('user', JSON.stringify(userToStore))
-        }
-
-        const vaiTro = userData.vaitro
-        if (vaiTro === true) {
           router.push('/admin').then(() => window.location.reload())
         } else {
+          // nếu muốn "ghi nhớ" theo checkbox, có thể:
+          // if (rememberMe.value) localStorage.setItem('user', JSON.stringify(userToStore))
+          // else sessionStorage.setItem('user', JSON.stringify(userToStore))
+          // Hiện tại giữ nguyên: user thường -> local
+          localStorage.setItem('user', JSON.stringify(userToStore))
           router.push('/').then(() => window.location.reload())
         }
       } else {
         Swal.fire({
           icon: 'error',
           title: 'Đăng nhập thất bại',
-          text: errorMessage.value,
+          text: error || 'Sai tài khoản hoặc mật khẩu',
         })
       }
     }
@@ -210,6 +209,7 @@ export default {
       showPassword,
       handleLogin,
       errorMessage,
+      loading,
     }
   }
 }
@@ -221,55 +221,27 @@ export default {
   box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25) !important;
   background-color: white !important;
 }
-
 .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
 }
-
 .btn-outline-primary:hover {
   background-color: #0d6efd;
   border-color: #0d6efd;
   color: white;
 }
-
 @media (max-width: 991.98px) {
-  .card {
-    margin: 20px;
-  }
-
-  .p-5 {
-    padding: 2rem !important;
-  }
+  .card { margin: 20px; }
+  .p-5 { padding: 2rem !important; }
 }
-
 @media (max-width: 575.98px) {
-  .p-5 {
-    padding: 1.5rem !important;
-  }
-
-  .d-flex.gap-2 {
-    flex-direction: column;
-  }
-
-  .d-flex.gap-2 .btn {
-    margin-bottom: 0.5rem;
-  }
+  .p-5 { padding: 1.5rem !important; }
+  .d-flex.gap-2 { flex-direction: column; }
+  .d-flex.gap-2 .btn { margin-bottom: 0.5rem; }
 }
-
-.form-control {
-  transition: all 0.3s ease;
-}
-
-.form-control:focus {
-  transform: translateY(-1px);
-}
-
-.form-check-input:checked {
-  background-color: #667eea;
-  border-color: #667eea;
-}
-
+.form-control { transition: all 0.3s ease; }
+.form-control:focus { transform: translateY(-1px); }
+.form-check-input:checked { background-color: #667eea; border-color: #667eea; }
 .form-check-input:focus {
   border-color: #667eea;
   box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);

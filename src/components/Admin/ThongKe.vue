@@ -1,41 +1,5 @@
 <template>
   <div class="container-fluid bg-light py-4 min-vh-100">
-    <!-- Tổng quan (demo tĩnh) -->
-    <div class="card p-4 mb-4 w-100">
-      <h5 class="form-title bg-warning text-dark fw-bold px-3 py-2 rounded-2 d-inline-block mb-3">
-        TỔNG QUAN ĐƠN HÀNG HÔM NAY
-      </h5>
-      <div class="row g-3">
-        <div class="col-md-4">
-          <div class="bg-success text-white rounded-3 p-3 d-flex align-items-center">
-            <i class="fa fa-plus-square fa-2x me-3"></i>
-            <div>
-              <p class="mb-0">Đơn hàng mới</p>
-              <strong>32</strong>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="bg-primary text-white rounded-3 p-3 d-flex align-items-center">
-            <i class="fa fa-dollar-sign fa-2x me-3"></i>
-            <div>
-              <p class="mb-0">Doanh thu</p>
-              <strong>1.500.420 VNĐ</strong>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="bg-danger text-white rounded-3 p-3 d-flex align-items-center">
-            <i class="fa fa-times-circle fa-2x me-3"></i>
-            <div>
-              <p class="mb-0">Huỷ</p>
-              <strong>5</strong>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Biểu đồ Doanh thu -->
     <div class="card p-4 mb-4 w-100">
       <h5 class="form-title bg-warning text-dark fw-bold px-3 py-2 rounded-2 d-inline-block mb-3">
@@ -49,6 +13,11 @@
             <option :value="14">14 ngày qua</option>
             <option :value="30">30 ngày qua</option>
           </select>
+
+          <!-- 🆕 Hiển thị khoảng ngày -->
+          <div class="form-text mt-1">
+            Khoảng thống kê: <strong>{{ revenueRangeLabel }}</strong>
+          </div>
         </div>
       </div>
 
@@ -220,6 +189,10 @@ const computeRange = (days) => {
 const { tu, den } = computeRange(rangeDays.value)
 const { baoCao, loading: loadingRevenue, error: errorRevenue, fetchBaoCao } = useBaoCaoDoanhThu(tu, den)
 
+// 🆕 computed cho khoảng ngày doanh thu
+const revenueRange = computed(() => computeRange(rangeDays.value))
+const revenueRangeLabel = computed(() => `Từ ${revenueRange.value.tu} đến ${revenueRange.value.den}`)
+
 const revenueCanvas = ref(null)
 let revenueChart = null
 
@@ -278,8 +251,8 @@ onMounted(async () => {
   await fetchBaoCao()
   drawRevenueChart()
 })
-watch(rangeDays, async (n) => {
-  const { tu, den } = computeRange(n)
+watch(rangeDays, async () => {
+  const { tu, den } = revenueRange.value
   await fetchBaoCao(tu, den)
   drawRevenueChart()
 })

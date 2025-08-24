@@ -19,7 +19,7 @@
           <router-link
             to="/admin/qlsanpham"
             class="nav-link text-white py-2 rounded"
-            :class="{ active: $route.path.includes('/admin/sanpham') }"
+            :class="{ active: $route.path.includes('/admin/qlsanpham') }"
           >
             <i class="fa fa-box me-2"></i> Sản phẩm
           </router-link>
