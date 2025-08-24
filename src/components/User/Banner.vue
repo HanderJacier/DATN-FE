@@ -3,24 +3,13 @@
     <!-- Main Banner Carousel -->
     <div id="mainBannerCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="4000">
       <div class="carousel-indicators">
-        <button 
-          v-for="(banner, index) in mainBanners" 
-          :key="index"
-          type="button" 
-          :data-bs-target="`#mainBannerCarousel`" 
-          :data-bs-slide-to="index" 
-          :class="{ active: index === 0 }"
-          :aria-label="`Slide ${index + 1}`"
-        ></button>
+        <button v-for="(banner, index) in mainBanners" :key="index" type="button"
+          :data-bs-target="`#mainBannerCarousel`" :data-bs-slide-to="index" :class="{ active: index === 0 }"
+          :aria-label="`Slide ${index + 1}`"></button>
       </div>
-      
+
       <div class="carousel-inner">
-        <div 
-          v-for="(banner, index) in mainBanners" 
-          :key="index"
-          class="carousel-item" 
-          :class="{ active: index === 0 }"
-        >
+        <div v-for="(banner, index) in mainBanners" :key="index" class="carousel-item" :class="{ active: index === 0 }">
           <div class="banner-slide" :style="{ backgroundImage: `url(${banner.image})` }">
             <div class="banner-overlay"></div>
             <div class="container">
@@ -44,7 +33,7 @@
           </div>
         </div>
       </div>
-      
+
       <button class="carousel-control-prev" type="button" data-bs-target="#mainBannerCarousel" data-bs-slide="prev">
         <span class="carousel-control-prev-icon" aria-hidden="true"></span>
         <span class="visually-hidden">Previous</span>
@@ -82,7 +71,7 @@
 import { ref } from 'vue'
 
 const mainBanners = ref([
- 
+
   {
     image: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?...',
     title: 'Công nghệ mới nhất 2025',
@@ -152,7 +141,7 @@ const promoBanners = ref([
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 100%);
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.3) 100%);
 }
 
 .banner-content {
@@ -165,7 +154,7 @@ const promoBanners = ref([
   font-size: 3.5rem;
   font-weight: 700;
   line-height: 1.2;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .banner-subtitle {
@@ -183,20 +172,20 @@ const promoBanners = ref([
 
 .banner-actions .btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
 }
 
 .promo-card {
   border-radius: 15px;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   height: 250px;
 }
 
 .promo-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
 }
 
 .promo-image-container {
@@ -253,14 +242,14 @@ const promoBanners = ref([
   padding: 1.5rem;
   background: white;
   border-radius: 15px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
   color: #333;
 }
 
 .category-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   color: #667eea;
 }
 
@@ -297,6 +286,7 @@ const promoBanners = ref([
     opacity: 0;
     transform: translateX(-50px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -307,28 +297,28 @@ const promoBanners = ref([
   .banner-slide {
     height: 400px;
   }
-  
+
   .banner-title {
     font-size: 2.5rem;
   }
-  
+
   .banner-subtitle {
     font-size: 1rem;
   }
-  
+
   .banner-actions .btn {
     padding: 10px 20px;
     font-size: 0.9rem;
   }
-  
+
   .promo-card {
     height: 200px;
   }
-  
+
   .category-card {
     padding: 1rem;
   }
-  
+
   .category-icon {
     font-size: 2rem;
   }
@@ -338,17 +328,17 @@ const promoBanners = ref([
   .banner-slide {
     height: 350px;
   }
-  
+
   .banner-title {
     font-size: 2rem;
   }
-  
+
   .banner-actions {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
   }
-  
+
   .banner-actions .btn {
     width: 100%;
   }
