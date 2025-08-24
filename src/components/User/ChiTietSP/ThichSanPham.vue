@@ -85,11 +85,41 @@ function getFavoriteKey() {
 }
 
 // ---------------- Load trạng thái ----------------
-onMounted(() => {
+onMounted(async () => {
   if (!taiKhoanId) return
+
+  // Kiểm tra localStorage trước
   const localFavorites = JSON.parse(localStorage.getItem(getFavoriteKey()) || '[]')
   if (localFavorites.includes(sanPhamId.value)) {
     isLiked.value = true
+  }
+
+  // Load trạng thái từ server
+  try {
+    const res = await axios.get('http://localhost:8080/api/datn/WBH_US_SEL_SP_YT', {
+      params: { p_id_tk: taiKhoanId }
+    })
+
+    const danhSachYT = res.data?.fields ? [res.data.fields] : res.data?.map(item => item.fields) || []
+
+    // Kiểm tra sản phẩm hiện tại có trong danh sách YT không
+    const spYT = danhSachYT.find(item => Number(item.sanpham) === sanPhamId.value)
+    if (spYT && spYT.trangthai === 'Y') {
+      isLiked.value = true
+      if (!localFavorites.includes(sanPhamId.value)) {
+        localFavorites.push(sanPhamId.value)
+        localStorage.setItem(getFavoriteKey(), JSON.stringify(localFavorites))
+      }
+    } else {
+      isLiked.value = false
+      const index = localFavorites.indexOf(sanPhamId.value)
+      if (index !== -1) {
+        localFavorites.splice(index, 1)
+        localStorage.setItem(getFavoriteKey(), JSON.stringify(localFavorites))
+      }
+    }
+  } catch (err) {
+    console.error('Lỗi load trạng thái Yêu thích:', err)
   }
 })
 
@@ -115,7 +145,7 @@ async function handleToggleLike() {
     let favs = JSON.parse(localStorage.getItem(getFavoriteKey()) || '[]')
     if (newStatus) {
       if (!favs.includes(sanPhamId.value)) favs.push(sanPhamId.value)
-      hienThiThongBao('Đã thêm vào Yêu thíchhhhhhhhhhhh', 'success')
+      hienThiThongBao('Đã thêm vào Yêu thích', 'success')
     } else {
       favs = favs.filter(id => id !== sanPhamId.value)
       hienThiThongBao('Đã bỏ khỏi Yêu thích', 'success')
