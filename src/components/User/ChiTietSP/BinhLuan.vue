@@ -113,25 +113,21 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import axios from 'axios'
 import dayjs from 'dayjs'
 import 'dayjs/locale/vi'
-import relativeTime from 'dayjs/plugin/relativeTime'
 import Swal from 'sweetalert2'
+import { getReviewsByProduct, createOrUpdateReview } from '../LoadDB/binhLuan'
 
 dayjs.locale('vi')
-dayjs.extend(relativeTime)
 
 const route = useRoute()
 const router = useRouter()
-
 const sanPhamId = parseInt(route.params.id)
 
 const danhSachDanhGia = ref([])
 const selectedStar = ref(0)
 const diemSo = ref(0)
 const noiDung = ref('')
-
 const trangHienTai = ref(1)
 const soDanhGiaMoiTrang = 4
 
@@ -141,7 +137,7 @@ if (userData && userData.id_tk) {
   taiKhoanId = userData.id_tk
 }
 
-//thông báo
+// Toast
 const Toast = Swal.mixin({
   toast: true,
   position: 'top-end',
@@ -155,7 +151,7 @@ const dangSuaDanhGia = ref(false)
 const daGuiDanhGia = ref(false)
 const danhGiaDangGui = ref(null)
 
-// Lấy từ localStorage nếu có
+// Lấy trạng thái từ localStorage
 if (taiKhoanId) {
   const reviewedKey = `reviewed_${sanPhamId}_${taiKhoanId}`
   if (localStorage.getItem(reviewedKey) === 'true') {
@@ -168,9 +164,11 @@ const danhGiaLoc = computed(() => {
   const ds = selectedStar.value === 0
     ? danhSachDanhGia.value
     : danhSachDanhGia.value.filter(dg => dg.diemSo === selectedStar.value)
+
   ds.forEach(dg => {
     dg.isOwner = taiKhoanId && dg.id_tk === taiKhoanId
   })
+
   const batDau = (trangHienTai.value - 1) * soDanhGiaMoiTrang
   return ds.slice(batDau, batDau + soDanhGiaMoiTrang)
 })
@@ -186,35 +184,28 @@ watch(selectedStar, () => {
   trangHienTai.value = 1
 })
 
-// Hàm chuẩn hóa ngày
-function parseNgay(ngay) {
-  if (!ngay) return new Date().toISOString()
-  const parsed = dayjs(ngay, ['YYYY-MM-DD', 'DD/MM/YYYY', 'YYYY-MM-DDTHH:mm:ss', 'YYYY/MM/DD'], true)
-  return parsed.isValid() ? parsed.toISOString() : new Date().toISOString()
-}
 
-// Fetch API
+// Lấy danh sách đánh giá
 const fetchDanhGia = async () => {
   try {
-    const res = await axios.post('http://localhost:8080/api/datn/WBH_US_SEL_DANH_GIA_THEO_SP', {
-      params: { p_sanpham: sanPhamId, p_pageNo: 1, p_pageSize: 100 }
-    })
+    const res = await getReviewsByProduct(sanPhamId, 1, 100)
 
-    const danhGiaRaw = res.data.map(item => {
+    const danhGiaRaw = res.map(item => {
       const f = item.fields
       return {
         id: f.id_dg,
         id_tk: f.id_tk,
         tenNguoiDung: f.hoveten || 'Người dùng',
-        ngay: parseNgay(f.ngaytao),
+        ngay: f.ngaytao,
         diemSo: f.diemso,
         noiDung: f.noidung
       }
     }).filter(dg => dg.noiDung.trim() !== '' && dg.diemSo > 0)
 
+
+
     danhSachDanhGia.value = danhGiaRaw
 
-    // Kiểm tra user đã gửi chưa
     const dgCuaUser = danhGiaRaw.find(dg => dg.id_tk === taiKhoanId)
     if (dgCuaUser) {
       daGuiDanhGia.value = true
@@ -227,6 +218,7 @@ const fetchDanhGia = async () => {
   }
 }
 
+// Gửi đánh giá
 const guiDanhGia = async () => {
   if (!taiKhoanId) {
     const res = await Swal.fire({
@@ -246,24 +238,29 @@ const guiDanhGia = async () => {
   }
 
   if (diemSo.value === 0 && noiDung.value.trim() === '') {
-    return Toast.fire({ icon: 'error', title: 'Vui lòng nhập đầy đủ thông tin đánh giá!' })
-  }
-  if (diemSo.value === 0) {
-    return Toast.fire({ icon: 'error', title: 'Vui lòng chọn số sao đánh giá!' })
-  }
-  if (noiDung.value.trim() === '') {
-    return Toast.fire({ icon: 'error', title: 'Vui lòng nhập nội dung đánh giá!' })
+    return Toast.fire({
+      icon: 'error',
+      title: 'Vui lòng nhập đầy đủ thông tin!'
+    })
   }
 
-  try {
-    await axios.post('http://localhost:8080/api/datn/WBH_US_CRT_DANH_GIA', {
-      params: {
-        p_taikhoan: taiKhoanId,
-        p_sanpham: sanPhamId,
-        p_noidung: noiDung.value,
-        p_diemso: diemSo.value
-      }
+  if (diemSo.value === 0) {
+    return Toast.fire({
+      icon: 'error',
+      title: 'Vui lòng chọn số sao đánh giá!'
     })
+  }
+
+  if (noiDung.value.trim() === '') {
+    return Toast.fire({
+      icon: 'error',
+      title: 'Vui lòng nhập nội dung đánh giá!'
+    })
+  }
+
+
+  try {
+    await createOrUpdateReview(taiKhoanId, sanPhamId, noiDung.value, diemSo.value)
     await fetchDanhGia()
     dangSuaDanhGia.value = false
     daGuiDanhGia.value = true
@@ -272,12 +269,23 @@ const guiDanhGia = async () => {
     noiDung.value = ''
     Toast.fire({ icon: 'success', title: 'Đánh giá đã được gửi!' })
   } catch (err) {
-    console.error(err)
     Toast.fire({ icon: 'error', title: 'Gửi đánh giá thất bại!' })
   }
 }
 
-const thoiGian = isoDate => dayjs(isoDate).format('DD/MM/YYYY')
+// Helpers
+const thoiGian = d => {
+  if (!d) return ''
+  const parsed = dayjs(d, [
+    'DD/MM/YYYY',
+    'YYYY-MM-DD',
+    'YYYY/MM/DD',
+    'YYYY-MM-DDTHH:mm:ss'
+  ])
+  return parsed.isValid() ? parsed.format('DD/MM/YYYY') : d
+}
+
+
 const batDauSuaDanhGia = dg => { dangSuaDanhGia.value = true; diemSo.value = dg.diemSo; noiDung.value = dg.noiDung }
 const huySuaDanhGia = () => { dangSuaDanhGia.value = false; diemSo.value = 0; noiDung.value = '' }
 

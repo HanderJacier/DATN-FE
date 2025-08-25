@@ -12,7 +12,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Swal from 'sweetalert2'
-import { getFavoritesByUser, toggleFavorite } from '../LoadDB/thichSP';
+import { getFavoritesByUser, toggleFavorite } from '../LoadDB/thichSP'
 
 const props = defineProps({
   productId: { type: [Number, String], default: null },
