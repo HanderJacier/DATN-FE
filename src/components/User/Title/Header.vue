@@ -1,6 +1,6 @@
 <template>
   <header>
-    <div class="container-fluid text-white py-2 shadow-sm"
+    <div class="container-fluid text-white py-3 shadow-sm"
       style="background: linear-gradient(90deg, #667eea, #764ba2);">
       <div class="d-flex align-items-center justify-content-between flex-wrap">
         <!-- Logo -->
@@ -73,9 +73,6 @@
           </router-link>
         </div>
       </div>
-
-      <!-- ✅ Đã tách Nav thành component -->
-      <Catalog />
     </div>
   </header>
 </template>

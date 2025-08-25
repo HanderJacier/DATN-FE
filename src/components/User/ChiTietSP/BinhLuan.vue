@@ -1,14 +1,5 @@
 <template>
   <div class="container my-4">
-    <!-- Thông báo chung -->
-    <div v-if="thongBao.show"
-      :class="['alert', thongBao.type === 'success' ? 'alert-success' : 'alert-danger', 'alert-dismissible', 'fade', 'show']"
-      role="alert"
-      style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1050; min-width: 300px;">
-      {{ thongBao.message }}
-      <button type="button" class="btn-close" aria-label="Close" @click="thongBao.show = false"></button>
-    </div>
-
     <h4 class="mb-3">Đánh giá sản phẩm</h4>
 
     <!-- Bộ lọc sao -->
@@ -150,12 +141,14 @@ if (userData && userData.id_tk) {
   taiKhoanId = userData.id_tk
 }
 
-// Thông báo chung
-const thongBao = ref({ show: false, message: '', type: 'success' })
-function hienThiThongBao(message, type = 'success') {
-  thongBao.value = { show: true, message, type }
-  setTimeout(() => (thongBao.value.show = false), 3000)
-}
+//thông báo
+const Toast = Swal.mixin({
+  toast: true,
+  position: 'top-end',
+  showConfirmButton: false,
+  timer: 2500,
+  timerProgressBar: true
+})
 
 // Trạng thái form
 const dangSuaDanhGia = ref(false)
@@ -236,7 +229,6 @@ const fetchDanhGia = async () => {
 
 const guiDanhGia = async () => {
   if (!taiKhoanId) {
-    // ✅ SweetAlert cảnh báo đăng nhập
     const res = await Swal.fire({
       icon: 'warning',
       title: 'Yêu cầu đăng nhập',
@@ -254,13 +246,13 @@ const guiDanhGia = async () => {
   }
 
   if (diemSo.value === 0 && noiDung.value.trim() === '') {
-    return hienThiThongBao('Vui lòng nhập đầy đủ thông tin đánh giá!', 'danger')
+    return Toast.fire({ icon: 'error', title: 'Vui lòng nhập đầy đủ thông tin đánh giá!' })
   }
   if (diemSo.value === 0) {
-    return hienThiThongBao('Vui lòng chọn số sao đánh giá!', 'danger')
+    return Toast.fire({ icon: 'error', title: 'Vui lòng chọn số sao đánh giá!' })
   }
   if (noiDung.value.trim() === '') {
-    return hienThiThongBao('Vui lòng nhập nội dung đánh giá!', 'danger')
+    return Toast.fire({ icon: 'error', title: 'Vui lòng nhập nội dung đánh giá!' })
   }
 
   try {
@@ -278,10 +270,10 @@ const guiDanhGia = async () => {
     localStorage.setItem(`reviewed_${sanPhamId}_${taiKhoanId}`, 'true')
     diemSo.value = 0
     noiDung.value = ''
-    hienThiThongBao('Đánh giá đã được gửi!', 'success')
+    Toast.fire({ icon: 'success', title: 'Đánh giá đã được gửi!' })
   } catch (err) {
     console.error(err)
-    hienThiThongBao('Gửi đánh giá thất bại!', 'danger')
+    Toast.fire({ icon: 'error', title: 'Gửi đánh giá thất bại!' })
   }
 }
 
