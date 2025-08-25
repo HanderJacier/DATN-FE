@@ -59,56 +59,34 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import axios from 'axios'
 
 // ✅ Import Swiper
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import 'swiper/css'
 import 'swiper/css/navigation'
 import { Navigation } from 'swiper/modules'
+import { fetchSameCategory } from '../LoadDB/sanPhamCungLoai'
 
 const route = useRoute()
 const sameCategoryProducts = ref([])
 
-const fetchSameCategory = async (id_sp) => {
-    try {
-        const response = await axios.post(
-            'http://localhost:8080/api/datn/WBH_US_SEL_SANPHAM_BY_SANPHAM_DETAIL',
-            {
-                params: { p_id_sp: id_sp }
-            }
-        )
-
-        if (Array.isArray(response.data)) {
-            sameCategoryProducts.value = response.data
-                .map(item => {
-                    const sp = item.fields
-                    return {
-                        ...sp,
-                        thuongHieuHienThi: sp?.thuonghieuTen || sp?.thuonghieu_ten || 'Thương hiệu khác'
-                    }
-                })
-                //loại bỏ sản phẩm trùng với id hiện tại
-                .filter(sp => sp.id_sp !== Number(id_sp))
-        }
-
-    } catch (error) {
-        console.error('Lỗi khi lấy sản phẩm cùng loại:', error)
-    }
+// Gọi API và gán dữ liệu
+const loadSameCategory = async (id_sp) => {
+    sameCategoryProducts.value = await fetchSameCategory(id_sp)
 }
 
 onMounted(() => {
     if (route.params.id) {
-        fetchSameCategory(route.params.id)
+        loadSameCategory(route.params.id)
     }
 })
 
-// 👉 THÊM WATCHER NÀY ĐỂ KHI ID TRÊN URL THAY ĐỔI, NÓ SẼ TẢI LẠI SẢN PHẨM CÙNG LOẠI
+// 👉 Reload khi ID sản phẩm thay đổi
 watch(
     () => route.params.id,
     (newId) => {
         if (newId) {
-            fetchSameCategory(newId)
+            loadSameCategory(newId)
         }
     }
 )
@@ -129,6 +107,7 @@ function isGiamGiaValid(sp) {
     return hanGiamGia > today
 }
 </script>
+
 
 <style scoped>
 .product-card {

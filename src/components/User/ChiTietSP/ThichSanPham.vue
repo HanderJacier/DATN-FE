@@ -11,18 +11,12 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import axios from 'axios'
 import Swal from 'sweetalert2'
+import { getFavoritesByUser, toggleFavorite } from '../LoadDB/thichSP'
 
 const props = defineProps({
-  productId: {
-    type: [Number, String],
-    default: null
-  },
-  isLikedInit: {
-    type: Boolean,
-    default: false
-  }
+  productId: { type: [Number, String], default: null },
+  isLikedInit: { type: Boolean, default: false }
 })
 
 const route = useRoute()
@@ -38,10 +32,10 @@ if (userData && userData.id_tk) {
   taiKhoanId = userData.id_tk
 }
 
-// ---------------- UI ----------------
+// UI state
 const isLiked = ref(props.isLikedInit)
 
-// Thông báo lỗi
+// Toast thông báo
 const Toast = Swal.mixin({
   toast: true,
   position: 'top-end',
@@ -50,26 +44,23 @@ const Toast = Swal.mixin({
   timerProgressBar: true
 })
 
-// ---------------- LocalStorage ----------------
+// LocalStorage key
 function getFavoriteKey() {
   return `favorites_user_${taiKhoanId}`
 }
 
-// ---------------- Load trạng thái ----------------
+// Load trạng thái yêu thích
 onMounted(async () => {
   if (!taiKhoanId) return
 
-  const localFavorites = JSON.parse(localStorage.getItem(getFavoriteKey()) || '[]')
+  let localFavorites = JSON.parse(localStorage.getItem(getFavoriteKey()) || '[]')
   if (localFavorites.includes(sanPhamId.value)) {
     isLiked.value = true
   }
 
   try {
-    const res = await axios.get('http://localhost:8080/api/datn/WBH_US_SEL_SP_YT', {
-      params: { p_id_tk: taiKhoanId }
-    })
-
-    const danhSachYT = res.data?.fields ? [res.data.fields] : res.data?.map(item => item.fields) || []
+    const res = await getFavoritesByUser(taiKhoanId)
+    const danhSachYT = res?.fields ? [res.fields] : res?.map(item => item.fields) || []
     const spYT = danhSachYT.find(item => Number(item.sanpham) === sanPhamId.value)
 
     if (spYT && spYT.trangthai === 'Y') {
@@ -91,8 +82,7 @@ onMounted(async () => {
   }
 })
 
-
-// ---------------- Toggle yêu thích ----------------
+// Toggle Yêu thích
 async function handleToggleLike() {
   if (!taiKhoanId) {
     const res = await Swal.fire({
@@ -114,12 +104,7 @@ async function handleToggleLike() {
   const newStatus = !isLiked.value
 
   try {
-    await axios.post('http://localhost:8080/api/datn/WBH_US_UPD_CAPNHAT_YT_SP', {
-      params: {
-        p_sanpham: sanPhamId.value,
-        p_taikhoan: taiKhoanId
-      }
-    })
+    await toggleFavorite(sanPhamId.value, taiKhoanId)
 
     let favs = JSON.parse(localStorage.getItem(getFavoriteKey()) || '[]')
     if (newStatus) {
@@ -133,7 +118,6 @@ async function handleToggleLike() {
     isLiked.value = newStatus
 
   } catch (err) {
-    console.error('Lỗi khi cập nhật Yêu thích:', err)
     Toast.fire({ icon: 'error', title: 'Cập nhật Yêu thích thất bại!' })
   }
 }
