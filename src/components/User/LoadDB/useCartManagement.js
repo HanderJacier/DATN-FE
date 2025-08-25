@@ -49,7 +49,7 @@ export default function useCartManagement() {
     try {
       console.log("[useCartManagement] Adding product to cart:", product);
 
-      // Kiểm tra stock từ product (giả sử product được fetch từ DB với soluong hiện tại)
+      // Kiểm tra stock từ product
       const availableStock = product.soluong || product.stockQuantity || 0;
 
       const existingIndex = cart.value.findIndex(
@@ -80,13 +80,13 @@ export default function useCartManagement() {
           };
           return false;
         }
-        // Thêm sản phẩm mới
+        // Thêm sản phẩm mới với giá hiện tại (ưu tiên giá khuyến mãi)
         const cartItem = {
           id: product.id_sp || product.id,
           name: product.tensanpham || product.name,
-          price: getCurrentPrice(product),
+          price: getCurrentPrice(product), // Giá hiện tại (ưu tiên giá khuyến mãi)
           originalPrice:
-            product.dongia || product.originalPrice || product.price,
+            product.dongia || product.originalPrice || product.price, // Giá gốc
           image:
             product.anhgoc ||
             product.image ||
@@ -233,9 +233,11 @@ export default function useCartManagement() {
       return false;
     }
   };
+
   const clearCartOnLogout = () => {
     clearCart();
   };
+
   // Clear toàn bộ giỏ hàng
   const clearCart = () => {
     cart.value = [];
@@ -256,15 +258,18 @@ export default function useCartManagement() {
   const getCurrentPrice = (product) => {
     // Kiểm tra có đang giảm giá không
     if (product.hangiamgia && product.giamgia) {
-      const saleEndDate = new Date(product.hangiamgia);
+      const saleEndDate = new Date(
+        product.hangiamgia.split("/").reverse().join("-")
+      ); // Chuyển định dạng DD/MM/YYYY thành YYYY-MM-DD
       const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      saleEndDate.setHours(0, 0, 0, 0);
 
-      if (saleEndDate > now && product.giamgia < product.dongia) {
-        return product.giamgia;
+      if (saleEndDate >= now && product.giamgia < product.dongia) {
+        return product.giamgia; // Trả về giá khuyến mãi
       }
     }
-
-    return product.dongia || product.price;
+    return product.dongia || product.price; // Trả về giá gốc nếu không có khuyến mãi
   };
 
   // Kiểm tra sản phẩm có trong giỏ hàng không
