@@ -1,33 +1,22 @@
-// ===== Thương hiệu: PHẢI KHỚP DB =====
-// Nếu DB của bạn là 1..20 (Apple..Huawei) thì dùng list 20 mục.
-// Nếu DB đã rút về 1..10 (LENOVO..SONY) thì giữ list 1..10.
-// === Ví dụ: KHỚP VỚI SEED 1..20 (Apple..Huawei) ===
+// ===== Thương hiệu: KHỚP DB =====
 export const brandList = [
-  { id: 1, name: 'Lenovo' },
+  { id: 1, name: 'LENOVO' },
   { id: 2, name: 'HP' },
-  { id: 3, name: 'Dell' },
-  { id: 4, name: 'Apple' },
+  { id: 3, name: 'DELL' },
+  { id: 4, name: 'APPLE' },
   { id: 5, name: 'ASUS' },
-  { id: 6, name: 'Samsung' },
-  { id: 7, name: 'Xiaomi' },
-  { id: 8, name: 'Vivo' },
+  { id: 6, name: 'SAMSUNG' },
+  { id: 7, name: 'XIAOMI' },
+  { id: 8, name: 'VIVO' },
   { id: 9, name: 'OPPO' },
-  { id: 10, name: 'Sony' },
-  { id: 11, name: 'Acer' },
-  { id: 12, name: 'LG' },
-  { id: 13, name: 'Panasonic' },
-  { id: 14, name: 'Canon' },
-  { id: 15, name: 'Epson' },
-  { id: 16, name: 'JBL' },
-  { id: 17, name: 'Anker' },
-  { id: 18, name: 'Huawei' }
+  { id: 10, name: 'SONY' },
 ];
 
 export const formFields = {
   tensanpham: 'Tên sản phẩm',
   dongia: 'Giá (VND)',
-  loai: 'Loại sản phẩm',        // dùng cho dropdown
-  thuonghieu: 'Thương hiệu',   // dùng cho dropdown
+  loai: 'Loại sản phẩm',
+  thuonghieu: 'Thương hiệu',
   anhgoc: 'Ảnh gốc',
   model: 'Model',
   trongluong: 'Trọng lượng',
@@ -37,11 +26,11 @@ export const formFields = {
   mausac: 'Màu sắc',
   soluong: 'Số lượng',
   anhphu: 'Ảnh phụ',
-  id_gg: 'Mức giảm (%)',       // dùng cho dropdown
+  id_gg: 'Mức giảm (%)',
   hangiamgia: 'Hạn giảm giá (dd/MM/yyyy)'
 };
 
-// Khớp SP_LOAI trong DB của bạn (đang 1..7)
+// Khớp SP_LOAI 1..7
 export const loaiMap = {
   'Điện thoại di động': '1',
   'Máy tính bảng': '2',
@@ -52,14 +41,14 @@ export const loaiMap = {
   'Đồng hồ thông minh': '7'
 };
 
-// Field cho payload gửi backend
+// ⚠️ Nếu backend có cột diachianh thì thêm vào allowedProductFields
 export const allowedProductFields = [
   'tensanpham', 'dongia', 'loai', 'thuonghieu',
   'anhgoc', 'model', 'trongluong', 'pin', 'congketnoi', 'tinhnang',
   'mausac', 'soluong', 'anhphu', 'id_gg', 'hangiamgia'
 ];
 
-// Không render input text cho loai/thuonghieu/id_gg nữa (vì đã có dropdown riêng)
+// Field render input text (dropdown riêng cho loai/thuonghieu/id_gg)
 export function getVisibleFields() {
   return [
     'tensanpham', 'dongia',
@@ -72,9 +61,10 @@ export function getVisibleFields() {
 export const defaultProduct = {
   tensanpham: '',
   dongia: 0,
-  loai: '',          // bind dropdown
-  thuonghieu: '',    // bind dropdown
+  loai: '',
+  thuonghieu: '',
   anhgoc: '',
+  diachianh: '',
   model: '',
   trongluong: '',
   pin: '',
@@ -83,6 +73,6 @@ export const defaultProduct = {
   mausac: '',
   soluong: 0,
   anhphu: '',
-  id_gg: 0,          // bind dropdown (0 = không giảm)
-  hangiamgia: ''     // dd/MM/yyyy
+  id_gg: 0,
+  hangiamgia: ''
 };
