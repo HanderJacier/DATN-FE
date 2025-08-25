@@ -35,7 +35,7 @@
       </li>
 
       <li class="list-group-item d-flex align-items-center justify-content-between"
-        @click.prevent="$router.push({ path: '/timkiem', query: { loai: 10 } })">
+        @click.prevent="$router.push({ path: '/timkiem', query: { loai: 5 } })">
         <div class="d-flex align-items-center">
           <div class="icon-circle bg-light me-3">
             <i class="bi bi-tv"></i>
@@ -46,7 +46,7 @@
       </li>
 
       <li class="list-group-item d-flex align-items-center justify-content-between"
-        @click.prevent="$router.push({ path: '/timkiem', query: { loai: 11 } })">
+        @click.prevent="$router.push({ path: '/timkiem', query: { loai: 6 } })">
         <div class="d-flex align-items-center">
           <div class="icon-circle bg-light me-3">
             <i class="bi bi-speaker"></i>
@@ -57,7 +57,7 @@
       </li>
 
       <li class="list-group-item d-flex align-items-center justify-content-between"
-        @click.prevent="$router.push({ path: '/timkiem', query: { loai: 12 } })">
+        @click.prevent="$router.push({ path: '/timkiem', query: { loai: 7 } })">
         <div class="d-flex align-items-center">
           <div class="icon-circle bg-light me-3">
             <i class="bi bi-smartwatch"></i>
