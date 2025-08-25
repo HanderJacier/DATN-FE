@@ -97,7 +97,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import Slidebar from '@/components/User/Title/Slidebar.vue'
 
 // SweetAlert2
@@ -112,26 +112,31 @@ import useDiaChi from '../LoadDB/UPDDiachi'
 function readIdTk() {
   if (typeof window === 'undefined') return null
 
-  // 1) sessionStorage
+  // 1) sessionStorage trực tiếp
   const s1 = sessionStorage.getItem('id_tk')
-  if (s1 && Number.isFinite(+s1) && +s1 > 0) return +s1
+  if (s1 && !isNaN(+s1) && +s1 > 0) return +s1
 
-  // 2) localStorage
+  // 2) localStorage trực tiếp
   const s2 = localStorage.getItem('id_tk')
-  if (s2 && Number.isFinite(+s2) && +s2 > 0) return +s2
+  if (s2 && !isNaN(+s2) && +s2 > 0) return +s2
 
-  // 3) từ object 'user'
-  const user =
-    JSON.parse(sessionStorage.getItem('user') || 'null') ||
-    JSON.parse(localStorage.getItem('user') || 'null')
+  // 3) từ object "user" trong sessionStorage / localStorage
+  let user = null
+  try {
+    user =
+      JSON.parse(sessionStorage.getItem('user') || 'null') ||
+      JSON.parse(localStorage.getItem('user') || 'null')
+  } catch (e) {
+    user = null
+  }
 
   const fromUser = Number(user?.id_tk ?? user?.id ?? user?.taikhoan)
-  if (Number.isFinite(fromUser) && fromUser > 0) return fromUser
+  if (!isNaN(fromUser) && fromUser > 0) return fromUser
 
   return null
 }
 
-// id_tk động (không fallback 2)
+// id_tk động
 const idTk = ref(readIdTk())
 
 // UI state
@@ -173,13 +178,45 @@ const Toast = Swal.mixin({
 // Map ra danh sách hiển thị
 const addresses = computed(() => rawAddresses.value || [])
 
-// Load lần đầu
-onMounted(async () => {
-  if (!idTk.value) {
-    // Không có id_tk -> không gọi API
-    return
+/* ===== Đồng bộ id_tk khi user login sau đó ===== */
+async function ensureIdTkAndFetch() {
+  const current = idTk.value
+  const latest = readIdTk()
+  if (latest && latest !== current) {
+    idTk.value = latest
+    await fetchDiaChiTheoTaiKhoan(idTk.value)
   }
-  await fetchDiaChiTheoTaiKhoan(idTk.value)
+}
+
+function handleStorage() {
+  // storage event (khác tab) – thử refresh id_tk
+  ensureIdTkAndFetch()
+}
+function handleFocusOrVisible() {
+  // khi quay lại tab hoặc trở lại visible – đọc lại id_tk
+  ensureIdTkAndFetch()
+}
+
+onMounted(async () => {
+  if (idTk.value) {
+    await fetchDiaChiTheoTaiKhoan(idTk.value)
+  }
+  window.addEventListener('storage', handleStorage)
+  window.addEventListener('focus', handleFocusOrVisible)
+  document.addEventListener('visibilitychange', handleFocusOrVisible)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('storage', handleStorage)
+  window.removeEventListener('focus', handleFocusOrVisible)
+  document.removeEventListener('visibilitychange', handleFocusOrVisible)
+})
+
+// Nếu id_tk bị xóa khỏi storage trong runtime -> clear list
+watch(idTk, (newVal, oldVal) => {
+  if (!newVal) {
+    rawAddresses.value = []
+  }
 })
 
 // Mở modal thêm
@@ -230,7 +267,7 @@ async function saveAddress() {
       await updateDiaChi(id_dc, idTk.value, diachi.trim()) // action 3
       Toast.fire({ icon: 'success', title: 'Cập nhật địa chỉ thành công' })
     } else {
-      await createDiaChi(idTk.value, diachi.trim())        // action 1
+      await createDiaChi(idTk.value, diachi.trim()) // action 1
       Toast.fire({ icon: 'success', title: 'Thêm địa chỉ thành công' })
     }
     await fetchDiaChiTheoTaiKhoan(idTk.value)
@@ -284,3 +321,12 @@ function closeModal() {
   editingIndex.value = null
 }
 </script>
+
+<style scoped>
+.modal-backdrop {
+  z-index: 1040;
+}
+.modal {
+  z-index: 1050;
+}
+</style>

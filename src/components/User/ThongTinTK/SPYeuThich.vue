@@ -12,22 +12,37 @@
         <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2">
           <h4 class="fw-bold mb-0">Danh sách sản phẩm yêu thích</h4>
           <div class="d-flex gap-2">
-            <input v-model="searchQuery" type="text" class="form-control" placeholder="Tìm theo tên / thương hiệu..."
-              style="min-width: 260px" />
+            <input
+              v-model="searchQuery"
+              type="text"
+              class="form-control"
+              placeholder="Tìm theo tên / thương hiệu..."
+              style="min-width: 260px"
+            />
           </div>
         </div>
 
-        <div v-if="loading" class="small text-muted mb-2">Đang tải...</div>
-        <div v-if="error" class="alert alert-danger py-2">{{ error }}</div>
+        <!-- trạng thái -->
+        <div v-if="!idTk" class="alert alert-warning py-2">
+          Bạn chưa đăng nhập hoặc thiếu <code>id_tk</code>. Vui lòng đăng nhập để xem danh sách yêu thích.
+        </div>
+        <div v-else-if="loading" class="small text-muted mb-2">Đang tải...</div>
+        <div v-else-if="error" class="alert alert-danger py-2">{{ error }}</div>
 
         <!-- Empty state -->
-        <div v-if="filteredFavorites.length === 0 && !loading && !error" class="text-center text-muted py-5">
+        <div
+          v-if="idTk && filteredFavorites.length === 0 && !loading && !error"
+          class="text-center text-muted py-5"
+        >
           <i class="bi bi-heart fs-1 d-block mb-2"></i>
           <div class="fw-medium">Không có sản phẩm phù hợp</div>
         </div>
 
         <!-- Grid sản phẩm (4 cột khi >=992px) -->
-        <div v-else class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+        <div
+          v-else-if="idTk"
+          class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4"
+        >
           <div class="col" v-for="(product, index) in filteredFavorites" :key="product.id_sp || index">
             <div class="card product-card h-100">
               <img :src="product.anhgoc" class="card-img-top product-img" :alt="product.tensanpham" />
@@ -40,7 +55,7 @@
                   {{ product.thuonghieu_ten || 'Thương hiệu khác' }}
                 </p>
 
-                <!-- Giá (đồng bộ logic với Swiper) -->
+                <!-- Giá -->
                 <div class="product-price" v-if="typeof toNumber(product.dongia) === 'number'">
                   <template v-if="isGiamGiaValid(product)">
                     <span class="price-discount">
@@ -64,8 +79,12 @@
               <div class="card-footer border-0 py-2 px-3">
                 <div class="d-flex gap-2 w-100">
                   <!-- Nút bỏ yêu thích nhỏ gọn -->
-                  <button class="btn btn-danger btn-icon" @click="handleUnfavorite(product)" :disabled="updating"
-                    aria-label="Bỏ yêu thích">
+                  <button
+                    class="btn btn-danger btn-icon"
+                    @click="handleUnfavorite(product)"
+                    :disabled="updating"
+                    aria-label="Bỏ yêu thích"
+                  >
                     <i class="bi bi-heart-fill"></i>
                   </button>
 
@@ -84,10 +103,37 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import Slidebar from '@/components/User/Title/Slidebar.vue'
 import useSPYeuThichSelect from '../LoadDB/SELThichSP'
 import useSPYeuThichUpdate from '../LoadDB/UPDThichSP'
+
+/* ===== Helper đọc id_tk an toàn & đồng bộ ===== */
+function readIdTk() {
+  if (typeof window === 'undefined') return null
+
+  // 1) sessionStorage trực tiếp
+  const s1 = sessionStorage.getItem('id_tk')
+  if (s1 && !isNaN(+s1) && +s1 > 0) return +s1
+
+  // 2) localStorage trực tiếp
+  const s2 = localStorage.getItem('id_tk')
+  if (s2 && !isNaN(+s2) && +s2 > 0) return +s2
+
+  // 3) từ object "user"
+  let user = null
+  try {
+    user =
+      JSON.parse(sessionStorage.getItem('user') || 'null') ||
+      JSON.parse(localStorage.getItem('user') || 'null')
+  } catch (_) {
+    user = null
+  }
+  const fromUser = Number(user?.id_tk ?? user?.id ?? user?.userId ?? user?.taikhoan)
+  if (!isNaN(fromUser) && fromUser > 0) return fromUser
+
+  return null
+}
 
 export default {
   name: 'FavoriteProductsPage',
@@ -96,25 +142,43 @@ export default {
     const { favorites, loading, error, fetchSPYeuThich } = useSPYeuThichSelect()
     const { updateSPYeuThich, loading: updating } = useSPYeuThichUpdate()
 
+    // id_tk động + auto refresh
+    const idTk = ref(readIdTk())
+
+    const ensureIdTkAndFetch = async () => {
+      const latest = readIdTk()
+      if (latest !== idTk.value) {
+        idTk.value = latest
+      }
+      if (idTk.value) {
+        await fetchSPYeuThich(idTk.value)
+      } else {
+        favorites.value = []
+      }
+    }
+
+    function handleStorage() {
+      ensureIdTkAndFetch()
+    }
+    function handleFocusOrVisible() {
+      ensureIdTkAndFetch()
+    }
+
+    onMounted(async () => {
+      await ensureIdTkAndFetch()
+      window.addEventListener('storage', handleStorage)
+      window.addEventListener('focus', handleFocusOrVisible)
+      document.addEventListener('visibilitychange', handleFocusOrVisible)
+    })
+
+    onBeforeUnmount(() => {
+      window.removeEventListener('storage', handleStorage)
+      window.removeEventListener('focus', handleFocusOrVisible)
+      document.removeEventListener('visibilitychange', handleFocusOrVisible)
+    })
+
     // Tìm kiếm
     const searchQuery = ref('')
-
-    // Lấy id_tk
-    const getStoredUser = () => {
-      try { const s = sessionStorage.getItem('user'); if (s) return JSON.parse(s) } catch (_) { }
-      try { const l = localStorage.getItem('user'); if (l) return JSON.parse(l) } catch (_) { }
-      return null
-    }
-    const extractIdTk = (u) => Number(u?.id_tk ?? u?.id ?? u?.userId ?? 0)
-    const storedUser = getStoredUser()
-    const idTk =
-      extractIdTk(storedUser) ||
-      Number(sessionStorage.getItem('id_tk')) ||
-      Number(localStorage.getItem('id_tk')) ||
-      0
-
-    if (idTk) fetchSPYeuThich(idTk)
-    else favorites.value = []
 
     // Item hợp lệ
     const displayFavorites = computed(() =>
@@ -135,7 +199,7 @@ export default {
     // Helpers số
     const toNumber = (v) => (v == null ? 0 : Number(v))
 
-    // Kiểm hạn giảm giá dd/MM/yyyy (đồng bộ với Home/Swiper)
+    // Kiểm hạn giảm giá dd/MM/yyyy
     const isGiamGiaValid = (sp) => {
       const base = toNumber(sp?.dongia)
       const sale = toNumber(sp?.giamgia)
@@ -158,23 +222,27 @@ export default {
 
     // Unfavorite
     const handleUnfavorite = async (product) => {
-      if (!product?.id_sp || !idTk) return
-      const ok = await updateSPYeuThich({ sanpham: Number(product.id_sp), taikhoan: idTk })
+      if (!product?.id_sp || !idTk.value) return
+      const ok = await updateSPYeuThich({ sanpham: Number(product.id_sp), taikhoan: idTk.value })
       if (ok) {
-        // Xóa khỏi localStorage
-        const key = `favorites_user_${idTk}`
-        let favs = JSON.parse(localStorage.getItem(key) || '[]')
+        // Xóa khỏi localStorage cache yêu thích (nếu có)
+        const key = `favorites_user_${idTk.value}`
+        let favs = []
+        try { favs = JSON.parse(localStorage.getItem(key) || '[]') } catch (_) {}
         favs = favs.filter(id => id !== Number(product.id_sp))
         localStorage.setItem(key, JSON.stringify(favs))
 
         // Refresh danh sách favorite trên page
-        await fetchSPYeuThich(idTk)
+        await fetchSPYeuThich(idTk.value)
 
-        // Dispatch event để các nút chi tiết lắng nghe và cập nhật trạng thái
-        window.dispatchEvent(new CustomEvent('favorite-updated', { detail: { id_sp: Number(product.id_sp), liked: false } }))
+        // Thông báo cho các component khác (nếu có lắng nghe)
+        window.dispatchEvent(
+          new CustomEvent('favorite-updated', {
+            detail: { id_sp: Number(product.id_sp), liked: false }
+          })
+        )
       }
     }
-
 
     // Điều hướng
     const goToDetail = (product) => {
@@ -188,6 +256,7 @@ export default {
 
     return {
       // state
+      idTk,
       favorites, loading, error, updating,
       searchQuery,
       // lists
@@ -277,7 +346,6 @@ export default {
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  /* đổi 50% nếu muốn tròn hẳn */
 }
 
 .btn-icon i {
