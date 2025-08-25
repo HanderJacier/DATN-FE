@@ -1,119 +1,135 @@
 // src/api/api.js
-import axios from 'axios'
+import axios from "axios";
 
 const apiClient = axios.create({
-  baseURL: 'http://localhost:8080/api/datn/',
+  baseURL: "http://localhost:8080/api/datn/",
   withCredentials: true,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
-})
+});
 
-export default apiClient
+export default apiClient;
 
 // ===== AUTHENTICATION API =====
 export function kiemTraPhien() {
-  return apiClient.get('xacthuc/kiem-tra-phien')
+  return apiClient.get("xacthuc/kiem-tra-phien");
 }
 
 export function dangNhap(data) {
-  return apiClient.post('xacthuc/dangnhap', data)
+  return apiClient.post("xacthuc/dangnhap", data);
 }
 
 export function dangXuat() {
-  return apiClient.post('xacthuc/dangxuat')
+  return apiClient.post("xacthuc/dangxuat");
 }
 
 // ===== FEEDBACK API =====
 export function postFeedback(data) {
-  return apiClient.post('san-pham/tao-gop-y', data)
+  return apiClient.post("san-pham/tao-gop-y", data);
 }
 
 export function fetchFeedback(page = 1, size = 10) {
-  return apiClient.get('san-pham/gop-y', {
+  return apiClient.get("san-pham/gop-y", {
     params: {
       p_pageNo: page,
       p_pageSize: size,
     },
-  })
+  });
 }
 
 // ===== GIỎ HÀNG API =====
 export function themVaoGioHang(data) {
-  return apiClient.post('gio-hang/them', data)
+  return apiClient.post("gio-hang/them", data);
 }
 
 export function xemGioHang() {
-  return apiClient.get('gio-hang/xem')
+  return apiClient.get("gio-hang/xem");
 }
 
 export function capNhatGioHang(data) {
-  return apiClient.put('gio-hang/cap-nhat', data)
+  return apiClient.put("gio-hang/cap-nhat", data);
 }
 
 export function xoaKhoiGioHang(sanPhamId) {
-  return apiClient.delete(`gio-hang/xoa/${sanPhamId}`)
+  return apiClient.delete(`gio-hang/xoa/${sanPhamId}`);
 }
 
 export function xoaTatCaGioHang() {
-  return apiClient.delete('gio-hang/xoa-tat-ca')
+  return apiClient.delete("gio-hang/xoa-tat-ca");
 }
 
 // ===== THANH TOÁN API =====
 export function taoHoaDon(orderData) {
-  return apiClient.post('thanhtoan/tao-hoa-don', orderData)
+  return apiClient.post("thanhtoan/tao-hoa-don", orderData);
 }
 
 export function lichSuDonHang() {
-  return apiClient.get('thanhtoan/lich-su')
+  return apiClient.get("thanhtoan/lich-su");
 }
 
 export function chiTietHoaDon(hoaDonId) {
-  return apiClient.get(`thanhtoan/chi-tiet/${hoaDonId}`)
+  return apiClient.get(`thanhtoan/chi-tiet/${hoaDonId}`);
 }
 
 export function xacNhanThanhToan(maGiaoDich, trangThai) {
-  return apiClient.post('thanhtoan/xac-nhan-thanh-toan', null, {
+  return apiClient.post("thanhtoan/xac-nhan-thanh-toan", null, {
     params: { maGiaoDich, trangThai },
-  })
+  });
 }
 
 // ===== HÓA ĐƠN ĐIỆN TỬ API =====
 export function taoHoaDonDienTu(hoaDonData) {
-  return apiClient.post('hoa-don/tao-hoa-don-dien-tu', hoaDonData)
+  return apiClient.post("hoa-don/tao-hoa-don-dien-tu", hoaDonData);
 }
 
 export function layHoaDonDienTu(hoaDonId) {
-  return apiClient.get(`hoa-don/chi-tiet/${hoaDonId}`)
+  return apiClient.get(`hoa-don/chi-tiet/${hoaDonId}`);
 }
 
 export function taiHoaDonPDF(hoaDonId) {
   return apiClient.get(`hoa-don/tai-pdf/${hoaDonId}`, {
-    responseType: 'blob'
-  })
+    responseType: "blob",
+  });
 }
 
 export function guiHoaDonEmail(hoaDonId, email) {
-  return apiClient.post('hoa-don/gui-email', {
+  return apiClient.post("hoa-don/gui-email", {
     hoaDonId,
-    email
-  })
+    email,
+  });
 }
 
 // ===== SẢN PHẨM API =====
 export function layDanhSachSanPham() {
-  return apiClient.get('SanPham')
+  return apiClient.get("SanPham");
 }
 
 export function layChiTietSanPham(id) {
-  return apiClient.get(`SanPham/${id}`)
+  return apiClient.get(`SanPham/${id}`);
 }
 
 // ===== LEGACY (giữ lại để tương thích) =====
 export function createMoMoPayment(orderData) {
-  return taoHoaDon(orderData)
+  return taoHoaDon(orderData);
 }
 
 export function saveOrder(orderData) {
-  return taoHoaDon(orderData)
+  return taoHoaDon(orderData);
+}
+// ===== MOMO PAYMENT API =====
+
+// Tạo yêu cầu thanh toán MoMo (backend sẽ trả payUrl)
+export function taoThanhToanMoMo(orderData) {
+  return apiClient.post("payment/create", orderData);
+}
+
+// Xử lý callback MoMo khi user redirect về (Spring Boot đã định nghĩa /payment/momo/return)
+export function ketQuaThanhToanMoMo(query) {
+  return apiClient.get("payment/momo/return", { params: query });
+}
+
+// Xử lý IPN từ MoMo (backend gọi, Vue ít dùng, nhưng để test thì thêm luôn)
+export function ipnThanhToanMoMo(query) {
+  return apiClient.get("payment/momo/ipn", { params: query });
 }

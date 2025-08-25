@@ -31,9 +31,9 @@
                     </div>
                     <div class="card-body">
                         <!-- Loading -->
-                        <div v-if="processing" class="text-center py-4">
+                        <div v-if="processing || loadingAddresses" class="text-center py-4">
                             <div class="spinner-border text-primary" role="status"></div>
-                            <p class="mt-2">Đang xử lý đơn hàng...</p>
+                            <p class="mt-2">Đang xử lý...</p>
                         </div>
 
                         <!-- Main content -->
@@ -67,8 +67,12 @@
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Địa chỉ giao hàng *</label>
-                                        <input type="text" class="form-control" v-model="customerInfo.address" 
-                                               :class="{ 'is-invalid': errors.address }" required>
+                                        <div v-if="addresses.length > 0" class="form-control" disabled>
+                                            {{ customerInfo.address || 'Không có địa chỉ mặc định' }}
+                                        </div>
+                                        <div v-else class="form-control text-muted">
+                                            Không có địa chỉ nào được lưu
+                                        </div>
                                         <div v-if="errors.address" class="invalid-feedback">{{ errors.address }}</div>
                                     </div>
                                 </div>
@@ -189,17 +193,19 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import useCartManagement from '../LoadDB/useCartManagement'
+import useDiaChiTheoTaiKhoan from '../LoadDB/SELDiaChi'
 
 export default {
     name: 'OrderConfirmation',
     setup() {
         const router = useRouter()
-        const { loadCart } = useCartManagement() 
+        const { loadCart } = useCartManagement()
+        const { addresses, fetchDiaChiTheoTaiKhoan, loading: loadingAddresses, error: errorAddresses } = useDiaChiTheoTaiKhoan()
 
         const selectedItems = ref([])
         const processing = ref(false)
         const errorMessage = ref('')
-        
+
         const customerInfo = ref({
             name: '',
             phone: '',
@@ -258,7 +264,7 @@ export default {
             }
 
             if (!customerInfo.value.address || !customerInfo.value.address.trim()) {
-                errors.value.address = 'Vui lòng nhập địa chỉ giao hàng'
+                errors.value.address = 'Không có địa chỉ giao hàng'
                 isValid = false
             }
 
@@ -267,7 +273,7 @@ export default {
 
         const proceedToPayment = () => {
             if (!validateForm()) {
-                errorMessage.value = 'Vui lòng điền đầy đủ thông tin bắt buộc'
+                errorMessage.value = 'Vui lòng kiểm tra lại thông tin'
                 return
             }
 
@@ -313,7 +319,7 @@ export default {
             }
         }
 
-        const loadUserInfo = () => {
+        const loadUserInfo = async () => {
             try {
                 const userData = localStorage.getItem('user') || sessionStorage.getItem('user')
                 if (userData) {
@@ -321,6 +327,13 @@ export default {
                     customerInfo.value.name = user.hoveten || ''
                     customerInfo.value.phone = user.sodienthoai || ''
                     customerInfo.value.email = user.email || ''
+                    const id_tk = user.id_tk || user.id || user.taikhoan
+                    if (id_tk) {
+                        await fetchDiaChiTheoTaiKhoan(id_tk)
+                        if (addresses.value.length > 0) {
+                            customerInfo.value.address = addresses.value[0].diachi // Chọn địa chỉ đầu tiên làm mặc định
+                        }
+                    }
                     console.log('Loaded user info:', customerInfo.value)
                 }
             } catch (error) {
@@ -328,10 +341,10 @@ export default {
             }
         }
 
-        onMounted(() => {
-            loadCart() 
+        onMounted(async () => {
+            loadCart()
             loadSelectedItems()
-            loadUserInfo()
+            await loadUserInfo()
         })
 
         return {
@@ -340,6 +353,9 @@ export default {
             errors,
             errorMessage,
             processing,
+            addresses,
+            loadingAddresses,
+            errorAddresses,
             subtotal,
             totalPrice,
             totalDiscount,

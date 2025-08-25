@@ -131,8 +131,7 @@ export default function usePayment() {
     switch (method) {
       case "COD":
         return "Thanh toán khi nhận hàng (COD)";
-      case "BANK":
-        return "Chuyển khoản ngân hàng";
+
       case "MOMO":
         return "MoMo";
       default:

@@ -5,6 +5,8 @@ export default function useUserManagement() {
   const users = ref([]);
   const userDetail = ref(null);
   const actionResult = ref(null);
+  const totalPages = ref(0); // Tổng số trang
+  const totalRecords = ref(0); // Tổng số bản ghi
 
   const {
     data: usersData,
@@ -41,27 +43,37 @@ export default function useUserManagement() {
 
       if (usersData.value) {
         // Xử lý response data với nhiều format khác nhau
+        let resultData = null;
         if (Array.isArray(usersData.value)) {
-          users.value = usersData.value;
+          resultData = usersData.value;
         } else if (
           usersData.value.data &&
           Array.isArray(usersData.value.data)
         ) {
-          users.value = usersData.value.data;
+          resultData = usersData.value.data;
         } else if (
           usersData.value.result &&
           Array.isArray(usersData.value.result)
         ) {
-          users.value = usersData.value.result;
+          resultData = usersData.value.result;
         } else {
-          users.value = [];
+          resultData = [];
         }
+
+        users.value = resultData;
         console.log(
           "[useUserManagement] Users fetched successfully:",
           users.value
         );
+
+        // Giả định API trả về tổng số bản ghi (nếu có)
+        // Nếu API không trả totalRecords, cần gọi thêm stored procedure hoặc query để lấy
+        totalRecords.value = usersData.value.totalRecords || resultData.length;
+        totalPages.value = Math.ceil(totalRecords.value / pageSize);
       } else {
         users.value = [];
+        totalRecords.value = 0;
+        totalPages.value = 0;
         console.log(
           "[useUserManagement] No users data returned from fetchUsersAPI."
         );
@@ -72,6 +84,8 @@ export default function useUserManagement() {
         err
       );
       users.value = [];
+      totalRecords.value = 0;
+      totalPages.value = 0;
     }
   };
 
@@ -84,27 +98,34 @@ export default function useUserManagement() {
       });
 
       if (usersData.value) {
+        let resultData = null;
         if (Array.isArray(usersData.value)) {
-          users.value = usersData.value;
+          resultData = usersData.value;
         } else if (
           usersData.value.data &&
           Array.isArray(usersData.value.data)
         ) {
-          users.value = usersData.value.data;
+          resultData = usersData.value.data;
         } else if (
           usersData.value.result &&
           Array.isArray(usersData.value.result)
         ) {
-          users.value = usersData.value.result;
+          resultData = usersData.value.result;
         } else {
-          users.value = [];
+          resultData = [];
         }
+
+        users.value = resultData;
+        totalRecords.value = resultData.length;
+        totalPages.value = 1; // Không phân trang
         console.log(
           "[useUserManagement] All users fetched successfully:",
           users.value
         );
       } else {
         users.value = [];
+        totalRecords.value = 0;
+        totalPages.value = 0;
         console.log(
           "[useUserManagement] No all users data returned from fetchUsersAPI."
         );
@@ -112,6 +133,8 @@ export default function useUserManagement() {
     } catch (err) {
       console.error("[useUserManagement] Lỗi khi lấy tất cả tài khoản:", err);
       users.value = [];
+      totalRecords.value = 0;
+      totalPages.value = 0;
     }
   };
 
@@ -161,28 +184,23 @@ export default function useUserManagement() {
   const validateUserData = (userData) => {
     const errors = [];
 
-    // Kiểm tra tên đăng nhập
     if (!userData.tendangnhap || userData.tendangnhap.trim().length < 3) {
       errors.push("Tên đăng nhập phải có ít nhất 3 ký tự");
     }
 
-    // Kiểm tra mật khẩu (chỉ khi thêm mới)
     if (!userData.id_tk && (!userData.matkhau || userData.matkhau.length < 6)) {
       errors.push("Mật khẩu phải có ít nhất 6 ký tự");
     }
 
-    // Kiểm tra họ tên
     if (!userData.hoveten || userData.hoveten.trim().length < 2) {
       errors.push("Họ tên phải có ít nhất 2 ký tự");
     }
 
-    // Kiểm tra email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!userData.email || !emailRegex.test(userData.email)) {
       errors.push("Email không hợp lệ");
     }
 
-    // Kiểm tra số điện thoại
     const phoneRegex = /^[0-9]{10,11}$/;
     if (!userData.sodienthoai || !phoneRegex.test(userData.sodienthoai)) {
       errors.push("Số điện thoại phải có 10-11 chữ số");
@@ -195,7 +213,6 @@ export default function useUserManagement() {
   const createUser = async (userData) => {
     console.log("[useUserManagement] Creating new user:", userData);
 
-    // Validate dữ liệu
     const validationErrors = validateUserData(userData);
     if (validationErrors.length > 0) {
       actionResult.value = {
@@ -227,7 +244,6 @@ export default function useUserManagement() {
       if (actionData.value) {
         let result = null;
 
-        // Xử lý response với nhiều format
         if (Array.isArray(actionData.value) && actionData.value.length > 0) {
           result = actionData.value[0];
         } else if (
@@ -242,7 +258,6 @@ export default function useUserManagement() {
           result = actionData.value;
         }
 
-        // Xử lý kết quả dựa trên stored procedure WBH_US_CRT_CREATE_ACCOUNT
         if (result && result.rtn_value !== undefined) {
           const rtnValue = result.rtn_value;
 
@@ -321,7 +336,6 @@ export default function useUserManagement() {
       userData
     );
 
-    // Validate dữ liệu (không cần validate mật khẩu khi update)
     const validationErrors = validateUserData({
       ...userData,
       matkhau: "dummy",
@@ -445,31 +459,55 @@ export default function useUserManagement() {
     console.log(
       `[useUserManagement] Updating user status for ID: ${userId} to: ${status}`
     );
+
     try {
-      const response = await fetch(
-        `http://localhost:8080/api/datn/admin/tai-khoan/${userId}/trang-thai`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({ trangThai: status }),
-        }
+      await performActionAPI("WBH_AD_UPD_TRANG_THAI_TAI_KHOAN", {
+        params: {
+          p_id_tk: userId,
+          p_trangthai: status, // 1: mở khóa, 0: khóa
+        },
+      });
+
+      console.log(
+        "[useUserManagement] Update status API response:",
+        actionData.value
       );
 
-      if (response.ok) {
-        const result = await response.json();
-        actionResult.value = {
-          success: true,
-          message: `${status ? "Mở khóa" : "Khóa"} tài khoản thành công`,
-        };
-        return true;
+      if (actionData.value) {
+        let result = null;
+
+        if (Array.isArray(actionData.value) && actionData.value.length > 0) {
+          result = actionData.value[0];
+        } else if (
+          actionData.value.data &&
+          Array.isArray(actionData.value.data) &&
+          actionData.value.data.length > 0
+        ) {
+          result = actionData.value.data[0];
+        } else {
+          result = actionData.value;
+        }
+
+        if (result && result.affected_rows !== undefined) {
+          const success = result.affected_rows > 0;
+          actionResult.value = {
+            success: success,
+            message: success
+              ? `${status ? "Mở khóa" : "Khóa"} tài khoản thành công`
+              : "Không tìm thấy tài khoản để cập nhật",
+          };
+          return success;
+        } else {
+          actionResult.value = {
+            success: false,
+            message: "Không nhận được phản hồi hợp lệ từ server",
+          };
+          return false;
+        }
       } else {
-        const errorData = await response.json();
         actionResult.value = {
           success: false,
-          message: errorData.message || "Cập nhật trạng thái thất bại",
+          message: "Không có dữ liệu phản hồi từ API",
         };
         return false;
       }
@@ -502,7 +540,6 @@ export default function useUserManagement() {
       userData
     );
 
-    // Validate dữ liệu (không cần validate mật khẩu khi update)
     const validationErrors = validateUserData({
       ...userData,
       matkhau: "dummy",
@@ -531,7 +568,6 @@ export default function useUserManagement() {
         actionData.value
       );
 
-      // Kiểm tra kết quả cập nhật thông tin cơ bản
       let basicUpdateSuccess = false;
       if (actionData.value) {
         let result = null;
@@ -604,7 +640,6 @@ export default function useUserManagement() {
         }
       }
 
-      // Tổng hợp kết quả
       if (basicUpdateSuccess && statusUpdateSuccess) {
         actionResult.value = {
           success: true,
@@ -636,6 +671,8 @@ export default function useUserManagement() {
     users,
     userDetail,
     actionResult,
+    totalPages,
+    totalRecords,
     usersLoading,
     usersError,
     detailLoading,

@@ -233,7 +233,7 @@ export default {
     const getPaymentMethodText = (method) => {
       switch (method) {
         case 'COD': return 'Thanh toán khi nhận hàng'
-        case 'BANK': return 'Chuyển khoản ngân hàng'
+       
         case 'QR': return 'Thanh toán QR Code'
         case 'MOMO': return 'Ví MoMo'
         case 'VNPAY': return 'VNPay'

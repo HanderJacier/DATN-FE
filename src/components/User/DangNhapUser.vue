@@ -89,17 +89,17 @@
                 </div>
               </div>
 
-              <div class="row mb-4">
+              <!-- <div class="row mb-4">
                 <div class="col-6">
                   <div class="form-check">
                     <input type="checkbox" class="form-check-input" id="rememberMe" v-model="rememberMe" />
                     <label class="form-check-label text-muted" for="rememberMe">Ghi nhớ đăng nhập</label>
                   </div>
                 </div>
-                <div class="col-6 text-end">
+                <div class="col-6">
                   <a href="#" class="text-decoration-none text-primary">Quên mật khẩu?</a>
                 </div>
-              </div>
+              </div> -->
 
               <div v-if="errorMessage" class="alert alert-danger d-flex align-items-center mb-4" role="alert">
                 <i class="fas fa-exclamation-triangle me-2"></i>

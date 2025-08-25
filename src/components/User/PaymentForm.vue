@@ -213,12 +213,7 @@ export default {
             switch (method) {
                 case 'COD':
                     return 'Thanh toán khi nhận hàng'
-                case 'BANK':
-                    return 'Chuyển khoản ngân hàng'
-                case 'QR':
-                    return 'Thanh toán QR Code'
-                default:
-                    return 'Không xác định'
+                
             }
         }
 
