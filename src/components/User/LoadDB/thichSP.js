@@ -1,32 +1,57 @@
-import axios from 'axios'
+// src/components/User/LoadDB/thichSP.js
+import { ref } from "vue";
+import { usePostData } from "@/components/component_callApi/callAPI";
 
-const API_BASE = 'http://localhost:8080/api/datn'
+export function useFavorites() {
+  const { data, loading, error, callAPI } = usePostData();
+  const list = ref([]);
 
-// Lấy danh sách sản phẩm yêu thích của người dùng
-export async function getFavoritesByUser(userId) {
+  // Lấy danh sách SP yêu thích của user (POST + body { params })
+  const getFavoritesByUser = async (userId) => {
     try {
-        const res = await axios.get(`${API_BASE}/WBH_US_SEL_SP_YT`, {
-            params: { p_id_tk: userId }
-        })
-        return res.data
-    } catch (err) {
-        console.error('Lỗi khi lấy danh sách Yêu thích:', err)
-        throw err
-    }
-}
+      await callAPI("WBH_US_SEL_SP_YT", {
+        params: { p_id_tk: userId },   // ✅ body JSON
+      });
 
-// Cập nhật trạng thái yêu thích (thêm hoặc bỏ)
-export async function toggleFavorite(productId, userId) {
-    try {
-        const res = await axios.post(`${API_BASE}/WBH_US_UPD_CAPNHAT_YT_SP`, {
-            params: {
-                p_sanpham: productId,
-                p_taikhoan: userId
-            }
-        })
-        return res.data
-    } catch (err) {
-        console.error('Lỗi khi cập nhật Yêu thích:', err)
-        throw err
+      const res = data.value;
+      // Chuẩn hoá các dạng payload có thể gặp
+      list.value = Array.isArray(res)
+        ? res
+        : Array.isArray(res?.recordset)
+        ? res.recordset
+        : Array.isArray(res?.data)
+        ? res.data
+        : [];
+
+      return list.value;
+    } catch (e) {
+      console.error("[getFavoritesByUser] Lỗi:", e);
+      list.value = [];
+      throw e;
     }
+  };
+
+  // Toggle yêu thích (POST + body { params })
+  const toggleFavorite = async (productId, userId) => {
+    try {
+      await callAPI("WBH_US_UPD_CAPNHAT_YT_SP", {
+        params: {                      // ✅ body JSON
+          p_sanpham: productId,
+          p_taikhoan: userId,
+        },
+      });
+      return data.value; // server trả 1 (update) / 2 (insert)
+    } catch (e) {
+      console.error("[toggleFavorite] Lỗi:", e);
+      throw e;
+    }
+  };
+
+  return {
+    list,
+    getFavoritesByUser,
+    toggleFavorite,
+    loading,
+    error,
+  };
 }
