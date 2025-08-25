@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHashHistory } from "vue-router"; // ✅ dùng hash mode
 import { encId, decId } from "@/utils/idCodec";
 
 // User
@@ -16,8 +16,9 @@ import ThanhToan from "../components/User/ThanhToan.vue";
 import ChiTietSP from "../components/User/ChiTietSP.vue";
 import TimKiem from "../components/User/TimKiem.vue";
 import GopYUser from "../components/User/GopYUser.vue";
-import Return from "../view/Return.vue";
+// import Return from "../view/Return.vue"; // ❌ trùng path /return với PaymentResult, tạm bỏ
 import MoMoDemo from "../components/User/MoMoDemo.vue";
+
 // Admin
 import Dashboard from "../components/Admin/Dashboard.vue";
 import GopY from "../components/Admin/GopY.vue";
@@ -39,9 +40,7 @@ function encodeSearchToken(query) {
   try {
     const json = JSON.stringify(query || {});
     const b64 = btoa(encodeURIComponent(json));
-    return (
-      b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "") || "_"
-    );
+    return b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "") || "_";
   } catch {
     return "_";
   }
@@ -63,21 +62,18 @@ const routes = [
   { path: "/", component: Home },
   { path: "/dangnhap", component: DangNhap },
   { path: "/dangky", component: DangKyUser },
-  { path: "/return", component: Return },
+
+  // Payment / demo
+  { path: "/return", component: PaymentResult }, // ✅ giữ path này
+  // { path: "/return-vnpay", component: Return }, // <-- nếu cần dùng Return.vue, mở dòng này & đổi link gọi tới
   { path: "/payment/momo-demo", component: MoMoDemo },
+
   { path: "/thongtintk", component: ThongTinTK },
   { path: "/sanphamyeuthich", component: SPYeuThich },
   { path: "/diachinguoidung", component: DiaChi },
 
   // ====== HÓA ĐƠN ======
-  // Route cũ (component đang dùng) – nhận id số
-  {
-    path: "/hoadonchitiet/:id(\\d+)",
-    name: "hoadonchitiet",
-    component: HoaDonChiTiet,
-  },
-
-  // Route “đẹp” – người dùng gõ URL mã hoá thì decode -> redirect về id số (component không đổi)
+  { path: "/hoadonchitiet/:id(\\d+)", name: "hoadonchitiet", component: HoaDonChiTiet },
   {
     path: "/hoadonchitiet/:code",
     beforeEnter: (to) => {
@@ -92,10 +88,7 @@ const routes = [
   { path: "/thanhtoan", component: ThanhToan },
 
   // ====== SẢN PHẨM ======
-  // Route cũ (component đang dùng) – nhận id số
   { path: "/sanpham/:id(\\d+)", name: "ChiTietSanPham", component: ChiTietSP },
-
-  // Route “đẹp” – decode -> redirect về id số
   {
     path: "/sanpham/:code",
     beforeEnter: (to) => {
@@ -106,10 +99,7 @@ const routes = [
   },
 
   // ====== TÌM KIẾM ======
-  // Route thật: component đọc query từ route.query
   { path: "/timkiem", name: "TimKiem", component: TimKiem },
-
-  // Masked entry: /s/<token> -> giải token -> quay lại /timkiem?...
   {
     path: "/s/:token(.*)",
     name: "TimKiemMaskedEntry",
@@ -120,7 +110,6 @@ const routes = [
   },
 
   { path: "/gopynguoidung", component: GopYUser },
-  { path: "/return", component: PaymentResult },
   { path: "/xacnhandonhang", component: XacNhanDonHang },
 
   // lịch sử đơn hàng
@@ -145,70 +134,22 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(import.meta.env.BASE_URL), // ✅ hash mode => reload không 404
   routes,
 });
 
-// Guard cũ giữ nguyên
+// Guard đăng nhập giữ nguyên (thêm parse an toàn)
 router.beforeEach((to, from, next) => {
   const user =
-    JSON.parse(localStorage.getItem("user")) ||
-    JSON.parse(sessionStorage.getItem("user"));
+    JSON.parse(localStorage.getItem("user") || "null") ||
+    JSON.parse(sessionStorage.getItem("user") || "null");
+
   if (to.path === "/dangnhap" && user) return next("/");
   if (to.path.startsWith("/admin") && !user) return next("/dangnhap");
   next();
 });
 
-/**
- * Sau khi điều hướng tới route dùng id số,
- * thay URL hiển thị thành bản mã hoá (KHÔNG đổi route đang active)
- * + ẨN trang TÌM KIẾM bằng token /s/<token>
- */
-router.afterEach((to) => {
-  if (typeof window === "undefined") return;
-
-  // giữ lại query & hash nếu có
-  const q = to.fullPath.split("?")[1]
-    ? `?${to.fullPath.split("?")[1].split("#")[0]}`
-    : "";
-  const h = to.fullPath.includes("#") ? `#${to.fullPath.split("#")[1]}` : "";
-
-  // ===== SẢN PHẨM =====
-  if (to.name === "ChiTietSanPham" && to.params?.id) {
-    const id = String(to.params.id);
-    if (/^\d+$/.test(id)) {
-      const code = encId(id);
-      const pretty = `/sanpham/${code}${q}${h}`;
-      if (location.pathname !== `/sanpham/${code}`) {
-        window.history.replaceState({}, "", pretty);
-      }
-      return;
-    }
-  }
-
-  // ===== HÓA ĐƠN =====
-  if (to.name === "hoadonchitiet" && to.params?.id) {
-    const id = String(to.params.id);
-    if (/^\d+$/.test(id)) {
-      const code = encId(id);
-      const pretty = `/hoadonchitiet/${code}${q}${h}`;
-      if (location.pathname !== `/hoadonchitiet/${code}`) {
-        window.history.replaceState({}, "", pretty);
-      }
-      return;
-    }
-  }
-
-  // ===== TÌM KIẾM =====
-  if (to.name === "TimKiem") {
-    const token = encodeSearchToken(to.query || {});
-    const masked = `/s/${token}${h}`;
-    const current =
-      window.location.pathname + window.location.search + window.location.hash;
-    if (current !== masked) {
-      window.history.replaceState({}, "", masked);
-    }
-  }
-});
+// ❌ BỎ afterEach “làm đẹp URL” – hash mode không cần, tránh xung đột reload
+// router.afterEach(() => {})
 
 export default router;

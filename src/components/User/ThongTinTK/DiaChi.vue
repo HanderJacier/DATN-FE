@@ -13,36 +13,46 @@
         <div class="bg-white border rounded p-4">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h5>Địa chỉ</h5>
-            <button class="btn btn-primary" type="button" @click="openAddModal">
+            <button class="btn btn-primary" type="button" @click="openAddModal" :disabled="!idTk">
               + Thêm địa chỉ mới
             </button>
           </div>
 
+          <!-- Nếu chưa có id_tk -->
+          <div v-if="!idTk" class="alert alert-warning mb-0">
+            Bạn chưa đăng nhập hoặc thiếu <code>id_tk</code>. Vui lòng đăng nhập lại để quản lý địa chỉ.
+          </div>
+
           <!-- Danh sách địa chỉ -->
-          <div
-            v-for="(addr, i) in addresses"
-            :key="addr.id_dc ?? i"
-            class="pt-3 mb-3 border-top"
-          >
-            <p class="mb-1">{{ addr.diachi }}</p>
+          <template v-else>
+            <div
+              v-for="(addr, i) in addresses"
+              :key="addr.id_dc ?? i"
+              class="pt-3 mb-3 border-top"
+            >
+              <p class="mb-1">{{ addr.diachi }}</p>
 
-            <div class="d-flex gap-2 w-100 justify-content-end mt-2">
-              <button class="btn btn-primary" type="button" @click="openEditModal(i)">
-                Cập nhật
-              </button>
-              <button class="btn btn-outline-danger" type="button" @click="deleteAddress(i)">
-                <i class="bi bi-trash"></i>
-              </button>
+              <div class="d-flex gap-2 w-100 justify-content-end mt-2">
+                <button class="btn btn-primary" type="button" @click="openEditModal(i)">
+                  Cập nhật
+                </button>
+                <button class="btn btn-outline-danger" type="button" @click="deleteAddress(i)">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
             </div>
-          </div>
 
-          <!-- Trạng thái -->
-          <div class="small mt-3">
-            <span v-if="loadingFetch || loadingSubmit">Đang xử lý...</span>
-            <span v-else-if="errorFetch || errorSubmit" class="text-danger">
-              Có lỗi xảy ra, vui lòng thử lại.
-            </span>
-          </div>
+            <!-- Trạng thái -->
+            <div class="small mt-3">
+              <span v-if="loadingFetch || loadingSubmit">Đang xử lý...</span>
+              <span v-else-if="errorFetch || errorSubmit" class="text-danger">
+                Có lỗi xảy ra, vui lòng thử lại.
+              </span>
+              <span v-else-if="addresses.length === 0" class="text-muted">
+                Chưa có địa chỉ nào, hãy thêm địa chỉ mới.
+              </span>
+            </div>
+          </template>
         </div>
       </div>
 
@@ -73,7 +83,7 @@
                 <button class="btn btn-link text-decoration-none" @click="closeModal">
                   Trở Lại
                 </button>
-                <button class="btn btn-danger px-4" @click="saveAddress">
+                <button class="btn btn-danger px-4" @click="saveAddress" :disabled="!idTk">
                   Hoàn thành
                 </button>
               </div>
@@ -92,15 +102,37 @@ import Slidebar from '@/components/User/Title/Slidebar.vue'
 
 // SweetAlert2
 import Swal from 'sweetalert2'
-// Nếu muốn, có thể import CSS global ở main.js hoặc đây:
 // import 'sweetalert2/dist/sweetalert2.min.css'
 
 // Composables gọi API
 import useDiaChiTheoTaiKhoan from '../LoadDB/SELDiaChi'
 import useDiaChi from '../LoadDB/UPDDiachi'
 
-// Lấy id_tk từ localStorage (fallback = 2)
-const idTk = Number(localStorage.getItem('id_tk')) || 2
+/* ===== Helper đọc id_tk an toàn ===== */
+function readIdTk() {
+  if (typeof window === 'undefined') return null
+
+  // 1) sessionStorage
+  const s1 = sessionStorage.getItem('id_tk')
+  if (s1 && Number.isFinite(+s1) && +s1 > 0) return +s1
+
+  // 2) localStorage
+  const s2 = localStorage.getItem('id_tk')
+  if (s2 && Number.isFinite(+s2) && +s2 > 0) return +s2
+
+  // 3) từ object 'user'
+  const user =
+    JSON.parse(sessionStorage.getItem('user') || 'null') ||
+    JSON.parse(localStorage.getItem('user') || 'null')
+
+  const fromUser = Number(user?.id_tk ?? user?.id ?? user?.taikhoan)
+  if (Number.isFinite(fromUser) && fromUser > 0) return fromUser
+
+  return null
+}
+
+// id_tk động (không fallback 2)
+const idTk = ref(readIdTk())
 
 // UI state
 const showModal = ref(false)
@@ -143,11 +175,19 @@ const addresses = computed(() => rawAddresses.value || [])
 
 // Load lần đầu
 onMounted(async () => {
-  await fetchDiaChiTheoTaiKhoan(idTk)
+  if (!idTk.value) {
+    // Không có id_tk -> không gọi API
+    return
+  }
+  await fetchDiaChiTheoTaiKhoan(idTk.value)
 })
 
 // Mở modal thêm
 function openAddModal() {
+  if (!idTk.value) {
+    Swal.fire({ icon: 'warning', title: 'Thiếu tài khoản', text: 'Vui lòng đăng nhập.' })
+    return
+  }
   isEdit.value = false
   editingIndex.value = null
   formAddress.value = { id_dc: 0, diachi: '' }
@@ -156,7 +196,12 @@ function openAddModal() {
 
 // Mở modal sửa
 function openEditModal(i) {
+  if (!idTk.value) {
+    Swal.fire({ icon: 'warning', title: 'Thiếu tài khoản', text: 'Vui lòng đăng nhập.' })
+    return
+  }
   const a = addresses.value[i]
+  if (!a) return
   isEdit.value = true
   editingIndex.value = i
   formAddress.value = { id_dc: a.id_dc, diachi: a.diachi }
@@ -165,6 +210,10 @@ function openEditModal(i) {
 
 // Lưu địa chỉ
 async function saveAddress() {
+  if (!idTk.value) {
+    await Swal.fire({ icon: 'warning', title: 'Thiếu tài khoản', text: 'Vui lòng đăng nhập.' })
+    return
+  }
   const { id_dc, diachi } = formAddress.value
   if (!diachi || !diachi.trim()) {
     await Swal.fire({
@@ -178,13 +227,13 @@ async function saveAddress() {
 
   try {
     if (isEdit.value && id_dc > 0) {
-      await updateDiaChi(id_dc, idTk, diachi.trim()) // action 3
+      await updateDiaChi(id_dc, idTk.value, diachi.trim()) // action 3
       Toast.fire({ icon: 'success', title: 'Cập nhật địa chỉ thành công' })
     } else {
-      await createDiaChi(idTk, diachi.trim())        // action 1
+      await createDiaChi(idTk.value, diachi.trim())        // action 1
       Toast.fire({ icon: 'success', title: 'Thêm địa chỉ thành công' })
     }
-    await fetchDiaChiTheoTaiKhoan(idTk)
+    await fetchDiaChiTheoTaiKhoan(idTk.value)
     closeModal()
   } catch (e) {
     Swal.fire({
@@ -197,6 +246,10 @@ async function saveAddress() {
 
 // Xoá địa chỉ
 async function deleteAddress(i) {
+  if (!idTk.value) {
+    await Swal.fire({ icon: 'warning', title: 'Thiếu tài khoản', text: 'Vui lòng đăng nhập.' })
+    return
+  }
   const a = addresses.value[i]
   if (!a?.id_dc) return
 
@@ -212,8 +265,8 @@ async function deleteAddress(i) {
 
   if (res.isConfirmed) {
     try {
-      await apiDeleteDiaChi(a.id_dc, idTk) // action 2
-      await fetchDiaChiTheoTaiKhoan(idTk)
+      await apiDeleteDiaChi(a.id_dc, idTk.value) // action 2
+      await fetchDiaChiTheoTaiKhoan(idTk.value)
       Toast.fire({ icon: 'success', title: 'Đã xoá địa chỉ' })
     } catch (e) {
       Swal.fire({

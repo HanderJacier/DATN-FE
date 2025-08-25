@@ -21,6 +21,7 @@
                 placeholder="Tìm theo ghi chú..."
                 class="form-control"
                 @keyup.enter="applyFilters"
+                :disabled="!idTk"
               />
             </div>
 
@@ -33,7 +34,7 @@
               <nav v-if="totalPages > 1" aria-label="Pagination" class="me-2">
                 <ul class="pagination mb-0">
                   <li class="page-item" :class="{ disabled: pageNo === 1 }">
-                    <button class="page-link" @click="changePage(pageNo - 1)" :disabled="pageNo === 1">
+                    <button class="page-link" @click="changePage(pageNo - 1)" :disabled="pageNo === 1 || !idTk">
                       <i class="bi bi-chevron-left"></i>
                     </button>
                   </li>
@@ -43,25 +44,30 @@
                     class="page-item"
                     :class="{ active: page === pageNo }"
                   >
-                    <button class="page-link" @click="changePage(page)">{{ page }}</button>
+                    <button class="page-link" @click="changePage(page)" :disabled="!idTk">{{ page }}</button>
                   </li>
                   <li class="page-item" :class="{ disabled: pageNo === totalPages }">
-                    <button class="page-link" @click="changePage(pageNo + 1)" :disabled="pageNo === totalPages">
+                    <button class="page-link" @click="changePage(pageNo + 1)" :disabled="pageNo === totalPages || !idTk">
                       <i class="bi bi-chevron-right"></i>
                     </button>
                   </li>
                 </ul>
               </nav>
 
-              <button class="btn btn-outline-primary btn-sm" @click="refreshData" :disabled="loading">
+              <button class="btn btn-outline-primary btn-sm" @click="refreshData" :disabled="loading || !idTk">
                 <i class="bi bi-arrow-clockwise"></i> Làm mới
               </button>
             </div>
           </div>
         </div>
 
+        <!-- Thiếu id_tk -->
+        <div v-if="!idTk" class="alert alert-warning">
+          Bạn chưa đăng nhập hoặc thiếu <code>id_tk</code>. Vui lòng đăng nhập để xem đơn hàng đã xử lý.
+        </div>
+
         <!-- Loading / Error -->
-        <div v-if="loading" class="text-center my-4">
+        <div v-else-if="loading" class="text-center my-4">
           <div class="spinner-border text-primary" role="status"></div>
           <p class="mt-2">Đang tải danh sách hóa đơn...</p>
         </div>
@@ -139,9 +145,24 @@
 <script>
 import Slidebar from '@/components/User/Title/Slidebar.vue'
 import Historybar from '@/components/User/Title/Historybar.vue'
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import useHoaDonTheoTaiKhoan from '../../LoadDB/HoaDon' // điều chỉnh đường dẫn theo dự án của bạn
+
+// Helper đọc id_tk an toàn (không fallback 2)
+function readIdTk() {
+  if (typeof window === 'undefined') return null
+  const s1 = sessionStorage.getItem('id_tk')
+  if (s1 && Number.isFinite(+s1) && +s1 > 0) return +s1
+  const s2 = localStorage.getItem('id_tk')
+  if (s2 && Number.isFinite(+s2) && +s2 > 0) return +s2
+  const user =
+    JSON.parse(sessionStorage.getItem('user') || 'null') ||
+    JSON.parse(localStorage.getItem('user') || 'null')
+  const fromUser = Number(user?.id_tk ?? user?.id ?? user?.taikhoan)
+  if (Number.isFinite(fromUser) && fromUser > 0) return fromUser
+  return null
+}
 
 export default {
   name: 'DaXuLy',
@@ -156,9 +177,10 @@ export default {
       fetchHoaDonTheoTaiKhoan, setPage, setPageSize
     } = useHoaDonTheoTaiKhoan()
 
+    const idTk = ref(readIdTk())
+
     const searchKeyword = ref('')
     const itemsPerPage = ref(10)
-    const id_tk = Number(localStorage.getItem('id_tk')) || 2
 
     // Parse dd/MM/yyyy hoặc ISO
     const parseVNDate = (s) => {
@@ -181,13 +203,12 @@ export default {
         )
       }
 
-      // sort desc by date
       return filtered.sort((a, b) => parseVNDate(b.ngaytao) - parseVNDate(a.ngaytao))
     })
 
-    // Server-side đã trả theo trang → hiển thị trực tiếp
+    // Hiển thị theo dữ liệu server trả về; totalPages vẫn dựa vào total từ API
     const paginatedOrders = computed(() => filteredOrders.value)
-    const totalPages = computed(() => Math.max(1, Math.ceil(total.value / itemsPerPage.value)))
+    const totalPages = computed(() => Math.max(1, Math.ceil((total.value || 0) / (itemsPerPage.value || 1))))
 
     // Helpers
     const formatDate = (dateString) => {
@@ -228,23 +249,38 @@ export default {
     const applyFilters = () => { changePage(1) }
 
     const changePage = async (page) => {
+      if (!idTk.value) return
       const p = Math.min(Math.max(1, page), totalPages.value)
       await setPage(p)
-      await fetchHoaDonTheoTaiKhoan(id_tk) // { p_id_tk, p_pageNo, p_pageSize }
+      await fetchHoaDonTheoTaiKhoan(idTk.value) // { p_id_tk, p_pageNo, p_pageSize }
     }
 
     const refreshData = async () => {
+      if (!idTk.value) return
       searchKeyword.value = ''
       await changePage(1)
     }
 
     onMounted(async () => {
       await setPageSize(itemsPerPage.value)
-      await changePage(1)
+      if (idTk.value) {
+        await changePage(1)
+      }
     })
+
+    // Cập nhật nếu id_tk thay đổi ở tab khác
+    const onStorage = (e) => {
+      if (e.key === 'id_tk' || e.key === 'user') {
+        idTk.value = readIdTk()
+        if (idTk.value) changePage(1)
+      }
+    }
+    window.addEventListener('storage', onStorage)
+    onBeforeUnmount(() => window.removeEventListener('storage', onStorage))
 
     return {
       // state/composable
+      idTk,
       orders, total, pageNo, pageSize,
       loading, error,
 
