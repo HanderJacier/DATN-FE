@@ -113,7 +113,7 @@
               <td>{{ (currentPage - 1) * pageSize + idx + 1 }}</td>
               <td>{{ order.hoveten }}</td>
               <td>{{ order.sodienthoai }}</td>
-              <td>{{ formatDate(order.ngaytao) }}</td>
+              <td>{{ (order.ngaytao) }}</td>
               <td>{{ formatCurrency(order.giahoadon) }}</td>
               <td>
                 <select

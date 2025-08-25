@@ -76,7 +76,7 @@
                   >
                 </div>
               </td>
-              <td>{{ formatDate(user.ngaytao) }}</td>
+              <td>{{user.ngaytao }}</td>
               <td>
                 <button
                   class="btn btn-sm btn-outline-info"
