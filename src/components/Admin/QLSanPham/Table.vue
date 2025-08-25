@@ -25,14 +25,6 @@
         </div>
       </div>
 
-      <!-- Thông báo -->
-      <div
-        v-if="notification"
-        :class="['alert', notificationType === 'success' ? 'alert-success' : 'alert-danger']"
-      >
-        {{ notification }}
-      </div>
-
       <!-- Bảng -->
       <div class="table-responsive" style="max-height: 600px; overflow-x: auto;">
         <table class="table table-bordered table-hover align-middle text-center bg-white" style="width:max-content;min-width:100%;">
@@ -165,21 +157,17 @@
                 </div>
               </div>
 
-              <!-- Fields khác -->
+              <!-- Các field khác -->
               <div class="row g-3">
                 <div class="col-md-4" v-for="key in visibleFieldsNoStatus" :key="key">
                   <label class="form-label">{{ fieldLabels[key] }}</label>
 
                   <div v-if="key === 'anhgoc'">
                     <input type="file" class="form-control" @change="onImageChange" />
-                    <div v-if="isEditing && (productForm.anhgoc || productForm.diachianh)" class="mt-1 small text-secondary">
-                    </div>
                   </div>
 
                   <div v-else-if="key === 'anhphu'">
                     <input type="file" class="form-control" @change="onAnhPhuChange" />
-                    <div v-if="isEditing && (anhPhuUrl || productForm.ds_anh_phu)" class="mt-1 small text-secondary">
-                    </div>
                   </div>
 
                   <input
@@ -192,14 +180,7 @@
 
                 <div class="col-md-4 p-2" v-if="productForm.diachianh || productForm.anhgoc">
                   <label class="form-label d-block">Xem trước ảnh chính</label>
-                  <img
-                    v-if="productForm.diachianh && productForm.diachianh.startsWith('blob:')"
-                    :src="productForm.diachianh" width="100" height="100" class="rounded" style="object-fit:cover;"
-                  />
-                  <img
-                    v-else-if="productForm.anhgoc"
-                    :src="productForm.anhgoc" width="100" height="100" class="rounded" style="object-fit:cover;"
-                  />
+                  <img :src="productForm.diachianh || productForm.anhgoc" width="100" height="100" class="rounded" style="object-fit:cover;" />
                 </div>
 
                 <div class="col-md-4 p-2" v-if="anhPhuUrl">
@@ -234,6 +215,7 @@ import {
 } from './List'
 
 import { computed, ref, watch, onMounted } from 'vue'
+import Swal from 'sweetalert2'
 import useGiamGiaList from '../CRUD/QLSanPham/GiamGia'
 import { useProductTable } from './QLSP'
 
@@ -255,12 +237,23 @@ const {
   onMultipleImagesChange,
   createNewProduct,
   updateExistingProduct,
-  notification,
-  notificationType,
   updateProductStatus,
   actionLoading,
   reloadList
 } = useProductTable()
+
+/* ---------------- SweetAlert helper ---------------- */
+function showSwal(message, type = 'success') {
+  Swal.fire({
+    icon: type,
+    title: type === 'success' ? 'Thành công' : 'Lỗi',
+    text: message,
+    timer: 2000,
+    showConfirmButton: false,
+    position: 'top-end',
+    toast: true
+  })
+}
 
 /* ---------------- Modal state ---------------- */
 const showProductModal = ref(false)
@@ -277,15 +270,13 @@ function onCancel() {
 
 function openAddModal() {
   handleReset()
-  if ('trangthai' in productForm.value) delete productForm.value.trangthai
   editingProductId.value = null
   showProductModal.value = true
 }
 
 async function openEditModal(product) {
   const idx = pagedProducts.value.findIndex(p => (p.id_sp || '') === (product.id_sp || ''))
-  if (idx > -1) await editProduct(idx)  // chờ set form xong
-  if ('trangthai' in productForm.value) delete productForm.value.trangthai
+  if (idx > -1) await editProduct(idx)
   showProductModal.value = true
 }
 
@@ -305,7 +296,7 @@ function onAnhPhuChange(event) {
   onMultipleImagesChange(event)
 }
 watch(() => productForm.value.ds_anh_phu, (val) => {
-  if (!val || (typeof val === 'string' && (val.length === 0 || !val.startsWith('blob:')))) {
+  if (!val || (typeof val === 'string' && !val.startsWith('blob:'))) {
     previewAnhPhu.value = ''
   }
 })
@@ -314,24 +305,23 @@ const anhPhuUrl = computed(() => {
   const v = productForm.value?.ds_anh_phu
   if (!v) return ''
   if (typeof v === 'string') {
+    if (v.startsWith('http')) return v
     try { const p = JSON.parse(v); if (Array.isArray(p)) return p[0] || '' } catch {}
-    return v.startsWith('blob:') ? '' : v
+    return ''
   }
   if (Array.isArray(v)) return v[0] || ''
   return ''
 })
 
-/* ---------------- Date proxy dd/MM/yyyy <-> input[type=date] ---------------- */
+/* ---------------- Date proxy ---------------- */
 function toDateInputValue(ddmmyyyy) {
   if (!ddmmyyyy || typeof ddmmyyyy !== 'string') return ''
   const [d, m, y] = ddmmyyyy.split('/')
-  if (!d || !m || !y) return ''
   return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`
 }
 function fromDateInputValue(yyyymmdd) {
-  if (!yyyymmdd || typeof yyyymmdd !== 'string') return ''
+  if (!yyyymmdd) return ''
   const [y, m, d] = yyyymmdd.split('-')
-  if (!y || !m || !d) return ''
   return `${d}/${m}/${y}`
 }
 const hangiamgiaProxy = computed({
@@ -339,46 +329,37 @@ const hangiamgiaProxy = computed({
   set(v) { productForm.value.hangiamgia = fromDateInputValue(v) }
 })
 
-/* ---------------- Validate nhẹ ở UI (gọi composable) ---------------- */
+/* ---------------- Validate ---------------- */
 function validateForm() {
   const required = ['tensanpham','thuonghieu','dongia','soluong','loai']
   for (const f of required) {
     const v = productForm.value[f]
-    if (v === undefined || v === '' || v === null) {
-      notification.value = `❌ Vui lòng nhập: ${fieldLabels[f]}`
-      notificationType.value = 'error'
-      return false
-    }
-    if (['dongia','soluong'].includes(f) && Number(v) < 0) {
-      notification.value = `❌ ${fieldLabels[f]} không được âm`
-      notificationType.value = 'error'
+    if (!v || (['dongia','soluong'].includes(f) && Number(v) < 0)) {
+      showSwal(`Vui lòng nhập: ${fieldLabels[f]}`, 'error')
       return false
     }
   }
   return true
 }
-function handleCreate() { if (validateForm()) createNewProduct().then(() => closeModal()) }
-function handleUpdate() { if (validateForm()) updateExistingProduct().then(() => closeModal()) }
+function handleCreate() { if (validateForm()) createNewProduct().then(() => { showSwal('Thêm thành công','success'); closeModal() }) }
+function handleUpdate() { if (validateForm()) updateExistingProduct().then(() => { showSwal('Cập nhật thành công','success'); closeModal() }) }
 
-/* ---------------- Update trạng thái ngoài bảng ---------------- */
+/* ---------------- Update trạng thái ---------------- */
 async function updateStatus(product, checked) {
   try {
     const ok = await updateProductStatus(product.id_sp, checked ? 1 : 0)
     if (ok) {
       product.trangthai = checked ? 'Y' : 'N'
-      notification.value = '✅ Cập nhật trạng thái sản phẩm thành công'
-      notificationType.value = 'success'
+      showSwal('Cập nhật trạng thái thành công', 'success')
     } else {
       product.trangthai = product.trangthai === 'Y' ? 'N' : 'Y'
-      notification.value = '❌ Cập nhật trạng thái thất bại'
-      notificationType.value = 'error'
+      showSwal('Cập nhật trạng thái thất bại', 'error')
     }
   } catch (e) {
     product.trangthai = product.trangthai === 'Y' ? 'N' : 'Y'
-    notification.value = '❌ Có lỗi khi cập nhật trạng thái'
-    notificationType.value = 'error'
+    showSwal('Có lỗi khi cập nhật trạng thái', 'error')
     console.error('[updateStatus] error:', e)
-  } finally { setTimeout(() => (notification.value = ''), 5000) }
+  }
 }
 
 /* ---------------- Options ---------------- */
@@ -388,14 +369,12 @@ const loaiOptions = computed(() =>
 
 onMounted(() => { if (typeof reloadList === 'function') reloadList() })
 
-// expose cho template
 const brandList = brandListConst
 </script>
 
 <style scoped>
 .form-title{ font-size:18px; }
 .modal{ background-color: rgba(0,0,0,0.5); }
-
 .form-check-input:checked{ background-color:#198754; border-color:#198754; }
 .form-check-input:not(:checked){ background-color:#dc3545; border-color:#dc3545; }
 .truncate-name {
