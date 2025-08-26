@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { encId, decId } from "@/utils/idCodec";
+import Blank from '../components/User/Blank.vue' // Tạo file Blank.vue với <template></template>
 
 // User
 import Home from "../components/User/Home.vue";
@@ -79,13 +80,14 @@ const routes = [
 
   // Route “đẹp” – người dùng gõ URL mã hoá thì decode -> redirect về id số (component không đổi)
   {
-    path: "/hoadonchitiet/:code",
-    beforeEnter: (to) => {
-      const id = decId(to.params.code);
-      if (id == null) return false; // hoặc redirect 404
-      return { name: "hoadonchitiet", params: { id }, replace: true };
-    },
-  },
+  path: "/hoadonchitiet/:code",
+  component: Blank,
+  beforeEnter: (to) => {
+    const id = decId(to.params.code)
+    if (id == null) return false
+    return { name: "hoadonchitiet", params: { id }, replace: true }
+  }
+},
 
   { path: "/doimatkhau", component: DoiMatKhau },
   { path: "/giohang", component: GioHang },
@@ -97,13 +99,14 @@ const routes = [
 
   // Route “đẹp” – decode -> redirect về id số
   {
-    path: "/sanpham/:code",
-    beforeEnter: (to) => {
-      const id = decId(to.params.code);
-      if (id == null) return false; // hoặc redirect 404
-      return { name: "ChiTietSanPham", params: { id }, replace: true };
-    },
-  },
+  path: "/sanpham/:code",
+  component: Blank,
+  beforeEnter: (to) => {
+    const id = decId(to.params.code)
+    if (id == null) return false
+    return { name: "ChiTietSanPham", params: { id }, replace: true }
+  }
+},
 
   // ====== TÌM KIẾM ======
   // Route thật: component đọc query từ route.query
