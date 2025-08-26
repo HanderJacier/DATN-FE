@@ -58,7 +58,7 @@
           <div class="card bg-success text-white">
             <div class="card-body text-center">
               <h5>{{ orderStats.da_thanh_toan || 0 }}</h5>
-              <p class="mb-0">Đã thanh toán</p>
+              <p class="mb-0">Đã xử lý</p>
             </div>
           </div>
         </div>
@@ -66,7 +66,7 @@
           <div class="card bg-warning text-white">
             <div class="card-body text-center">
               <h5>{{ orderStats.cho_thanh_toan || 0 }}</h5>
-              <p class="mb-0">Chờ thanh toán</p>
+              <p class="mb-0">Chờ xử lý</p>
             </div>
           </div>
         </div>

@@ -126,7 +126,16 @@ const { processPayment: processCOD} = usePayment();
           await processCOD({ ...orderData.value, finalAmount: finalAmount.value });
           successMessage.value = "Đặt hàng COD thành công!";
         } else if (paymentMethod.value === "MOMO") {
-          processing.value = true;
+  processing.value = true;
+
+  // Tạo hóa đơn trước khi lấy QR MoMo
+  const invoiceResult = await processCOD({ ...orderData.value, finalAmount: finalAmount.value, paymentMethod: "MOMO" });
+  if (!invoiceResult || !invoiceResult.success) {
+    errorMessage.value = "Không tạo được hóa đơn chờ xử lý";
+    processing.value = false;
+    return;
+  }
+
 
           // Gọi API BE để lấy payUrl từ MoMo
           const res = await fetch("http://localhost:3000/api/payment/momo", {
