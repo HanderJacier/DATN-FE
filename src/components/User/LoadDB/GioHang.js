@@ -8,30 +8,58 @@ import { usePostData } from '@/components/component_callApi/callAPI'
  * - WBH_US_UPD_GIO_HANG      (add / delete / update số lượng)
  * - WBH_US_DEL_GIO_HANG      (xóa toàn bộ giỏ hoặc xóa 1 sản phẩm)
  *
- * Chuẩn hoá dữ liệu trả về cho FE (mapRowToCartItem).
+ * Chuẩn hoá dữ liệu trả về cho FE.
  */
 export default function useCartProcedures() {
   const { data, loading, error, callAPI } = usePostData()
 
+  /* ===================== Helpers ===================== */
+  const toNum = (v) => {
+    if (v === null || v === undefined) return 0
+    if (typeof v === 'number') return Number.isFinite(v) ? v : 0
+    // loại bỏ ký tự không phải số, giữ dấu . - ,
+    const s = String(v).replace(/[^\d,.-]/g, '').replace(/,/g, '.')
+    const n = Number(s)
+    return Number.isFinite(n) ? n : 0
+  }
+
+  const unwrap = (row) => (row && typeof row === 'object' && row.fields ? row.fields : row || {})
+
   /** Map 1 dòng kết quả từ WBH_US_SEL_GIO_HANG -> format FE */
-  const mapRowToCartItem = (row) => ({
-    id_gh: row.id_gh,                                  // id dòng giỏ
-    accountId: row.taikhoan,                           // tài khoản
-    id: row.id_sp,                                     // id sản phẩm
-    name: row.tensanpham,
-    image: row.anhgoc,
-    trangthai: row.trangthai,                          // 'Y' hoặc 'N'
-    stockQuantity: Number(row.soluong_goc ?? 0),       // tồn kho gốc
-    quantity: Number(row.soluong_gh ?? 0),             // số lượng trong giỏ
-    originalPrice: Number(row.dongia ?? 0),            // giá gốc
-    price: Number(row.dongia_ap_dung ?? 0),            // giá áp dụng (ưu tiên giamgia)
-    lineTotal: Number(row.thanhtien ?? 0),
-    // FE bổ sung mặc định:
-    selected: false,
-    variant: 'Mặc định',
-    brand: '',
-    category: ''
-  })
+  const mapRowToCartItem = (_row) => {
+    const row = unwrap(_row)
+
+    const id = row.id ?? row.id_sp ?? row.sp_id ?? row.ma_sp
+    const name = row.name ?? row.tensanpham ?? row.ten_san_pham ?? ''
+    const image = row.image ?? row.anhgoc ?? row.anh ?? row.hinh ?? ''
+    const trangthai = (row.trangthai ?? row.trang_thai ?? row.status ?? '').toString()
+
+    const stockQuantity = toNum(row.stockQuantity ?? row.soluong_goc ?? row.ton_kho ?? row.so_luong_goc)
+    const quantity = toNum(row.quantity ?? row.soluong_gh ?? row.so_luong ?? row.qty)
+    const price = toNum(row.price ?? row.dongia_ap_dung ?? row.dongia ?? row.gia)
+    const originalPrice = toNum(row.originalPrice ?? row.dongia ?? price)
+    const lineTotal = toNum(row.lineTotal ?? row.thanhtien ?? (price * quantity))
+
+    return {
+      id_gh: row.id_gh ?? null,                         // id dòng giỏ
+      accountId: row.taikhoan ?? row.accountId ?? null, // tài khoản
+      id,
+      name,
+      image,
+      trangthai,                                        // 'Y' hoặc 'N'
+      stockQuantity,
+      quantity,
+      originalPrice,                                    // giá gốc
+      price,                                            // giá áp dụng (ưu tiên giamgia)
+      lineTotal,
+
+      // FE bổ sung mặc định:
+      selected: false,
+      variant: row.variant ?? 'Mặc định',
+      brand: row.brand ?? '',
+      category: row.category ?? ''
+    }
+  }
 
   /* ===================== 1) SELECT GIỎ HÀNG ===================== */
   /**
@@ -39,10 +67,20 @@ export default function useCartProcedures() {
    * @returns {Promise<{raw:any[], items:any[]}>}
    */
   const selGioHang = async (taikhoan) => {
-    await callAPI('WBH_US_SEL_GIO_HANG', {
-      params: { p_taikhoan: taikhoan }
-    })
+    await callAPI('WBH_US_SEL_GIO_HANG', { params: { p_taikhoan: taikhoan } })
+
     const rows = Array.isArray(data.value) ? data.value : []
+
+    // ⛳️ Một số backend trả [{ fields: { status: 'ERROR' } }] khi giỏ trống
+    const maybeStatus = rows[0]?.fields?.status ?? rows[0]?.status
+    if (rows.length === 1 && String(maybeStatus).toUpperCase() === 'ERROR') {
+      return { raw: [], items: [] }
+    }
+
+    // Hoặc thực sự là mảng rỗng
+    if (rows.length === 0) return { raw: [], items: [] }
+
+    // Chuẩn hoá -> map
     const items = rows.map(mapRowToCartItem)
     return { raw: rows, items }
   }
@@ -62,11 +100,12 @@ export default function useCartProcedures() {
         p_id_gh: id_gh
       }
     })
-    const res = Array.isArray(data.value) ? data.value[0] : data.value
+    const raw = Array.isArray(data.value) ? data.value[0] : data.value
+    const res = unwrap(raw)
     return {
-      rtn_value: Number(res?.rtn_value ?? -999),
-      message: String(res?.message ?? 'Không xác định'),
-      id_gh: res?.id_gh ?? null
+      rtn_value: toNum(res?.rtn_value ?? res?.RTN_VALUE ?? -999),
+      message: String(res?.message ?? res?.MESSAGE ?? 'Không xác định'),
+      id_gh: res?.id_gh ?? res?.ID_GH ?? null
     }
   }
 
@@ -96,10 +135,11 @@ export default function useCartProcedures() {
         p_sanpham: sanpham
       }
     })
-    const res = Array.isArray(data.value) ? data.value[0] : data.value
+    const raw = Array.isArray(data.value) ? data.value[0] : data.value
+    const res = unwrap(raw)
     return {
-      rtn_value: Number(res?.rtn_value ?? -999),
-      message: String(res?.message ?? 'Không xác định')
+      rtn_value: toNum(res?.rtn_value ?? res?.RTN_VALUE ?? -999),
+      message: String(res?.message ?? res?.MESSAGE ?? 'Không xác định')
     }
   }
 

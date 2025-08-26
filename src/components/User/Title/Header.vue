@@ -107,8 +107,7 @@
           >
             <img :src="cartImg" alt="cart" class="me-2" style="width:18px;height:18px;" />
             <span>Giỏ hàng</span>
-            
-            <!-- 🔴 Chỉ hiện chấm đỏ nếu có sản phẩm -->
+            <!-- 🔴 Chấm đỏ: có sp thì hiện -->
             <span
               v-if="cartCount > 0"
               class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"
@@ -128,6 +127,7 @@ import { useRouter } from 'vue-router'
 import Catalog from '@/components/User/Title/Catalog.vue'
 import useSanPhamSearch from '@/components/User/LoadDB/Header.js'
 import useCartManagement from '../LoadDB/useCartManagement.js'
+import useCartProcedures from '../LoadDB/GioHang.js'   // <-- dùng proc để đọc giỏ DB
 import logoImg from '@/assets/logotechmart.png'
 import cartImg from '@/assets/cart.png'
 
@@ -141,8 +141,11 @@ export default {
     const showSuggestions = ref(false)
     const filteredProducts = ref([])
 
-    // chỉ dùng để xoá giỏ khi logout
+    // chỉ dùng để xoá giỏ khi logout (local)
     const { clearCartOnLogout } = useCartManagement()
+
+    // gọi proc DB
+    const { selGioHang } = useCartProcedures()
 
     const isDropdownOpen = ref(false)
     const user = ref(null)
@@ -160,16 +163,20 @@ export default {
         'Tài khoản'
     )
 
-    const toggleDropdown = () => {
-      isDropdownOpen.value = !isDropdownOpen.value
-    }
+    const isLoggedIn = computed(() => !!(user.value && user.value.id_tk))
+    const userId = computed(() => (isLoggedIn.value ? Number(user.value.id_tk) : null))
+
+    const toggleDropdown = () => { isDropdownOpen.value = !isDropdownOpen.value }
 
     const logout = () => {
       localStorage.removeItem('user')
-      clearCartOnLogout()
       sessionStorage.removeItem('user')
+      clearCartOnLogout()        // dọn local cart
       user.value = null
+      cartCount.value = 0
       router.push('/')
+      // phát sự kiện để các nơi khác cập nhật
+      window.dispatchEvent(new CustomEvent('cartUpdated'))
     }
 
     const getStoredUser = () => {
@@ -184,11 +191,29 @@ export default {
       user.value = u
     }
 
-    const updateCartCount = () => {
-      const cart = JSON.parse(localStorage.getItem('cart')) || []
+    // ----- Badge giỏ hàng -----
+    const updateCartCountGuest = () => {
+      const cart = JSON.parse(localStorage.getItem('cart') || '[]')
       cartCount.value = cart.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0)
     }
 
+    const updateCartCountDB = async () => {
+      try {
+        if (!userId.value) { cartCount.value = 0; return }
+        const { items } = await selGioHang(userId.value)
+        cartCount.value = items.reduce((sum, it) => sum + (Number(it.quantity) || 0), 0)
+      } catch (e) {
+        console.error('Badge count DB error:', e)
+        // fallback không làm gì; badge giữ giá trị cũ
+      }
+    }
+
+    const updateCartCount = async () => {
+      if (isLoggedIn.value) await updateCartCountDB()
+      else updateCartCountGuest()
+    }
+
+    // ----- Search -----
     const filterProducts = () => {
       const keyword = searchKey.value.toLowerCase().trim()
       filteredProducts.value = allProducts.value.filter((sp) =>
@@ -210,13 +235,20 @@ export default {
       selectedHint.value = null
     }
 
-    onMounted(() => {
+    // ----- Lifecycle -----
+    onMounted(async () => {
       getStoredUser()
-      updateCartCount()
+      await updateCartCount()
+
       // lắng nghe cập nhật giỏ trong cùng tab
       window.addEventListener('cartUpdated', updateCartCount)
-      // và đồng bộ đa tab
-      window.addEventListener('storage', updateCartCount)
+      // và đồng bộ đa tab (login/logout hoặc giỏ local thay đổi)
+      window.addEventListener('storage', async (e) => {
+        if (e.key === 'user' || e.key === 'cart') {
+          getStoredUser()
+          await updateCartCount()
+        }
+      })
     })
 
     onBeforeUnmount(() => {
