@@ -44,6 +44,7 @@ export default function useCartManagement() {
     }
   };
 
+  
   // Thêm sản phẩm vào giỏ hàng
   const addToCart = (product, quantity = 1) => {
     try {

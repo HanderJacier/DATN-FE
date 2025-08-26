@@ -198,7 +198,6 @@
 
               <!--Mùa-->
               <div class="product-options mt-4">
-                <!-- Màu sắc -->
                 <div class="option-group mb-3">
                   <label class="fw-semibold text-secondary me-3">Màu sắc:</label>
                   <button class="option-btn active">
@@ -220,9 +219,6 @@
                       @click="addToCart">
                       <i class="bi bi-cart-fill fs-5"></i>
                       <span>Thêm vào giỏ</span>
-                      <span v-if="cartQuantity > 0" class="badge bg-warning text-dark ms-2">
-                        Đã có: {{ cartQuantity }}
-                      </span>
                     </button>
 
                     <!-- Nút mua ngay -->
@@ -313,14 +309,23 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
+import Swal from 'sweetalert2'              // <-- thêm
 import useHomeLogic from './LoadDB/ChiTietSP.js'
 
 import ThichSanPham from './ChiTietSP/ThichSanPham.vue'
 import ProductReviews from './ChiTietSP/BinhLuan.vue'
-import SanPhamMoi from './ChiTietSP/SanPhamCungLoai.vue'
 import SanPhamCungLoai from './ChiTietSP/SanPhamCungLoai.vue'
 import useCartManagement from './LoadDB/useCartManagement.js'
 const { cart, addToCart: addToCartComposable, loadCart } = useCartManagement()
+
+// Toast ở góc phải
+const Toast = Swal.mixin({
+  toast: true,
+  position: 'top-end',
+  showConfirmButton: false,
+  timer: 2000,
+  timerProgressBar: true
+})
 
 const cartQuantity = computed(() => {
   const item = cart.value.find(
@@ -345,7 +350,6 @@ const formatDate = (dateString) => {
   if (!dateString) return ''
   const [day, month, year] = dateString.split('/')
   const date = new Date(year, month - 1, day)
-  // theo dd.mm.yy
   return date.toLocaleDateString('vi-VN', {
     day: '2-digit',
     month: '2-digit',
@@ -369,7 +373,6 @@ const giaHienTai = computed(() => {
   return isGiamGiaValid.value ? product.value.giamgia : product.value.dongia
 })
 
-/** Sửa cho đúng cách gọi ở template */
 const tinhPhanTramGiamGia = (dongia, giamgia) => {
   if (!giamgia || giamgia >= dongia) return 0
   return Math.round((1 - giamgia / dongia) * 100)
@@ -386,35 +389,39 @@ const isOutOfStock = computed(() => {
 })
 const canBuy = computed(() => !isDiscontinued.value && !isOutOfStock.value)
 
-const changeImage = (index) => {
-  currentIndex.value = index
-}
-
+const changeImage = (index) => { currentIndex.value = index }
 const prevImage = () => {
   currentIndex.value =
     currentIndex.value === 0 ? productImages.value.length - 1 : currentIndex.value - 1
 }
-
 const nextImage = () => {
   currentIndex.value =
     currentIndex.value === productImages.value.length - 1 ? 0 : currentIndex.value + 1
 }
 
+// === ĐÃ ĐỔI alert -> SweetAlert2 Toast ===
 const addToCart = () => {
   if (!canBuy.value) {
-    alert(isDiscontinued.value ? 'Sản phẩm đã ngừng bán' : 'Sản phẩm đã hết hàng')
+    Toast.fire({
+      icon: 'warning',
+      title: isDiscontinued.value ? 'Sản phẩm đã ngừng bán' : 'Sản phẩm đã hết hàng'
+    })
     return
   }
   if (cartQuantity.value + 1 > product.value.soluong) {
-    alert('Không đủ số lượng tồn kho')
+    Toast.fire({ icon: 'error', title: 'Không đủ số lượng tồn kho' })
     return
   }
   addToCartComposable(product.value, 1)
+  Toast.fire({ icon: 'success', title: 'Đã thêm vào giỏ hàng' })
 }
 
 const buyNow = () => {
   if (!canBuy.value) {
-    alert(isDiscontinued.value ? 'Sản phẩm đã ngừng bán' : 'Sản phẩm đã hết hàng')
+    Toast.fire({
+      icon: 'warning',
+      title: isDiscontinued.value ? 'Sản phẩm đã ngừng bán' : 'Sản phẩm đã hết hàng'
+    })
     return
   }
   addToCart()
@@ -429,9 +436,7 @@ const fetchRatingStats = async (productId) => {
   try {
     const response = await axios.post(
       'http://localhost:8080/api/datn/WBH_US_SEL_THONG_KE_DANH_GIA',
-      {
-        params: { p_sanpham: productId },
-      }
+      { params: { p_sanpham: productId } }
     );
     if (Array.isArray(response.data) && response.data.length > 0) {
       ratingStats.value = response.data[0].fields;
@@ -473,7 +478,7 @@ watch(
   () => route.params.id,
   async (newId, oldId) => {
     if (newId && newId !== oldId) {
-      currentIndex.value = 0 // reset ảnh
+      currentIndex.value = 0
       await fetchChiTietSanPham(newId)
       await fetchRatingStats(newId)
       window.scrollTo({ top: 0, behavior: 'smooth' })
