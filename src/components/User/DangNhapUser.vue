@@ -55,9 +55,8 @@
                 <input
                   type="text"
                   class="form-control form-control-lg border-2"
-                  style="border-radius: 10px; background-color: #f8f9fa; border: 2px solid #e9ecef; transition: all 0.3s ease;"
-                  v-model.trim="email"
-                  placeholder="Nhập email hoặc số điện thoại"
+                  v-model.trim="username"
+                  placeholder="Nhập tên đăng nhập (email hoặc SĐT)"
                   autocomplete="username"
                   required
                 />
@@ -146,7 +145,7 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Swal from 'sweetalert2'
 import useLogin from './LoadDB/useLogin'
@@ -157,7 +156,8 @@ export default {
   setup() {
     const { loginError, login, loading } = useLogin()
 
-    const email = ref('')
+    // 🆕 đổi từ email -> username
+    const username = ref('')
     const password = ref('')
     const rememberMe = ref(false)
     const showPassword = ref(false)
@@ -165,26 +165,41 @@ export default {
     const router = useRouter()
     const errorMessage = computed(() => loginError.value)
 
+    // Gợi ý tên đăng nhập nếu đã lưu
+    onMounted(() => {
+      const savedUser = localStorage.getItem('rememberedUsername')
+      if (savedUser) {
+        username.value = savedUser
+        rememberMe.value = true
+      }
+    })
+
     const handleLogin = async () => {
-      // Dọn "dư âm" để không dùng nhầm user cũ
+      // Clear cũ
       localStorage.removeItem('user')
       sessionStorage.removeItem('user')
 
-      const { ok, user, error } = await login(email.value, password.value)
+      const { ok, user, error } = await login(username.value, password.value)
 
       if (ok && user) {
         const userToStore = { ...user }
 
-        // Admin -> session; User -> local (giữ logic cũ)
+        // Remember me logic
+        if (rememberMe.value) {
+          localStorage.setItem('rememberedUsername', username.value)
+        } else {
+          localStorage.removeItem('rememberedUsername')
+        }
+
         if (user.vaitro === true) {
           sessionStorage.setItem('user', JSON.stringify(userToStore))
           router.push('/admin').then(() => window.location.reload())
         } else {
-          // nếu muốn "ghi nhớ" theo checkbox, có thể:
-          // if (rememberMe.value) localStorage.setItem('user', JSON.stringify(userToStore))
-          // else sessionStorage.setItem('user', JSON.stringify(userToStore))
-          // Hiện tại giữ nguyên: user thường -> local
-          localStorage.setItem('user', JSON.stringify(userToStore))
+          if (rememberMe.value) {
+            localStorage.setItem('user', JSON.stringify(userToStore))
+          } else {
+            sessionStorage.setItem('user', JSON.stringify(userToStore))
+          }
           router.push('/').then(() => window.location.reload())
         }
       } else {
@@ -197,7 +212,7 @@ export default {
     }
 
     return {
-      email,
+      username,
       password,
       rememberMe,
       showPassword,
@@ -208,6 +223,7 @@ export default {
   }
 }
 </script>
+
 
 <style scoped>
 .form-control:focus {

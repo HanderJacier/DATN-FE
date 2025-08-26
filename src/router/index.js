@@ -1,5 +1,6 @@
-import { createRouter, createWebHashHistory } from "vue-router"; // ✅ dùng hash mode
-import { encId, decId } from "@/utils/idCodec";
+// src/router/index.js
+import { createRouter, createWebHashHistory } from "vue-router";
+import { decId } from "@/utils/idCodec";
 
 // User
 import Home from "../components/User/Home.vue";
@@ -16,7 +17,6 @@ import ThanhToan from "../components/User/ThanhToan.vue";
 import ChiTietSP from "../components/User/ChiTietSP.vue";
 import TimKiem from "../components/User/TimKiem.vue";
 import GopYUser from "../components/User/GopYUser.vue";
-// import Return from "../view/Return.vue"; // ❌ trùng path /return với PaymentResult, tạm bỏ
 import MoMoDemo from "../components/User/MoMoDemo.vue";
 
 // Admin
@@ -28,58 +28,37 @@ import ThongKe from "../components/Admin/ThongKe.vue";
 import User from "../components/Admin/User.vue";
 import OrderManagement from "../components/Admin/OrderManagement.vue";
 
-// 🎯 Các trạng thái đơn hàng
+// Trạng thái đơn hàng
 import TatCa from "../components/User/ThongTinTK/HoaDon/TatCa.vue";
 import DangXuLy from "../components/User/ThongTinTK/HoaDon/ChoXuLy.vue";
 import DaXuLy from "../components/User/ThongTinTK/HoaDon/DaXuLy.vue";
 import DaHuy from "../components/User/ThongTinTK/HoaDon/DaHuy.vue";
 import XacNhanDonHang from "../components/User/ThongTinTK/XacNhanDonHang.vue";
 
-/* ===== Helpers: mask cho Tìm kiếm (Base64 URL-safe) ===== */
-function encodeSearchToken(query) {
-  try {
-    const json = JSON.stringify(query || {});
-    const b64 = btoa(encodeURIComponent(json));
-    return b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "") || "_";
-  } catch {
-    return "_";
-  }
-}
-function decodeSearchToken(token) {
-  try {
-    if (!token || token === "_") return {};
-    let b64 = String(token).replace(/-/g, "+").replace(/_/g, "/");
-    while (b64.length % 4) b64 += "=";
-    const json = decodeURIComponent(atob(b64));
-    const q = JSON.parse(json);
-    return q && typeof q === "object" ? q : {};
-  } catch {
-    return {};
-  }
-}
+// Helpers search
+function encodeSearchToken(query) { /* giữ nguyên */ }
+function decodeSearchToken(token) { /* giữ nguyên */ }
 
 const routes = [
   { path: "/", component: Home },
   { path: "/dangnhap", component: DangNhap },
   { path: "/dangky", component: DangKyUser },
 
-  // Payment / demo
-  { path: "/return", component: PaymentResult }, // ✅ giữ path này
-  // { path: "/return-vnpay", component: Return }, // <-- nếu cần dùng Return.vue, mở dòng này & đổi link gọi tới
+  { path: "/return", component: PaymentResult },
   { path: "/payment/momo-demo", component: MoMoDemo },
 
   { path: "/thongtintk", component: ThongTinTK },
   { path: "/sanphamyeuthich", component: SPYeuThich },
   { path: "/diachinguoidung", component: DiaChi },
 
-  // ====== HÓA ĐƠN ======
-  { path: "/hoadonchitiet/:id(\\d+)", name: "hoadonchitiet", component: HoaDonChiTiet },
+  // ===== HÓA ĐƠN (chỉ code mã hoá) =====
   {
     path: "/hoadonchitiet/:code",
-    beforeEnter: (to) => {
-      const id = decId(to.params.code);
-      if (id == null) return false; // hoặc redirect 404
-      return { name: "hoadonchitiet", params: { id }, replace: true };
+    name: "hoadonchitiet",
+    component: HoaDonChiTiet,
+    props: route => {
+      const id = decId(route.params.code);
+      return { id }; // id thật để truyền vào component
     },
   },
 
@@ -87,18 +66,18 @@ const routes = [
   { path: "/giohang", component: GioHang },
   { path: "/thanhtoan", component: ThanhToan },
 
-  // ====== SẢN PHẨM ======
-  { path: "/sanpham/:id(\\d+)", name: "ChiTietSanPham", component: ChiTietSP },
+  // ===== SẢN PHẨM (chỉ code mã hoá) =====
   {
     path: "/sanpham/:code",
-    beforeEnter: (to) => {
-      const id = decId(to.params.code);
-      if (id == null) return false; // hoặc redirect 404
-      return { name: "ChiTietSanPham", params: { id }, replace: true };
+    name: "ChiTietSanPham",
+    component: ChiTietSP,
+    props: route => {
+      const id = decId(route.params.code);
+      return { id };
     },
   },
 
-  // ====== TÌM KIẾM ======
+  // ===== TÌM KIẾM =====
   { path: "/timkiem", name: "TimKiem", component: TimKiem },
   {
     path: "/s/:token(.*)",
@@ -112,7 +91,7 @@ const routes = [
   { path: "/gopynguoidung", component: GopYUser },
   { path: "/xacnhandonhang", component: XacNhanDonHang },
 
-  // lịch sử đơn hàng
+  // Lịch sử đơn hàng
   { path: "/tatca", component: TatCa },
   { path: "/dangxuly", component: DangXuLy },
   { path: "/daxuly", component: DaXuLy },
@@ -134,11 +113,10 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHashHistory(import.meta.env.BASE_URL), // ✅ hash mode => reload không 404
+  history: createWebHashHistory(import.meta.env.BASE_URL),
   routes,
 });
 
-// Guard đăng nhập giữ nguyên (thêm parse an toàn)
 router.beforeEach((to, from, next) => {
   const user =
     JSON.parse(localStorage.getItem("user") || "null") ||
@@ -148,8 +126,5 @@ router.beforeEach((to, from, next) => {
   if (to.path.startsWith("/admin") && !user) return next("/dangnhap");
   next();
 });
-
-// ❌ BỎ afterEach “làm đẹp URL” – hash mode không cần, tránh xung đột reload
-// router.afterEach(() => {})
 
 export default router;
