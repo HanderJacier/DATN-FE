@@ -14,20 +14,17 @@
             <i class="bi bi-arrow-left"></i> Quay lại danh sách
           </router-link>
 
-          <!-- Nút Hủy đơn (tĩnh) -->
           <button
             v-if="canCancel"
             class="btn btn-danger btn-sm"
-            @click="cancelOrder"
-            :disabled="loading"
+            @click="confirmCancelOrder"
+            :disabled="loading || cancelLoading"
+            title="Hủy đơn hàng"
           >
-            <i class="bi bi-x-circle"></i> Hủy đơn hàng
+            <i class="bi bi-x-circle"></i>
+            <span v-if="cancelLoading"> Đang hủy...</span>
+            <span v-else> Hủy đơn hàng</span>
           </button>
-        </div>
-
-        <!-- Thông báo (tạm thời) -->
-        <div v-if="cancelMsg" class="alert alert-info py-2">
-          {{ cancelMsg }}
         </div>
 
         <h4 class="fw-bold mb-4">
@@ -43,6 +40,7 @@
         <div v-else-if="error" class="alert alert-danger">
           <i class="bi bi-exclamation-triangle me-2"></i>
           {{ error }}
+          <button class="btn btn-sm btn-outline-danger ms-2" @click="fetchDetail">Thử lại</button>
         </div>
 
         <div v-else-if="orderDetail">
@@ -55,18 +53,19 @@
                 </div>
                 <div class="card-body">
                   <p><strong>Mã hóa đơn:</strong> HD{{ String(orderDetail.id_hd).padStart(3, '0') }}</p>
-                  <p><strong>Ngày tạo:</strong> {{ (orderDetail.ngaytao) }}</p>
-                  <p><strong>Trạng thái: </strong>
+                  <p><strong>Ngày tạo:</strong> {{ formatDateTime(orderDetail.ngaytao) }}</p>
+                  <p>
+                    <strong>Trạng thái:</strong>
                     <span class="badge" :class="getStatusClass(orderDetail.trangthai)">
                       {{ orderDetail.trangthai }}
                     </span>
                   </p>
 
-                  <!-- Nút hủy lặp lại ngay dưới trạng thái (tuỳ thích) -->
                   <button
                     v-if="canCancel"
                     class="btn btn-outline-danger btn-sm mt-2"
-                    @click="cancelOrder"
+                    @click="confirmCancelOrder"
+                    :disabled="cancelLoading"
                   >
                     <i class="bi bi-x-circle"></i> Hủy đơn hàng
                   </button>
@@ -113,7 +112,6 @@
                     <tr v-for="(product, index) in orderDetail.products" :key="index">
                       <td>{{ index + 1 }}</td>
                       <td>
-                        <!-- Ảnh bấm sang trang chi tiết sản phẩm -->
                         <router-link
                           :to="{ name: 'ChiTietSanPham', params: { id: product.id_sp } }"
                           class="d-inline-block"
@@ -128,7 +126,6 @@
                         </router-link>
                       </td>
                       <td class="text-start">
-                        <!-- Tên bấm sang trang chi tiết sản phẩm -->
                         <router-link
                           :to="{ name: 'ChiTietSanPham', params: { id: product.id_sp } }"
                           class="text-decoration-none"
@@ -160,16 +157,31 @@
 
 <script>
 import { ref, onMounted, computed, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import Slidebar from '@/components/User/Title/Slidebar.vue'
 import { usePostData } from '@/components/component_callApi/callAPI'
 import useHdChiTietTheoDanhSach from '../LoadDB/HoaDonChiTiet' // chỉnh path theo dự án
+import useTrangThaiThanhToan from '../LoadDB/UPDHoaDon'        // ✅ thêm giống bên kia
+
+// 👉 SweetAlert2
+import Swal from 'sweetalert2'
+import 'sweetalert2/dist/sweetalert2.min.css'
+
+// Toast cấu hình sẵn
+const Toast = Swal.mixin({
+  toast: true,
+  position: 'top-end',
+  showConfirmButton: false,
+  timer: 1800,
+  timerProgressBar: true
+})
 
 export default {
   name: 'OrderDetail',
   components: { Slidebar },
   setup() {
     const route = useRoute()
+    const router = useRouter()
     const id = Number(route.params.id)
 
     // --- API header (WBH_US_SEL_CHI_TIET_HOA_DON)
@@ -183,8 +195,11 @@ export default {
       error: itemsError
     } = useHdChiTietTheoDanhSach()
 
+    // --- API cập nhật trạng thái (giống component danh sách)
+    const { updateTrangThai, updateTrangThaiById } = useTrangThaiThanhToan()
+
     const orderDetail = ref(null)
-    const cancelMsg = ref('')
+    const cancelLoading = ref(false)
 
     const loading = computed(() => headerApi.loading.value || itemsLoading.value)
     const error = computed(() => headerApi.error.value || itemsError.value)
@@ -267,7 +282,6 @@ export default {
     const getPaymentMethodText = (method) => {
       switch (method) {
         case 'COD': return 'Thanh toán khi nhận hàng'
-       
         case 'QR': return 'Thanh toán QR Code'
         case 'MOMO': return 'Ví MoMo'
         case 'VNPAY': return 'VNPay'
@@ -277,26 +291,60 @@ export default {
 
     const onImgErr = (e) => { e.target.src = '/placeholder.svg' }
 
-    // ---- HỦY ĐƠN (tĩnh) ----
-    const canCancel = computed(() => {
-      const s = orderDetail.value?.trangthai || ''
-      return s === 'Chờ xử lý' || s === 'Đang xử lý'
-    })
+    // Chỉ cho hủy khi "Chờ xử lý"
+    const canCancel = computed(() => (orderDetail.value?.trangthai || '') === 'Chờ xử lý')
 
-    const cancelOrder = () => {
+    // ✅ Hủy đơn với SweetAlert2 + gọi proc update, giống bên danh sách
+    const confirmCancelOrder = async () => {
       if (!orderDetail.value) return
-      if (!canCancel.value) return
-      const ok = confirm('Bạn muốn hủy đơn hàng này? (Demo: chỉ đổi trạng thái trên giao diện)')
-      if (!ok) return
-      orderDetail.value.trangthai = 'Đã hủy'
-      cancelMsg.value = 'Đã hủy đơn hàng (demo, chưa gọi API).'
-      setTimeout(() => { cancelMsg.value = '' }, 3000)
+
+      const result = await Swal.fire({
+        title: `Hủy đơn #${orderDetail.value.id_hd}?`,
+        text: 'Hành động này sẽ cập nhật trạng thái thành "Đã hủy".',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Hủy đơn',
+        cancelButtonText: 'Không',
+        reverseButtons: true,
+        showLoaderOnConfirm: true,
+        allowOutsideClick: () => !Swal.isLoading(),
+        preConfirm: async () => {
+          try {
+            cancelLoading.value = true
+
+            // 1) Thử cập nhật qua "mã giao dịch" = id_hd
+            let rs = await updateTrangThai(String(orderDetail.value.id_hd), 'Đã hủy')
+
+            // 2) Nếu không thành công -> fallback trực tiếp theo id_hd
+            if (!rs || rs.success !== 1) {
+              const fb = await updateTrangThaiById(orderDetail.value.id_hd, 'Đã hủy')
+              if (!fb || !fb.affected_rows) {
+                throw new Error('Không thể hủy đơn hàng này.')
+              }
+            }
+            return true
+          } catch (err) {
+            Swal.showValidationMessage(err?.message || 'Có lỗi xảy ra khi hủy đơn.')
+            return false
+          } finally {
+            cancelLoading.value = false
+          }
+        }
+      })
+
+      if (result.isConfirmed) {
+        await fetchDetail() // reload chi tiết
+        Toast.fire({ icon: 'success', title: `Đã hủy đơn #${orderDetail.value.id_hd}` })
+        // Optional: quay lại danh sách đang xử lý
+        // router.push({ name: 'dangxuly' })
+      }
     }
 
     return {
       id, loading, error, orderDetail,
-      cancelMsg, canCancel, cancelOrder,
-      formatDateTime, formatCurrency, getStatusClass, getPaymentMethodText, onImgErr
+      cancelLoading, canCancel, confirmCancelOrder,
+      formatDateTime, formatCurrency, getStatusClass, getPaymentMethodText, onImgErr,
+      fetchDetail
     }
   }
 }
@@ -305,5 +353,5 @@ export default {
 <style scoped>
 .table th { background-color: #f8f9fa; font-weight: 600; border-color: #dee2e6; }
 .table td { vertical-align: middle; border-color: #dee2e6; }
-.card { border: 1px solid #e3e6f0;}
+.card { border: 1px solid #e3e6f0; }
 </style>

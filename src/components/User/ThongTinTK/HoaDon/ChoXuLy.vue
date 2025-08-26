@@ -116,7 +116,8 @@
                     <button
                       v-if="canCancelOrder(order.trangthai)"
                       class="btn btn-danger"
-                      @click="confirmCancelOrder(order.id_hd)"
+                      :disabled="cancelLoadingId === order.id_hd"
+                      @click="confirmCancelOrder(order)"
                       title="Hủy đơn hàng"
                     >
                       <i class="bi bi-x-circle"></i>
@@ -146,8 +147,22 @@ import Historybar from '@/components/User/Title/Historybar.vue'
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import useHoaDonTheoTaiKhoan from '../../LoadDB/HoaDon' // chỉnh path theo dự án
+import useTrangThaiThanhToan from '../../LoadDB/UPDHoaDon'
 
-// Helper đọc id_tk an toàn (không fallback 2)
+// 👉 SweetAlert2
+import Swal from 'sweetalert2'
+import 'sweetalert2/dist/sweetalert2.min.css'
+
+// Toast cấu hình sẵn
+const Toast = Swal.mixin({
+  toast: true,
+  position: 'top-end',
+  showConfirmButton: false,
+  timer: 1800,
+  timerProgressBar: true
+})
+
+// Helper đọc id_tk an toàn
 function readIdTk() {
   if (typeof window === 'undefined') return null
   const s1 = sessionStorage.getItem('id_tk')
@@ -175,10 +190,14 @@ export default {
       fetchHoaDonTheoTaiKhoan, setPage, setPageSize
     } = useHoaDonTheoTaiKhoan()
 
+    // Composable cập nhật trạng thái thanh toán/đơn hàng
+    const { updateTrangThai, updateTrangThaiById } = useTrangThaiThanhToan()
+
     const idTk = ref(readIdTk())
 
     const searchKeyword = ref('')
     const itemsPerPage = ref(10)
+    const cancelLoadingId = ref(null) // id_hd đang xử lý hủy
 
     // Parse dd/MM/yyyy hoặc ISO
     const parseVNDate = (s) => {
@@ -190,7 +209,7 @@ export default {
       return new Date(s)
     }
 
-    // ✅ Lọc các order đang xử lý: gồm 'Đang xử lý' và 'Chờ xử lý', rồi filter theo keyword
+    // ✅ Lọc các order đang xử lý: 'Đang xử lý' và 'Chờ xử lý', rồi filter theo keyword
     const filteredOrders = computed(() => {
       let filtered = orders.value.filter(o => ['Đang xử lý', 'Chờ xử lý'].includes(o?.trangthai))
 
@@ -231,14 +250,14 @@ export default {
     const getPaymentMethodText = (method) => {
       switch (method) {
         case 'COD': return 'Thanh toán khi nhận hàng'
-       
         case 'QR': return 'Thanh toán QR Code'
         case 'MOMO': return 'Ví MoMo'
         case 'VNPAY': return 'VNPay'
         default: return method ?? '—'
       }
     }
-    const truncateText = (text, maxLength) => !text ? '-' : (text.length > maxLength ? text.substring(0, maxLength) + '...' : text)
+    const truncateText = (text, maxLength) =>
+      !text ? '-' : (text.length > maxLength ? text.substring(0, maxLength) + '...' : text)
 
     // Chỉ cho hủy khi trạng thái là "Chờ xử lý"
     const canCancelOrder = (status) => status === 'Chờ xử lý'
@@ -262,9 +281,52 @@ export default {
       await changePage(1)
     }
 
-    const confirmCancelOrder = (orderId) => {
-      // TODO: gọi proc cập nhật trạng thái => 'Đã hủy'
-      alert(`(Demo) Hủy đơn ${orderId} — thêm API hủy đơn tại đây!`)
+    /**
+     * Hủy đơn với SweetAlert2:
+     *  - Confirm dialog (warning)
+     *  - preConfirm gọi proc update
+     *  - Thành công: toast + reload
+     *  - Lỗi: hiển thị ngay trong dialog
+     */
+    const confirmCancelOrder = async (order) => {
+      const result = await Swal.fire({
+        title: `Hủy đơn #${order.id_hd}?`,
+        text: 'Hành động này sẽ cập nhật trạng thái thành "Đã hủy".',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Hủy đơn',
+        cancelButtonText: 'Không',
+        reverseButtons: true,
+        showLoaderOnConfirm: true,
+        allowOutsideClick: () => !Swal.isLoading(),
+        preConfirm: async () => {
+          try {
+            cancelLoadingId.value = order.id_hd
+
+            // 1) Thử cập nhật qua "mã giao dịch" = id_hd (tùy hệ thống của bạn)
+            let rs = await updateTrangThai(String(order.id_hd), 'Đã hủy')
+
+            // 2) Nếu không thành công -> fallback trực tiếp theo id_hd
+            if (!rs || rs.success !== 1) {
+              const fb = await updateTrangThaiById(order.id_hd, 'Đã hủy')
+              if (!fb || !fb.affected_rows) {
+                throw new Error('Không thể hủy đơn hàng này.')
+              }
+            }
+            return true
+          } catch (err) {
+            Swal.showValidationMessage(err?.message || 'Có lỗi xảy ra khi hủy đơn.')
+            return false
+          } finally {
+            cancelLoadingId.value = null
+          }
+        }
+      })
+
+      if (result.isConfirmed) {
+        await refreshData()
+        Toast.fire({ icon: 'success', title: `Đã hủy đơn #${order.id_hd}` })
+      }
     }
 
     // Lần đầu
@@ -292,7 +354,7 @@ export default {
       loading, error,
 
       // ui state
-      searchKeyword, itemsPerPage, totalPages,
+      searchKeyword, itemsPerPage, totalPages, cancelLoadingId,
 
       // computed
       filteredOrders, paginatedOrders,

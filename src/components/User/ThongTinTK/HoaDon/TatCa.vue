@@ -100,7 +100,8 @@
                     <button
                       v-if="canCancelOrder(order.trangthai)"
                       class="btn btn-danger"
-                      @click="confirmCancelOrder(order.id_hd)"
+                      :disabled="cancelLoadingId === order.id_hd"
+                      @click="confirmCancelOrder(order)"
                       title="Hủy đơn hàng"
                     >
                       <i class="bi bi-x-circle"></i>
@@ -128,7 +129,21 @@ import Slidebar from '@/components/User/Title/Slidebar.vue'
 import Historybar from '@/components/User/Title/Historybar.vue'
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
-import useHoaDonTheoTaiKhoan from '../../LoadDB/HoaDon' // chỉnh đường dẫn theo dự án của bạn
+import useHoaDonTheoTaiKhoan from '../../LoadDB/HoaDon'
+import useTrangThaiThanhToan from '../../LoadDB/UPDHoaDon'
+
+// 👉 SweetAlert2
+import Swal from 'sweetalert2'
+import 'sweetalert2/dist/sweetalert2.min.css'
+
+// Toast cấu hình sẵn
+const Toast = Swal.mixin({
+  toast: true,
+  position: 'top-end',
+  showConfirmButton: false,
+  timer: 1800,
+  timerProgressBar: true
+})
 
 // Helper đọc id_tk an toàn
 function readIdTk() {
@@ -157,10 +172,13 @@ export default {
       fetchHoaDonTheoTaiKhoan, setPage, setPageSize
     } = useHoaDonTheoTaiKhoan()
 
+    const { updateTrangThai, updateTrangThaiById } = useTrangThaiThanhToan()
+
     const idTk = ref(readIdTk())
 
     const searchKeyword = ref('')
     const itemsPerPage = ref(10)
+    const cancelLoadingId = ref(null) // id_hd đang hủy
 
     const parseVNDate = (s) => {
       if (!s) return null
@@ -209,7 +227,6 @@ export default {
     const getPaymentMethodText = (method) => {
       switch (method) {
         case 'COD': return 'Thanh toán khi nhận hàng'
-       
         case 'QR': return 'Thanh toán QR Code'
         case 'MOMO': return 'Ví MoMo'
         case 'VNPAY': return 'VNPay'
@@ -239,9 +256,53 @@ export default {
       await changePage(1)
     }
 
-    const confirmCancelOrder = (orderId) => {
-      // TODO: gọi proc hủy đơn
-      alert(`(Demo) Hủy đơn ${orderId} — thêm API hủy đơn tại đây!`)
+    /**
+     * Hủy đơn với SweetAlert2:
+     *  - Confirm dialog (warning)
+     *  - preConfirm gọi proc update
+     *  - Thành công: toast + reload
+     *  - Lỗi: hiển thị ngay trong dialog
+     */
+    const confirmCancelOrder = async (order) => {
+      const result = await Swal.fire({
+        title: `Hủy đơn #${order.id_hd}?`,
+        text: 'Hành động này sẽ cập nhật trạng thái thành "Đã hủy".',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Hủy đơn',
+        cancelButtonText: 'Không',
+        reverseButtons: true,
+        showLoaderOnConfirm: true,
+        allowOutsideClick: () => !Swal.isLoading(),
+        preConfirm: async () => {
+          try {
+            cancelLoadingId.value = order.id_hd
+
+            // 1) Thử cập nhật qua "mã giao dịch" = id_hd
+            let rs = await updateTrangThai(String(order.id_hd), 'Đã hủy')
+
+            // 2) Nếu không thành công -> fallback trực tiếp theo id_hd
+            if (!rs || rs.success !== 1) {
+              const fb = await updateTrangThaiById(order.id_hd, 'Đã hủy')
+              if (!fb || !fb.affected_rows) {
+                throw new Error('Không thể hủy đơn hàng này.')
+              }
+            }
+
+            return true
+          } catch (err) {
+            Swal.showValidationMessage(err?.message || 'Có lỗi xảy ra khi hủy đơn.')
+            return false
+          } finally {
+            cancelLoadingId.value = null
+          }
+        }
+      })
+
+      if (result.isConfirmed) {
+        await refreshData()
+        Toast.fire({ icon: 'success', title: `Đã hủy đơn #${order.id_hd}` })
+      }
     }
 
     // Lần đầu
@@ -270,6 +331,7 @@ export default {
       searchKeyword,
       itemsPerPage, totalPages,
       filteredOrders, paginatedOrders,
+      cancelLoadingId,
       // helpers
       formatDate, formatCurrency, getStatusClass, getPaymentMethodText, truncateText, canCancelOrder,
       // actions
