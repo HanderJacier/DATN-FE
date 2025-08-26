@@ -10,7 +10,6 @@
         <div>
           <div class="fw-semibold small">{{ product.tensanpham }}</div>
           <div class="text-muted small">Phân loại: {{ product.ram }}, {{ product.mausac }}</div>
-          <!-- không dùng cái nào nữa thì xóa đi -->
         </div>
       </div>
 
@@ -19,6 +18,7 @@
           <div class="text-danger fw-bold">
             {{ giaHienTai.toLocaleString() }}đ
           </div>
+
           <template v-if="isGiamGiaValid">
             <div class="small text-muted">
               <span class="text-decoration-line-through me-2">{{ product.dongia.toLocaleString() }}đ</span>
@@ -28,9 +28,15 @@
               Hết hạn: {{ formatDate(product.hangiamgia) }}
             </div>
           </template>
-
         </div>
-        <button class="btn btn-primary px-5 py-2 fw-bold" @click="buyNow">Mua ngay</button>
+
+        <button
+          class="btn btn-primary px-5 py-2 fw-bold"
+          @click="buyNow"
+          :disabled="!canBuy"
+          :title="!canBuy ? (isDiscontinued ? 'Sản phẩm đã ngừng bán' : 'Sản phẩm đã hết hàng') : 'Mua ngay'">
+          {{ canBuy ? 'Mua ngay' : (isDiscontinued ? 'Ngừng bán' : 'Hết hàng') }}
+        </button>
       </div>
     </div>
 
@@ -40,7 +46,6 @@
         <div class="row">
           <!-- Hình ảnh & thông số -->
           <div class="col-md-6">
-            <!-- Carousel -->
             <!-- Carousel -->
             <div class="position-relative">
               <transition name="fade" mode="out-in">
@@ -60,7 +65,6 @@
                 <span class="visually-hidden">Next</span>
               </button>
             </div>
-
 
             <!-- Thumbnails -->
             <div class="d-flex flex-wrap gap-2 mt-3 justify-content-center">
@@ -85,8 +89,7 @@
                   <div class="d-flex align-items-start gap-2">
                     <i class="bi bi-box fs-4 text-primary"></i>
                     <div>Bảo hành 12 tháng tại trung tâm bảo hành chính hãng. 1 đổi 1 trong 30 ngày nếu có lỗi phần cứng
-                      từ
-                      nhà sản xuất</div>
+                      từ nhà sản xuất</div>
                   </div>
                 </div>
               </div>
@@ -103,8 +106,7 @@
                   <div class="d-flex align-items-start gap-2">
                     <i class="bi bi-shield-check fs-4 text-primary"></i>
                     <div>Giá sản phẩm <strong>Đã bao gồm thuế VAT</strong>, giúp bạn yên tâm và dễ dàng trong việc tính
-                      toán
-                      chi phí</div>
+                      toán chi phí</div>
                   </div>
                 </div>
               </div>
@@ -166,11 +168,8 @@
               <div class="d-flex justify-content">
                 <div class="card border-0 shadow-sm rounded-4" style="max-width: 700px; width: 500px;">
                   <div class="card-body">
-                    <h6 class="text-uppercase text-secondary fw-semibold mb-3">
-                      Giá bán
-                    </h6>
+                    <h6 class="text-uppercase text-secondary fw-semibold mb-3">Giá bán</h6>
 
-                    <!--Giá tổng và giá giảm-->
                     <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
                       <span class="fw-bold fs-3 text-danger">
                         {{ giaHienTai.toLocaleString('de-DE') }}đ
@@ -206,24 +205,19 @@
                     {{ product.mausac }}
                   </button>
                 </div>
-
-                <!-- Phiên bản
-                <div class="option-group">
-                  <label class="fw-semibold text-secondary me-3">Phiên bản:</label>
-                  <button class="option-btn active">
-                    {{ product.ram }} {{ product.gpuMemory }}
-                  </button>
-                </div> -->
               </div>
 
               <div class="d-flex justify-content-center mt-5 align-items-center flex-wrap gap-3">
                 <ThichSanPham :productId="product.id_sp" />
-                <template v-if="product.soluong > 0">
+
+                <!-- CTA theo trạng thái -->
+                <template v-if="canBuy">
                   <div class="d-flex gap-2">
                     <!-- Nút thêm vào giỏ -->
                     <button
                       class="btn btn-outline-primary d-flex align-items-center justify-content-center gap-2 px-3 py-2 rounded-3 shadow-sm fw-semibold"
-                      style="min-width: 180px; height: 44px; white-space: nowrap;" @click="addToCart">
+                      style="min-width: 180px; height: 44px; white-space: nowrap;"
+                      @click="addToCart">
                       <i class="bi bi-cart-fill fs-5"></i>
                       <span>Thêm vào giỏ</span>
                       <span v-if="cartQuantity > 0" class="badge bg-warning text-dark ms-2">
@@ -234,24 +228,26 @@
                     <!-- Nút mua ngay -->
                     <button
                       class="btn btn-primary d-flex align-items-center justify-content-center gap-2 px-3 py-2 rounded-3 shadow-sm fw-semibold"
-                      style="min-width: 180px; height: 44px;" @click="buyNow">
+                      style="min-width: 180px; height: 44px;"
+                      @click="buyNow">
                       <span>Mua ngay</span>
                     </button>
                   </div>
                 </template>
 
-                <!-- Hết hàng -->
+                <!-- Hết hàng / Ngừng bán -->
                 <template v-else>
                   <div
-                    class="btn btn-danger d-flex align-items-center justify-content-center  gap-2 px-3 py-2 rounded-3 shadow-sm fw-semibold"
+                    class="btn d-flex align-items-center justify-content-center gap-2 px-3 py-2 rounded-3 shadow-sm fw-semibold"
+                    :class="isDiscontinued ? 'btn-secondary' : 'btn-danger'"
                     style="font-size: 1.1rem;">
-                    <i class="fas fa-exclamation-circle me-2" style="font-size: 1.3rem;"></i>
-                    <span class="fw-bold text-uppercase">Sản phẩm đã hết hàng</span>
+                    <i class="fas me-2" :class="isDiscontinued ? 'fa-ban' : 'fa-exclamation-circle'" style="font-size: 1.3rem;"></i>
+                    <span class="fw-bold text-uppercase">
+                      {{ isDiscontinued ? 'Sản phẩm ngừng bán' : 'Sản phẩm đã hết hàng' }}
+                    </span>
                   </div>
                 </template>
-
               </div>
-
 
               <!-- Ưu đãi cho sinh viên -->
               <div class="p-2 mt-3"
@@ -265,7 +261,6 @@
                   </li>
                 </ul>
               </div>
-
 
               <!--Hình ảnh vu vơ-->
               <div class="mt-2" style="  border-radius: 16px;">
@@ -292,7 +287,7 @@
                     mua
                     sim TechMartVN kèm máy.</li>
                   <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Tặng thêm 1 tháng bảo hành.</li>
-                  <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Liên hệ TechmartVN để được tư
+                  <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Liên hệ TechMartVN để được tư
                     vấn
                     giá tốt nhất cho khách hàng doanh nghiệp khi mua số lượng nhiều.</li>
                 </ul>
@@ -358,7 +353,6 @@ const formatDate = (dateString) => {
   })
 }
 
-
 const isGiamGiaValid = computed(() => {
   if (!product.value?.giamgia || product.value.giamgia >= product.value.dongia) {
     return false
@@ -371,15 +365,26 @@ const isGiamGiaValid = computed(() => {
   return today < hanGiamGia
 })
 
-
 const giaHienTai = computed(() => {
   return isGiamGiaValid.value ? product.value.giamgia : product.value.dongia
 })
 
-const tinhPhanTramGiamGia = () => {
-  return isGiamGiaValid.value ? product.value.loaigiamTen : 0
+/** Sửa cho đúng cách gọi ở template */
+const tinhPhanTramGiamGia = (dongia, giamgia) => {
+  if (!giamgia || giamgia >= dongia) return 0
+  return Math.round((1 - giamgia / dongia) * 100)
 }
 
+/* ====== Trạng thái bán & tồn kho ====== */
+const isDiscontinued = computed(() => {
+  const st = String(product.value?.trangthai || '').trim().toUpperCase()
+  return st === 'N'
+})
+const isOutOfStock = computed(() => {
+  const sl = Number(product.value?.soluong ?? 0)
+  return sl <= 0
+})
+const canBuy = computed(() => !isDiscontinued.value && !isOutOfStock.value)
 
 const changeImage = (index) => {
   currentIndex.value = index
@@ -396,6 +401,10 @@ const nextImage = () => {
 }
 
 const addToCart = () => {
+  if (!canBuy.value) {
+    alert(isDiscontinued.value ? 'Sản phẩm đã ngừng bán' : 'Sản phẩm đã hết hàng')
+    return
+  }
   if (cartQuantity.value + 1 > product.value.soluong) {
     alert('Không đủ số lượng tồn kho')
     return
@@ -404,6 +413,10 @@ const addToCart = () => {
 }
 
 const buyNow = () => {
+  if (!canBuy.value) {
+    alert(isDiscontinued.value ? 'Sản phẩm đã ngừng bán' : 'Sản phẩm đã hết hàng')
+    return
+  }
   addToCart()
   router.push('/giohang').then(() => window.location.reload())
 }
@@ -469,7 +482,6 @@ watch(
 )
 </script>
 
-
 <style scoped>
 .fixed-product-img {
   max-width: 100%;
@@ -488,14 +500,12 @@ watch(
   width: 45px;
   height: 45px;
   background-color: #999;
-  /* màu xám */
   border-radius: 50%;
   top: 50%;
   transform: translateY(-50%);
   opacity: 1;
   transition: background-color 0.3s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  /* bóng đổ nhẹ */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -504,12 +514,10 @@ watch(
 .carousel-control-prev-icon,
 .carousel-control-next-icon {
   filter: brightness(0) invert(1);
-  /* chuyển sang màu trắng */
   width: 20px;
   height: 20px;
   background-size: 100% 100%;
 }
-
 
 .table th {
   width: 40%;
@@ -522,7 +530,6 @@ watch(
   padding: 8px;
 }
 
-
 /* Giá sản phẩm */
 .price-box {
   background: linear-gradient(180deg, #ffffff 0%, #f2f7ff 100%);
@@ -530,10 +537,7 @@ watch(
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.03);
   border-radius: 12px;
   min-width: 320px;
-  /* cái này là chiều rộng*/
   padding: 16px 24px;
-  /* cài này là khoảng cách bên tróng */
-
 }
 
 .original-price {
@@ -541,7 +545,6 @@ watch(
   text-decoration: line-through;
   color: #6c757d;
 }
-
 
 .icon-circle {
   display: flex;
@@ -585,7 +588,6 @@ watch(
   font-weight: 600;
   box-shadow: 0 2px 6px rgba(13, 110, 253, 0.15);
 }
-
 
 /*nút điều khiển*/
 .fade-enter-active,
