@@ -145,7 +145,7 @@
       </div>
 
       <!-- Phân trang -->
-      <nav v-if="totalPages > 1" class="mt-4">
+        <nav v-if="totalPages > 1" class="mt-4">
         <ul class="pagination justify-content-center">
           <li class="page-item" :class="{ disabled: currentPage === 1 }">
             <button class="page-link" @click="changePage(currentPage - 1)">Trước</button>
@@ -276,7 +276,7 @@ export default {
     const fromDate = ref('')
     const toDate = ref('')
     const currentPage = ref(1)
-    const pageSize = ref(10)
+    const pageSize = ref(100)
     const totalOrders = ref(0)
     const showDetailModal = ref(false)
     const selectedOrderId = ref(null)

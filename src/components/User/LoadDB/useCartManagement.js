@@ -235,7 +235,9 @@ export default function useCartManagement() {
   };
 
   const clearCartOnLogout = () => {
-    clearCart();
+    cart.value = [];
+    localStorage.removeItem("cart");
+    window.dispatchEvent(new CustomEvent("cartUpdated"));
   };
 
   // Clear toàn bộ giỏ hàng

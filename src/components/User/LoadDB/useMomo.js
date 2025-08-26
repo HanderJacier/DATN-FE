@@ -1,116 +1,116 @@
 import { ref } from "vue";
 import { usePostData } from "../../component_callApi/callAPI";
+import CryptoJS from "crypto-js";
 
 export default function useMoMo() {
   const processing = ref(false);
   const error = ref("");
   const { data: apiResponse, callAPI } = usePostData();
 
+  // Hàm tạo URL thanh toán MoMo + lưu hóa đơn vào DB
   const createPaymentUrl = async (orderData) => {
     processing.value = true;
     error.value = "";
 
     try {
-      // Bước 1: Tạo đơn hàng với trạng thái "Chờ thanh toán"
-      const orderRequest = {
+      // 🔹 transactionId duy nhất cho thanh toán
+      const transactionId = `MM${Date.now()}`;
+
+      // 1. Gọi procedure tạo hóa đơn điện tử
+      const invoiceRequest = {
         params: {
-          p_hoveten: orderData.customerInfo.name,
-          p_sodienthoai: orderData.customerInfo.phone,
+          p_id_hd: orderData.id_hd, // id hóa đơn gốc đã có trong DB
+          p_id_hoa_don: transactionId, // dùng transactionId làm mã hóa đơn điện tử
+          p_khach_hang: orderData.customerInfo.name,
+          p_so_dien_thoai: orderData.customerInfo.phone,
           p_email: orderData.customerInfo.email || null,
-          p_diachi: orderData.customerInfo.address,
-          p_noidung: orderData.note || "Đơn hàng MoMo từ website (Demo)",
-          p_trangthai: "Chờ thanh toán",
-          p_sanphams: JSON.stringify(
+          p_dia_chi: orderData.customerInfo.address,
+          p_phuong_thuc_thanh_toan: "MOMO",
+          p_tong_tien: orderData.finalAmount,
+          p_ma_giao_dich: transactionId,
+          p_chi_tiet_san_pham: JSON.stringify(
             orderData.items.map((item) => ({
-              sanpham: item.id,
-              dongia: item.price,
-              soluong: item.quantity,
+              ten_san_pham: item.name,
+              so_luong: item.quantity,
+              don_gia: item.price,
+              thanh_tien: item.price * item.quantity,
             }))
           ),
         },
       };
 
-      await callAPI("WBH_US_CRT_DAT_HANG", orderRequest);
-      const orderResult = apiResponse.value[0];
+      await callAPI("WBH_US_CRT_HOA_DON_DIEN_TU", invoiceRequest);
 
-      if (orderResult.rtn_value !== 0) {
-        throw new Error(orderResult.message || "Lỗi tạo đơn hàng");
+      const invoiceResult = apiResponse.value[0];
+      if (!invoiceResult || invoiceResult.rtn_value < 0) {
+        throw new Error(
+          invoiceResult?.message || "Không tạo được hóa đơn điện tử"
+        );
       }
 
-      const hoadonId = orderResult.id_hd;
+      const hoadonId = invoiceResult.id_hd;
 
-      // Bước 2: Tạo bản ghi thanh toán tạm
-      const tempTransactionId = `MOMO_TEMP_${Date.now()}`;
-      const paymentRequest = {
-        params: {
-          p_hoadon: hoadonId,
-          p_phuongthuc: "MOMO",
-          p_sotien: orderData.finalAmount,
-          p_magiaodich: tempTransactionId,
-          p_taikhoan: orderData.customerInfo.id_tk || null,
-        },
+      // 2. Tạo yêu cầu MoMo
+      const endpoint = import.meta.env.VITE_MOMO_ENDPOINT;
+      const partnerCode = import.meta.env.VITE_MOMO_PARTNER_CODE;
+      const accessKey = import.meta.env.VITE_MOMO_ACCESS_KEY;
+      const secretKey = import.meta.env.VITE_MOMO_SECRET_KEY;
+      const redirectUrl = import.meta.env.VITE_RETURN_URL;
+      const ipnUrl = import.meta.env.VITE_NOTIFY_URL;
+
+      const orderId = transactionId;
+      const requestId = transactionId;
+      const orderInfo = `Thanh toán hóa đơn ${hoadonId}`;
+      const amount = orderData.finalAmount.toString();
+      const requestType = "captureWallet";
+
+      const rawSignature = `accessKey=${accessKey}&amount=${amount}&extraData=&ipnUrl=${ipnUrl}&orderId=${orderId}&orderInfo=${orderInfo}&partnerCode=${partnerCode}&redirectUrl=${redirectUrl}&requestId=${requestId}&requestType=${requestType}`;
+      const signature = CryptoJS.HmacSHA256(rawSignature, secretKey).toString();
+
+      const requestBody = {
+        partnerCode,
+        accessKey,
+        requestId,
+        amount,
+        orderId,
+        orderInfo,
+        redirectUrl,
+        ipnUrl,
+        extraData: "",
+        requestType,
+        signature,
+        lang: "vi",
       };
 
-      await callAPI("WBH_US_CRT_THANH_TOAN", paymentRequest);
-      const paymentResult = apiResponse.value[0];
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      });
+      const result = await response.json();
 
-      if (!paymentResult.id_tt) {
-        throw new Error("Lỗi tạo bản ghi thanh toán tạm");
+      if (result.resultCode !== 0) {
+        throw new Error(result.message || "Lỗi từ MoMo API");
       }
 
-      // Lưu thông tin pending để xử lý callback
+      // 3. Lưu localStorage để xử lý callback
       localStorage.setItem(
         "pendingMoMoOrder",
-        JSON.stringify({ hoadonId, tempTransactionId })
+        JSON.stringify({ hoadonId, transactionId })
       );
 
-      // Bước 3: Giả lập MoMo (Demo mode)
-      const orderId = `MOMO_${hoadonId}_${Date.now()}`;
-      const demoPaymentUrl = `${window.location.origin}/payment/momo-demo?orderId=${orderId}&amount=${orderData.finalAmount}&hoadonId=${hoadonId}`;
       processing.value = false;
-
       return {
         success: true,
-        paymentUrl: demoPaymentUrl,
-        deeplink: `momo://payment?orderId=${orderId}`,
-        qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
-          demoPaymentUrl
-        )}`,
-        orderId,
+        paymentUrl: result.payUrl,
         hoadonId,
-        isDemo: true,
-        message: "DEMO MODE: Thanh toán MoMo giả lập",
+        orderId,
+        message: "Đã tạo yêu cầu thanh toán MoMo",
       };
     } catch (err) {
       processing.value = false;
       error.value = err.message;
-      return {
-        success: false,
-        message: "Lỗi xử lý thanh toán MoMo: " + err.message,
-      };
-    }
-  };
-
-  const redirectToPayment = (paymentUrl, isDemo, hoadonId) => {
-    if (isDemo) {
-      window.location.href = paymentUrl; // Chuyển hướng đến MoMoDemo.vue
-    }
-  };
-
-  const openMoMoApp = (deeplink, isDemo, hoadonId, orderId) => {
-    if (isDemo) {
-      alert("DEMO: Mở ứng dụng MoMo giả lập...");
-      setTimeout(() => {
-        const success = Math.random() > 0.3; // 70% success rate
-        const returnUrl = `${window.location.origin}/return?status=${
-          success ? "success" : "failed"
-        }&orderId=${orderId}&hoadonId=${hoadonId}&resultCode=${
-          success ? 0 : 1
-        }&message=${encodeURIComponent(
-          success ? "Thanh toán thành công" : "Thanh toán thất bại"
-        )}`;
-        window.location.href = returnUrl;
-      }, 1500);
+      return { success: false, message: err.message };
     }
   };
 
@@ -118,7 +118,5 @@ export default function useMoMo() {
     processing,
     error,
     createPaymentUrl,
-    redirectToPayment,
-    openMoMoApp,
   };
 }

@@ -82,7 +82,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Catalog from '@/components/User/Title/Catalog.vue'
 import useSanPhamSearch from '@/components/User/LoadDB/Header.js'
-
+import useCartManagement from '../LoadDB/useCartManagement.js' // ✅ import hàm xóa giỏ hàng
 // ✅ import ảnh đúng chuẩn Vite
 import logoImg from '@/assets/logotechmart.png'
 import cartImg from '@/assets/cart.png'
@@ -98,7 +98,7 @@ export default {
     const selectedHint = ref(null)
     const showSuggestions = ref(false)
     const filteredProducts = ref([])
-
+    const { clearCart, clearCartOnLogout } = useCartManagement() // ✅ lấy hàm xóa giỏ hàng
     const isDropdownOpen = ref(false)
     const user = ref(null)
     const cartCount = ref(0)
@@ -120,6 +120,7 @@ export default {
 
     const logout = () => {
       localStorage.removeItem("user")
+      clearCartOnLogout();    
       sessionStorage.removeItem("user")
       user.value = null
       router.push("/")
