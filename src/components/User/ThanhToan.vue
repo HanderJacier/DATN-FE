@@ -78,15 +78,11 @@
 <script>
 import { ref, computed, onMounted } from "vue";
 import { useRouter, onBeforeRouteLeave } from "vue-router";
-import Swal from "sweetalert2";
-import { taoHoaDon, taoThanhToanMoMo } from "../../api.js";
-import usePayment from "./LoadDB/usePayment.js"; // COD file cũ giữ nguyên
 
 export default {
   name: "Payment",
   setup() {
     const router = useRouter();
-    const { processPayment: processCOD, processing } = usePayment();
 
     const orderData = ref({
       customerInfo: { name: "", phone: "", email: "", address: "", id_tk: null },
@@ -97,6 +93,7 @@ export default {
     const agreeTerms = ref(false);
     const errorMessage = ref("");
     const successMessage = ref("");
+    const processing = ref(false);
 
     const finalAmount = computed(() =>
       Math.round(orderData.value.items.reduce((sum, item) => sum + item.price * item.quantity, 0))
@@ -108,7 +105,7 @@ export default {
     const getPaymentButtonText = () =>
       paymentMethod.value === "MOMO" ? "Thanh toán MoMo" : "Xác nhận đặt hàng";
 
-    // Xử lý payment
+    // Xử lý thanh toán
     const processPayment = async () => {
       if (!paymentMethod.value) {
         errorMessage.value = "Vui lòng chọn phương thức thanh toán";
@@ -126,44 +123,26 @@ export default {
       errorMessage.value = "";
       try {
         if (paymentMethod.value === "COD") {
-          await processCOD({ ...orderData.value, finalAmount: finalAmount.value });
+          // gọi API tạo hóa đơn COD
+          await taoHoaDon({ ...orderData.value, finalAmount: finalAmount.value });
           successMessage.value = "Đặt hàng COD thành công!";
         } else if (paymentMethod.value === "MOMO") {
           processing.value = true;
-          const res = await taoThanhToanMoMo({ ...orderData.value, finalAmount: finalAmount.value });
-          if (res.data && res.data.payUrl) {
-            localStorage.setItem("pendingMoMoOrder", JSON.stringify({ ...orderData.value, hoadonId: res.data.hoadonId }));
-            await Swal.fire({
-              title: "Thanh toán MoMo (Demo)",
-              html: `
-                <div class="text-center">
-                  <p>Chọn cách thanh toán MoMo:</p>
-                  <div class="d-grid gap-2">
-                    <button class="btn btn-primary" id="momo-app">Mở app</button>
-                    <button class="btn btn-outline-primary" id="momo-web">Thanh toán web</button>
-                  </div>
-                  <img src="${res.data.qrCodeUrl}" style="max-width:200px;" />
-                </div>
-              `,
-              icon: "info",
-              showCancelButton: true,
-              cancelButtonText: "Hủy",
-              showConfirmButton: false,
-              didOpen: () => {
-                document.getElementById("momo-app").onclick = () => {
-                  window.location.href = res.data.deeplink;
-                  Swal.close();
-                };
-                document.getElementById("momo-web").onclick = () => {
-                  window.location.href = res.data.payUrl;
-                  Swal.close();
-                };
-              },
-             didClose: () => {
-  window.location.href = "http://localhost:5173/"; // Quay về frontend
-}
 
-            });
+          // Gọi API BE để lấy payUrl từ MoMo
+          const res = await fetch("http://localhost:3000/api/payment/momo", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              amount: finalAmount.value,
+              orderId: "ORDER_" + Date.now(),
+            }),
+          });
+          const data = await res.json();
+
+          if (data.payUrl) {
+            // Chuyển hướng sang MoMo
+            window.location.href = data.payUrl;
           } else {
             errorMessage.value = "Không tạo được thanh toán MoMo";
           }
@@ -175,14 +154,12 @@ export default {
       }
     };
 
-    // Load dữ liệu order
     onMounted(() => {
       const saved = localStorage.getItem("orderData");
       if (saved) orderData.value = JSON.parse(saved);
-      else router.replace("/"); // không có order → về trang chủ
+      else router.replace("/");
     });
 
-    // Bắt back button / rời trang
     onBeforeRouteLeave((to, from, next) => {
       if (paymentMethod.value === "MOMO") {
         next("/");

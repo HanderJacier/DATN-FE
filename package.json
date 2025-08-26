@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "start": "json-server --watch db.json",
-    "dev": "vite",
+    "dev": "concurrently \"npm run dev:fe\" \"npm run dev:be\"",
+    "dev:fe": "vite",
+    "dev:be": "node server.js",
     "build": "vite build",
     "preview": "vite preview",
     "e2e:edge:login": "start-server-and-test dev http://localhost:5173 \"node test-e2e/login.edge.test.mjs\"",
@@ -13,12 +15,14 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.7.2",
-    "axios": "^1.10.0",
+    "axios": "^1.11.0",
     "blueimp-md5": "^2.19.0",
     "bootstrap": "^5.3.6",
     "bootstrap-icons": "^1.13.1",
     "chart.js": "^4.5.0",
+    "cors": "^2.8.5",
     "crypto-js": "^4.2.0",
+    "express": "^5.1.0",
     "hashids": "^2.3.0",
     "json-server": "^1.0.0-beta.3",
     "qrcode.vue": "^3.6.0",
@@ -30,6 +34,8 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.3",
+    "concurrently": "^9.2.1",
+    "nodemon": "^3.1.10",
     "start-server-and-test": "^2.0.13",
     "vite": "^6.3.5"
   }
