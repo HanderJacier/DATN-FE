@@ -78,12 +78,12 @@
 <script>
 import { ref, computed, onMounted } from "vue";
 import { useRouter, onBeforeRouteLeave } from "vue-router";
-
+import usePayment from "./LoadDB/usePayment.js"; // COD file cũ giữ nguyên
 export default {
   name: "Payment",
   setup() {
     const router = useRouter();
-
+const { processPayment: processCOD} = usePayment();
     const orderData = ref({
       customerInfo: { name: "", phone: "", email: "", address: "", id_tk: null },
       items: [],
@@ -123,8 +123,7 @@ export default {
       errorMessage.value = "";
       try {
         if (paymentMethod.value === "COD") {
-          // gọi API tạo hóa đơn COD
-          await taoHoaDon({ ...orderData.value, finalAmount: finalAmount.value });
+          await processCOD({ ...orderData.value, finalAmount: finalAmount.value });
           successMessage.value = "Đặt hàng COD thành công!";
         } else if (paymentMethod.value === "MOMO") {
           processing.value = true;
@@ -177,6 +176,7 @@ export default {
       processing,
       finalAmount,
       formatPrice,
+      
       getPaymentButtonText,
       processPayment,
     };
